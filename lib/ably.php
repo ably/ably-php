@@ -108,18 +108,27 @@ class Ably {
          */
         public function request_token($options = array()) {
 
-            $request = array(
+            $request = array_merge(array(
                 'id'         => $this->getopt( 'keyId' ),
                 'expires'    => $this->getopt( 'expires', 3600 ),
                 'capability' => $this->getopt( 'capability' ),
                 'client_id'  => $this->getopt( 'clientId' ),
                 'timestamp'  => $this->getopt( 'timestamp', $this->timestamp() ),
                 'nonce'      => $this->getopt( 'nonce', $this->random() ),
-            );
+            ), $options);
 
-            $signText = implode("\n", $request)."\n";
+            $signText = implode("\n", array(
+                $request['id'],
+                $request['expires'],
+                $request['capability'],
+                $request['client_id'],
+                $request['timestamp'],
+                $request['nonce'],
+            )) . "\n";
 
-            $request['mac'] = $this->getopt('mac', base64_encode(hash_hmac('sha1',$signText, $this->getopt('keyValue'),true)));
+            if (empty($request['mac'])) {
+                $request['mac'] = $this->getopt('mac', base64_encode(hash_hmac('sha1',$signText, $this->getopt('keyValue'),true)));
+            }
 
             $params = urldecode(http_build_query($request));
 

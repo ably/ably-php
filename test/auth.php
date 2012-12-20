@@ -31,16 +31,18 @@ class AuthTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals($id1, $id2);
     }
 
-    public function testAuthoriseWithNewToken() {
+    public function testAuthoriseWithForceOption() {
         sleep(2);
         # first authorise
         $this->ably->authorise();
         # get token after authorise
         $id1 = $this->ably->token->id;
+        var_dump($id1);
         sleep(2);
         # re-authorise
         $this->ably->authorise(array('force' => true));
         $id2 = $this->ably->token->id;
+        var_dump($id2);
         $this->assertNotEquals($id1, $id2);
     }
 
