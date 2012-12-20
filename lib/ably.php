@@ -178,7 +178,7 @@ class Ably {
             $loaded = get_loaded_extensions();
             foreach($modules as $module) {
                 if (!in_array($module, $loaded)) {
-                    die("{$module} extension required.");
+                    throw new Exception("{$module} extension required.");
                 }
             }
         }
