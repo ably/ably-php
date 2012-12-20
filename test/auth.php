@@ -14,17 +14,11 @@ class AuthTest extends PHPUnit_Framework_TestCase {
         ));
     }
 
-    public function testTime() {
-        $this->assertGreaterThanOrEqual(time(), $this->ably->time());
-    }
-
     public function testAuthoriseWithCachedToken() {
-        sleep(2);
         # first authorise
         $this->ably->authorise();
         # get token after authorise
         $id1 = $this->ably->token->id;
-        sleep(2);
         # re-authorise
         $this->ably->authorise();
         $id2 = $this->ably->token->id;
@@ -32,17 +26,13 @@ class AuthTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testAuthoriseWithForceOption() {
-        sleep(2);
         # first authorise
         $this->ably->authorise();
         # get token after authorise
         $id1 = $this->ably->token->id;
-        var_dump($id1);
-        sleep(2);
         # re-authorise
         $this->ably->authorise(array('force' => true));
         $id2 = $this->ably->token->id;
-        var_dump($id2);
         $this->assertNotEquals($id1, $id2);
     }
 

@@ -14,7 +14,7 @@ class RestTest extends PHPUnit_Framework_TestCase {
         ));
     }
 
-    public function test() {
-        //
+    public function testTime() {
+        $this->assertGreaterThanOrEqual(time(), $this->ably->time());
     }
 }
