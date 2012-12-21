@@ -25,7 +25,12 @@ class Ably {
      */
     private static $instance;
     public static function get_instance($options = array()) {
-        if (!self::$instance) self::$instance = new Ably($options);
+        if (!self::$instance) {
+            if (is_string($options)) {
+                $options = array('key' => $options);
+            }
+            self::$instance = new Ably($options);
+        }
         return self::$instance;
     }
 
