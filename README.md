@@ -24,27 +24,22 @@ Or, pass multiple options:
 
 ## Testing
 
-To run the tests you will need to install:
+Before you can run the tests you will need to install some tools:
 
-1. PHPUnit 3.7 (assumes PEAR already installed):
-
+    # Install PHPUnit 3.7 (assumes PEAR already installed)
     $ sudo pear config-set auto_discover 1
     $ sudo pear install pear.phpunit.de/PHPUnit
 
-2. PHPUnit_Selenium package
-
+    # Install the PHPUnit_Selenium package
     $ pear install phpunit/PHPUnit_Selenium
 
-3. Selenium Server
-
+    # Install the Selenium Server
     $ brew install selenium-server-standalone
 
-4. Start Selenium Server
-
+    # Start the Selenium Server
     $ java -jar /path/to/selenium-server-standalone-2.25.0.jar -p 4444
 
-5. Run the tests using the PHPUnit Command-line runner:
-
+    # Finally, run a test
     $ cd /path/to/ably-php/test
     $ phpunit auth
 
