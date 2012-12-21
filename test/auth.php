@@ -24,7 +24,6 @@ class AuthTest extends PHPUnit_Framework_TestCase {
         $this->app->authorise();
         $id2 = $this->app->token->id;
         var_dump('testAuthoriseWithSignedToken');
-        var_dump($this->app->response());
         $this->assertEquals($id1, $id2);
     }
 
@@ -32,7 +31,6 @@ class AuthTest extends PHPUnit_Framework_TestCase {
         $this->app->token = null;
         $this->app->authorise();
         var_dump('testAuthoriseWithUnSignedToken');
-        var_dump($this->app->response());
         $this->assertNotNull($this->app->token);
     }
 
@@ -45,7 +43,6 @@ class AuthTest extends PHPUnit_Framework_TestCase {
         $this->app->authorise(array('force' => true));
         $id2 = $this->app->token->id;
         var_dump('testAuthoriseWithForceOption');
-        var_dump($this->app->response());
         $this->assertNotEquals($id1, $id2);
     }
 
