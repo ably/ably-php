@@ -5,34 +5,47 @@ require_once '../lib/ably.php';
 
 class AuthTest extends PHPUnit_Framework_TestCase {
 
-    protected $ably;
+    protected $app;
 
     protected function setUp() {
-        $this->ably = Ably::get_instance(array(
+        $this->app = Ably::get_instance(array(
             'host' => ABLY_HOST,
-            'key'  => ABLY_KEY
+            'key'  => ABLY_KEY,
+            'debug' => true
         ));
     }
 
-    public function testAuthoriseWithCachedToken() {
+    public function testAuthoriseWithSignedToken() {
         # first authorise
-        $this->ably->authorise();
+        $this->app->authorise();
         # get token after authorise
-        $id1 = $this->ably->token->id;
+        $id1 = $this->app->token->id;
         # re-authorise
-        $this->ably->authorise();
-        $id2 = $this->ably->token->id;
+        $this->app->authorise();
+        $id2 = $this->app->token->id;
+        var_dump('testAuthoriseWithSignedToken');
+        var_dump($this->app->response());
         $this->assertEquals($id1, $id2);
+    }
+
+    public function testAuthoriseWithUnsignedToken() {
+        $this->app->token = null;
+        $this->app->authorise();
+        var_dump('testAuthoriseWithUnSignedToken');
+        var_dump($this->app->response());
+        $this->assertNotNull($this->app->token);
     }
 
     public function testAuthoriseWithForceOption() {
         # first authorise
-        $this->ably->authorise();
+        $this->app->authorise();
         # get token after authorise
-        $id1 = $this->ably->token->id;
+        $id1 = $this->app->token->id;
         # re-authorise
-        $this->ably->authorise(array('force' => true));
-        $id2 = $this->ably->token->id;
+        $this->app->authorise(array('force' => true));
+        $id2 = $this->app->token->id;
+        var_dump('testAuthoriseWithForceOption');
+        var_dump($this->app->response());
         $this->assertNotEquals($id1, $id2);
     }
 

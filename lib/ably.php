@@ -8,6 +8,7 @@ class Ably {
     public $token;
 
     private $settings = array();
+    private $raw;
 
     private static $defaults = array(
         'debug'   => false,
@@ -76,11 +77,13 @@ class Ably {
                 if ($this->token->expires > $this->timestamp()) {
                     if (empty($options['force']) || !$options['force']) {
                         # using cached token
+                        $this->logAction('authorise()', 'using cached token; expires = ' + $this->token->expires);
                         return;
                     }
                 } else {
                     # deleting expired token
                     unset($this->token);
+                    $this->logAction('authorise()', 'deleting expired token');
                 }
             }
             $this->token = $this->request_token($options);
@@ -99,14 +102,14 @@ class Ably {
          */
         public function history($options=array()) {
             $this->authorise();
-            $res = $this->get('baseUri', '/history');
+            $res = $this->get('baseUri', '/history', $this->auth_headers());
             return $res;
         }
 
         /*
          * Request a New Auth Token
          */
-        public function request_token($options = array()) {
+        public function request_token( $options = array() ) {
 
             $request = array_merge(array(
                 'id'         => $this->getopt( 'keyId' ),
@@ -142,9 +145,28 @@ class Ably {
             }
         }
 
-        public function stats($options=array()) {
+        /*
+         * query raw curl response.
+         */
+        public function response($label = null) {
+            if (empty($this->raw)) return;
+            $raw = $this->raw;
+            switch($label) {
+                case null:
+                    $res = $raw; break;
+                case 'first':
+                    $res = $raw[0]; break;
+                case 'last':
+                    $res = $raw[ count($raw)-1 ]; break;
+                default:
+                    $res = $raw[$label];
+            }
+            return $res;
+        }
+
+        public function stats() {
             $this->authorise();
-            $res = $this->get('baseUri', '/stats');
+            $res = $this->get( 'baseUri', '/stats', $this->auth_headers() );
             return $res;
         }
 
@@ -161,14 +183,28 @@ class Ably {
          * Get authentication headers
          */
         private function auth_headers() {
-            $header = array();
+
             if ($this->getopt('method') == 'basic') {
-                $header = array("authorisation: Basic {$this->basicKey}");
+                $header = array("authorisation: Basic {$this->getopt('basicKey')}");
             } else {
                 $header = array("authorisation: Bearer {$this->token->id}");
             }
 
             return $header;
+        }
+
+        /*
+         * Get authentication params
+         */
+        private function auth_params() {
+
+            if ($this->getopt('method') == 'basic') {
+                $params = array('key_id' => $this->getopt('keyId'), 'key_value' => $this->getopt('keyValue'));
+            } else {
+                $params = array("authorisation: Bearer {$this->token->id}");
+            }
+
+            return $params;
         }
 
         /*
@@ -203,15 +239,27 @@ class Ably {
         /*
          * curl wrapper to do GET
          */
-        private function get($key, $path, $header=array()) {
-            return $this->request($this->settings[$key] . $path, $header);
+        private function get($key, $path, $headers=array()) {
+            return $this->request($this->getopt($key) . $path, $headers);
+        }
+
+        /*
+         * log action into logfile / syslog (Only in debug mode)
+         */
+        private function logAction($action, $msg) {
+            if (!$this->getopt('debug')) return;
+
+            # TODO : use logfile or syslog
+            # var_dump for now!
+            var_dump("{$action}:");
+            var_dump($msg);
         }
 
         /*
          * curl wrapper to do POST
          */
         private function post($label, $path, $params=array(), $header=array()) {
-            return $this->request($this->settings[$label] . $path, $header, $params);
+            return $this->request($this->getopt($label) . $path, $header, $params);
         }
 
         /*
@@ -227,6 +275,8 @@ class Ably {
          */
         private function request($url, $header = array(), $params = array()) {
             $ch = curl_init($url);
+            $parts = parse_url($url);
+
             if ($header != null) {
                 curl_setopt ($ch, CURLOPT_HEADER, true);
                 curl_setopt ($ch, CURLOPT_HTTPHEADER, $header);
@@ -236,12 +286,16 @@ class Ably {
                 curl_setopt ($ch, CURLOPT_POSTFIELDS, $params);
             }
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            $response = curl_exec ($ch);
+
+            $raw = curl_exec($ch);
+            $info = curl_getinfo($ch);
+
             curl_close ($ch);
 
-            if ($this->settings['format'] === 'json') {
-                $response = json_decode($response);
-            }
+            $this->raw[$parts['path']] = $raw;
+            $this->logAction('_request()', $info );
+
+            $response = $this->response_format($raw);
 
             if (!empty($response->error)) {
                 $msg = is_string($response->error) ? $response->error : $response->error->reason;
@@ -249,6 +303,18 @@ class Ably {
                 return;
             }
 
+            $this->logAction('_response()', $response );
+            return $response;
+        }
+
+        /*
+         * determine the format to return depending on format setting
+         */
+        private function response_format($raw) {
+            switch ($this->getopt('format')) {
+                case 'json': $response = json_decode($raw); break;
+                default:     $response = $raw;
+            }
             return $response;
         }
 

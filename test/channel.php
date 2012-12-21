@@ -5,12 +5,13 @@ require_once '../lib/ably.php';
 
 class ChannelTest extends PHPUnit_Framework_TestCase {
 
-    protected $ably;
+    protected $app;
 
     protected function setUp() {
-        $this->ably = Ably::get_instance(array(
+        $this->app = Ably::get_instance(array(
             'host' => ABLY_HOST,
-            'key'  => ABLY_KEY
+            'key'  => ABLY_KEY,
+            'debug' => true
         ));
     }
 

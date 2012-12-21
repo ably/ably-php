@@ -5,16 +5,35 @@ require_once '../lib/ably.php';
 
 class RestTest extends PHPUnit_Framework_TestCase {
 
-    protected $ably;
+    protected $app;
 
     protected function setUp() {
-        $this->ably = Ably::get_instance(array(
+        $this->app = Ably::get_instance(array(
             'host' => ABLY_HOST,
-            'key'  => ABLY_KEY
+            'key'  => ABLY_KEY,
+            'debug' => true
         ));
     }
 
     public function testTime() {
-        $this->assertGreaterThanOrEqual(time(), $this->ably->time());
+        $this->assertGreaterThanOrEqual(time(), $this->app->time());
+    }
+
+    public function testHistory() {
+        $res = $this->app->history(array(
+            'start'     => (time()-3600*24)*1000, // yesterday epoch in milliseconds
+            'end'       => time()*1000, // now epoch in milliseconds
+            'limit'     => 100,
+            'direction' => 'forwards', // backwards and forwards?
+            'by'        => 'message', // message, bundle or hour
+        ));
+        // TODO: do a better assertion once the format of the data return is verified
+        $this->assertObjectHasAttribute('name', $res);
+    }
+
+    public function testStats() {
+        $res = $this->app->stats();
+        // TODO: do a better assertion once the format of the data return is verified
+        $this->assertObjectHasAttribute('published', $res);
     }
 }
