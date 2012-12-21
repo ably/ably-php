@@ -2,12 +2,14 @@
 /*
  * Ably Client API (REST) Library
  */
+require_once 'ably/channel.php';
 
 class Ably {
 
     public $token;
 
     private $settings = array();
+    private $channels = array();
     private $raw;
 
     private static $defaults = array(
@@ -93,8 +95,15 @@ class Ably {
          * channel
          */
         public function channel($channelId) {
-            #$res = $this->request("{$this->settings['auhority']}/channels/{$channelId}");
-            # return $channelId;
+            if (empty($this->channels[$channelId])) {
+                $channel = new Channel($channelId);
+                $this->channels[$channelId] = $channel;
+            }
+            return $this->channels[$channelId];
+        }
+
+        public function channel_history($channelId) {
+            $this->get("/channels/{$channelId}", '/events', $this->auth_headers());
         }
 
         /*
@@ -102,7 +111,7 @@ class Ably {
          */
         public function history($options=array()) {
             $this->authorise();
-            $res = $this->get('baseUri', '/history', $this->auth_headers());
+            $res = $this->get('baseUri', '/events', $this->auth_headers());
             return $res;
         }
 
@@ -186,7 +195,7 @@ class Ably {
 
             if ($this->getopt('method') == 'basic') {
                 $header = array("authorisation: Basic {$this->getopt('basicKey')}");
-            } else {
+            } else if (!empty($this->token)) {
                 $header = array("authorisation: Bearer {$this->token->id}");
             }
 
@@ -239,8 +248,8 @@ class Ably {
         /*
          * curl wrapper to do GET
          */
-        private function get($key, $path, $headers=array()) {
-            return $this->request($this->getopt($key) . $path, $headers);
+        private function get($domain, $path, $headers=array()) {
+            return $this->request($this->getopt($domain, $domain) . $path, $headers);
         }
 
         /*
@@ -258,8 +267,8 @@ class Ably {
         /*
          * curl wrapper to do POST
          */
-        private function post($label, $path, $params=array(), $header=array()) {
-            return $this->request($this->getopt($label) . $path, $header, $params);
+        private function post($domain, $path, $params=array(), $header=array()) {
+            return $this->request($this->getopt($domain, $domain) . $path, $header, $params);
         }
 
         /*
