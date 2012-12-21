@@ -12,12 +12,12 @@ Include the library:
 
 Use it like this:
 
-    $ably = Ably::get_instance("{Your-Private-API-Key}");
+    $ably = Ably::get_instance('{Your-Private-API-Key}');
 
 Or, pass multiple options:
 
     $ably = Ably::get_instance(array(
-        'key'    => "{Your-Private-API-Key}",
+        'key'    => '{Your-Private-API-Key}',
         'format' => 'xml',
         'debug'  => true,
     ));
