@@ -42,10 +42,12 @@ class Channel extends Ably {
      * Private methods
      */
         private function get_resource($path) {
+            $this->ably->authorise();
             return $this->ably->get($this->domain, $path, $this->ably->auth_headers());
         }
 
         private function post_resource($path, $params = array()) {
+            $this->ably->authorise();
             return $this->ably->post($this->domain, $path, $this->ably->auth_headers(), $params);
         }
 
