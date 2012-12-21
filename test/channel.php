@@ -16,32 +16,35 @@ class ChannelTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testChannel() {
-        # pending implementation
-        $this->assertFalse(true);
+        $channel0 = $this->app->channel('my_channel');
+        $this->assertEquals('my_channel', $channel0->name);
     }
 
     public function testChannelHistory() {
         # pending implementation
+        $channel0 = $this->app->channel('my_channel');
+        $history = $channel0->history();
         $this->assertFalse(true);
     }
 
     public function testChannelPresence() {
         # pending implementation
-        $this->assertFalse(true);
-    }
-
-    public function testChannelPresenceHistory() {
-        # pending implementation
+        $channel0 = $this->app->channel('my_channel');
+        $presence = $channel0->presence();
         $this->assertFalse(true);
     }
 
     public function testChannelPublish() {
         # pending implementation
+        $channel0 = $this->app->channel('my_channel');
+        $channel0->publish('caphun', 'this is awesome!');
         $this->assertFalse(true);
     }
 
     public function testChannelStats() {
         # pending implementation
+        $channel0 = $this->app->channel('my_channel');
+        $stats = $channel0->stats();
         $this->assertFalse(true);
     }
 

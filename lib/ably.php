@@ -99,16 +99,12 @@ class Ably {
         /*
          * channel
          */
-        public function channel($channelId) {
-            if (empty($this->channels[$channelId])) {
-                $channel = new Channel($channelId);
-                $this->channels[$channelId] = $channel;
+        public function channel($name) {
+            if (empty($this->channels[$name])) {
+                $channel = new Channel(self::$instance, $name);
+                $this->channels[$name] = $channel;
             }
-            return $this->channels[$channelId];
-        }
-
-        public function channel_history($channelId) {
-            $this->get("/channels/{$channelId}", '/events', $this->auth_headers());
+            return $this->channels[$name];
         }
 
         /*
@@ -160,9 +156,9 @@ class Ably {
         }
 
         /*
-         * query raw curl response.
+         * query raw curl responses.
          */
-        public function response($label = null) {
+        public function responses($label = null) {
             if (empty($this->raw)) return;
             $raw = $this->raw;
             switch($label) {
@@ -190,27 +186,26 @@ class Ably {
         }
 
     /*
-     * Private methods
+     * Protected methods
      */
 
         /*
          * Get authentication headers
          */
-        private function auth_headers() {
-
+        protected function auth_headers() {
+            $header = array();
             if ($this->getopt('method') == 'basic') {
                 $header = array("authorisation: Basic {$this->getopt('basicKey')}");
             } else if (!empty($this->token)) {
                 $header = array("authorisation: Bearer {$this->token->id}");
             }
-
             return $header;
         }
 
         /*
          * Get authentication params
          */
-        private function auth_params() {
+        protected function auth_params() {
 
             if ($this->getopt('method') == 'basic') {
                 $params = array('key_id' => $this->getopt('keyId'), 'key_value' => $this->getopt('keyValue'));
@@ -220,6 +215,38 @@ class Ably {
 
             return $params;
         }
+
+        /*
+         * curl wrapper to do GET
+         */
+        protected function get($domain, $path, $headers=array()) {
+            return $this->request($this->getopt($domain, $domain) . $path, $headers);
+        }
+
+        /*
+         * log action into logfile / syslog (Only in debug mode)
+         */
+        protected function logAction($action, $msg) {
+            var_dump($this->getopt('key'));
+            if (!$this->getopt('debug')) return;
+
+            # TODO : use logfile or syslog
+            # var_dump for now!
+            var_dump("{$action}:");
+            var_dump($msg);
+        }
+
+        /*
+         * curl wrapper to do POST
+         */
+        protected function post($domain, $path, $params=array(), $header=array()) {
+            return $this->request($this->getopt($domain, $domain) . $path, $header, $params);
+        }
+
+
+    /*
+     * Private methods
+     */
 
         /*
          * check library dependencies
@@ -248,32 +275,6 @@ class Ably {
          */
         private function getopt($key, $fallback=null) {
             return empty($this->settings[$key]) ? $fallback : $this->settings[$key];
-        }
-
-        /*
-         * curl wrapper to do GET
-         */
-        private function get($domain, $path, $headers=array()) {
-            return $this->request($this->getopt($domain, $domain) . $path, $headers);
-        }
-
-        /*
-         * log action into logfile / syslog (Only in debug mode)
-         */
-        private function logAction($action, $msg) {
-            if (!$this->getopt('debug')) return;
-
-            # TODO : use logfile or syslog
-            # var_dump for now!
-            var_dump("{$action}:");
-            var_dump($msg);
-        }
-
-        /*
-         * curl wrapper to do POST
-         */
-        private function post($domain, $path, $params=array(), $header=array()) {
-            return $this->request($this->getopt($domain, $domain) . $path, $header, $params);
         }
 
         /*
