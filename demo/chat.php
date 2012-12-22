@@ -1,15 +1,18 @@
 <?php
 # include the ably library
+require_once '../config.php';
 require_once '../lib/ably.php';
 
 # private api key
-$api_key = getenv('ABLY_KEY');
+$api_key = ABLY_KEY;
 $channel_name = isset($_REQUEST['channel']) ? $_REQUEST['channel'] : 'chat';
 $event_name = isset($_REQUEST['event']) ? $_REQUEST['event'] : 'guest';
+$host = ABLY_HOST;
+$ws_host = ABLY_WS_HOST;
 
 # instantiate Ably
 $app = new Ably(array(
-    'host' => getenv('ABLY_HOST'),
+    'host' => $host,
     'key'  => $api_key,
     'debug' => true
 ));
@@ -61,7 +64,7 @@ if (!empty($_POST)) {
                         key: '<?= $api_key ?>',
                         encrypted: true,
                         log: {level:4},
-                        wsHost: 'staging-realtime.ably.io'
+                        wsHost: '<?= $ws_host ?>'
                     }),
                     channel = ably.channels.get('<?= $channel_name ?>');
 
