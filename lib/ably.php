@@ -139,9 +139,12 @@ class Ably {
                 $request['nonce'],
             )) . "\n";
 
+            $this->logAction('request_token()', "--signText Start--\n". $signText . "\n--signText End--");
+
             if (empty($request['mac'])) {
-                $request['mac'] = $this->getopt('mac', $this->base64_encode_safe(hash_hmac('sha1',$signText, $this->getopt('keyValue'),true)));
-                $this->logAction('request_token()', 'mac = '. $request['mac']);
+                $hmac = hash_hmac('sha1',$signText, $this->getopt('keyValue'),true);
+                $request['mac'] = $this->getopt('mac', $this->base64_encode_safe($hmac));
+                $this->logAction('request_token()', "\tbase64 = ".base64_encode($hmac)."\n\tmac = {$request['mac']}");
             }
 
             $params = urldecode(http_build_query($request));
@@ -232,8 +235,12 @@ class Ably {
 
             # TODO : use logfile or syslog
             # var_dump for now!
-            var_dump("{$action}:");
-            var_dump($msg);
+            echo "\n\n---\n{$action}:\n";
+            if (is_string($msg)) {
+                echo $msg;
+            } else {
+                var_dump($msg);
+            }
         }
 
         /*
@@ -253,7 +260,6 @@ class Ably {
          */
         private function base64_encode_safe($str) {
             $b64 = base64_encode($str);
-            $this->logAction('base64_encode_safe()', ' str = '. $b64);
             //return strtr(trim($b64,'='),'+/','-_');
             return urlencode($b64);
         }
