@@ -43,5 +43,5 @@ Before you can run the tests you will need to install some tools:
     $ cd /path/to/ably-php/test
     $ phpunit auth
 
-Note: before running the tests ensure you have a config.php file in the root folder (sample provided),
-then provided correct ABLY_HOST (optional) and ABLY_KEY values.
+Note: before running any tests please ensure you have a config.php file in the root folder (see config.php.sample for example).
+ABLY_KEY is required whereas ABLY_HOST is optional as the library defaults to rest.ably.io
