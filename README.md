@@ -18,7 +18,7 @@ Or, pass multiple options:
 
     $ably = new Ably(array(
         'key'    => '{Your-Private-API-Key}',
-        'format' => 'xml',
+        'format' => 'json',
         'debug'  => true,
     ));
 
