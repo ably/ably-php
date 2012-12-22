@@ -228,7 +228,6 @@ class Ably {
          * log action into logfile / syslog (Only in debug mode)
          */
         protected function logAction($action, $msg) {
-            var_dump($this->getopt('key'));
             if (!$this->getopt('debug')) return;
 
             # TODO : use logfile or syslog
