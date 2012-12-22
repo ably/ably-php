@@ -8,7 +8,7 @@ class RestTest extends PHPUnit_Framework_TestCase {
     protected $app;
 
     protected function setUp() {
-        $this->app = Ably::rest(array(
+        $this->app = new Ably(array(
             'host' => ABLY_HOST,
             'key'  => ABLY_KEY,
             'debug' => true

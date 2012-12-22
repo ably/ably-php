@@ -12,11 +12,11 @@ Include the library:
 
 Use it like this:
 
-    $ably = Ably::rest('{Your-Private-API-Key}');
+    $ably = new Ably('{Your-Private-API-Key}');
 
 Or, pass multiple options:
 
-    $ably = Ably::rest(array(
+    $ably = new Ably(array(
         'key'    => '{Your-Private-API-Key}',
         'format' => 'xml',
         'debug'  => true,

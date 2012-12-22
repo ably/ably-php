@@ -21,23 +21,9 @@ class Ably {
     );
 
     /*
-     * Singleton Pattern
-     */
-    private static $instance;
-    public static function rest($options = array()) {
-        if (!self::$instance) {
-            if (is_string($options)) {
-                $options = array('key' => $options);
-            }
-            self::$instance = new Ably($options);
-        }
-        return self::$instance;
-    }
-
-    /*
      * Constructor
      */
-    private function __construct($options = array()) {
+    public function __construct($options = array()) {
 
         # check dependencies
         $this->check_dependencies(['curl', 'json']);
@@ -101,7 +87,7 @@ class Ably {
          */
         public function channel($name) {
             if (empty($this->channels[$name])) {
-                $channel = new Channel(self::$instance, $name);
+                $channel = new Channel($this, $name);
                 $this->channels[$name] = $channel;
             }
             return $this->channels[$name];
