@@ -87,8 +87,7 @@ class Ably {
          */
         public function channel($name) {
             if (empty($this->channels[$name])) {
-                $channel = new Channel($this, $name);
-                $this->channels[$name] = $channel;
+                $this->channels[$name] = new Channel($this, $name);
             }
             return $this->channels[$name];
         }
@@ -133,9 +132,7 @@ class Ably {
                 $this->logAction('request_token()', "\tbase64 = ".base64_encode($hmac)."\n\tmac = {$request['mac']}");
             }
 
-            $params = urldecode(http_build_query($request));
-
-            $res = $this->post('baseUri', '/authorise', $params);
+            $res = $this->post('baseUri', '/authorise', null, $request);
 
             if (!empty($res->access_token)) {
                 return $res->access_token;
@@ -185,9 +182,9 @@ class Ably {
         protected function auth_headers() {
             $header = array();
             if ($this->getopt('method') == 'basic') {
-                $header = array("authorisation: Basic {$this->getopt('basicKey')}");
+                $header = array("authorization: Basic {$this->getopt('basicKey')}");
             } else if (!empty($this->token)) {
-                $header = array("authorisation: Bearer {$this->token->id}");
+                $header = array("authorization: Bearer {$this->token->id}");
             }
             return $header;
         }
@@ -210,7 +207,7 @@ class Ably {
          * curl wrapper to do GET
          */
         protected function get($domain, $path, $headers=array()) {
-            return $this->request($this->getopt($domain, $domain) . $path, $headers);
+            return $this->request($this->getopt($domain, $this->getopt('authority').$domain) . $path, $headers);
         }
 
         /*
@@ -232,8 +229,8 @@ class Ably {
         /*
          * curl wrapper to do POST
          */
-        protected function post($domain, $path, $params=array(), $header=array()) {
-            return $this->request($this->getopt($domain, $domain) . $path, $header, $params);
+        protected function post($domain, $path, $header=array(), $params=array()) {
+            return $this->request($this->getopt($domain, $this->getopt('authority').$domain) . $path, $header, $params);
         }
 
 
@@ -294,13 +291,13 @@ class Ably {
             $ch = curl_init($url);
             $parts = parse_url($url);
 
-            if ($header != null) {
+            if (!empty($header)) {
                 curl_setopt ($ch, CURLOPT_HEADER, true);
                 curl_setopt ($ch, CURLOPT_HTTPHEADER, $header);
             }
-            if ($params != null) {
+            if (!empty($params)) {
                 curl_setopt ($ch, CURLOPT_POST, true);
-                curl_setopt ($ch, CURLOPT_POSTFIELDS, $params);
+                curl_setopt ($ch, CURLOPT_POSTFIELDS, urldecode(http_build_query($params)));
             }
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 

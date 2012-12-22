@@ -29,7 +29,7 @@ class Channel extends Ably {
         }
 
         public function publish($name, $data) {
-            $this->logAction('Channel.publish()', 'name = '. $name);
+            $this->ably->logAction('Channel.publish()', 'name = '. $name);
             return $this->post_resource('/publish', array( 'name' => $name, 'payload' => $data ));
         }
 
@@ -43,12 +43,12 @@ class Channel extends Ably {
      */
         private function get_resource($path) {
             $this->ably->authorise();
-            return $this->get($this->domain, $path, $this->ably->auth_headers());
+            return $this->ably->get($this->domain, $path, $this->ably->auth_headers());
         }
 
         private function post_resource($path, $params = array()) {
             $this->ably->authorise();
-            return $this->post($this->domain, $path, $this->ably->auth_headers(), $params);
+            return $this->ably->post($this->domain, $path, $this->ably->auth_headers(), $params);
         }
 
 }
