@@ -16,11 +16,13 @@ class ChannelTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testChannel() {
+        echo '== testChannel()';
         $channel0 = $this->app->channel('my_channel');
         $this->assertEquals('my_channel', $channel0->name);
     }
 
     public function testChannelHistory() {
+        echo '== testChannelHistory()';
         # pending implementation
         $channel0 = $this->app->channel('my_channel');
         $history = $channel0->history();
@@ -28,6 +30,7 @@ class ChannelTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testChannelPresence() {
+        echo '== testChannelPresence()';
         # pending implementation
         $channel0 = $this->app->channel('my_channel');
         $presence = $channel0->presence();
@@ -35,6 +38,7 @@ class ChannelTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testChannelPublish() {
+        echo '== testChannelPublish()';
         # pending implementation
         $channel0 = $this->app->channel('my_channel');
         $channel0->publish('caphun', 'this is awesome!');
@@ -42,6 +46,7 @@ class ChannelTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testChannelStats() {
+        echo '== testChannelStats()';
         # pending implementation
         $channel0 = $this->app->channel('my_channel');
         $stats = $channel0->stats();
