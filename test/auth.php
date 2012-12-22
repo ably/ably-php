@@ -16,6 +16,7 @@ class AuthTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testAuthoriseWithSignedToken() {
+        echo '== testAuthoriseWithSignedToken()';
         # first authorise
         $this->app->authorise();
         # get token after authorise
@@ -27,12 +28,14 @@ class AuthTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testAuthoriseWithUnsignedToken() {
+        echo '== testAuthoriseWithUnsignedToken()';
         $this->app->token = null;
         $this->app->authorise();
         $this->assertNotNull($this->app->token);
     }
 
     public function testAuthoriseWithForceOption() {
+        echo '== testAuthoriseWithForceOption()';
         # first authorise
         $this->app->authorise();
         # get token after authorise

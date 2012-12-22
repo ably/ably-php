@@ -84,7 +84,7 @@ class Ably {
                 if ($this->token->expires > $this->timestamp()) {
                     if (empty($options['force']) || !$options['force']) {
                         # using cached token
-                        $this->logAction('authorise()', 'using cached token; expires = ' + $this->token->expires);
+                        $this->logAction('authorise()', "\tusing cached token; expires = {$this->token->expires}\n\tfor humans token expires on ". gmdate("r",$this->token->expires));
                         return;
                     }
                 } else {
