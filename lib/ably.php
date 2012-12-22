@@ -140,7 +140,8 @@ class Ably {
             )) . "\n";
 
             if (empty($request['mac'])) {
-                $request['mac'] = $this->getopt('mac', base64_encode(hash_hmac('sha1',$signText, $this->getopt('keyValue'),true)));
+                $request['mac'] = $this->getopt('mac', $this->base64_encode_safe(hash_hmac('sha1',$signText, $this->getopt('keyValue'),true)));
+                $this->logAction('request_token()', 'mac = '. $request['mac']);
             }
 
             $params = urldecode(http_build_query($request));
@@ -247,6 +248,16 @@ class Ably {
     /*
      * Private methods
      */
+
+        /*
+         * URL safe base64 encode
+         */
+        private function base64_encode_safe($str) {
+            $b64 = base64_encode($str);
+            $this->logAction('base64_encode_safe()', ' str = '. $b64);
+            //return strtr(trim($b64,'='),'+/','-_');
+            return urlencode($b64);
+        }
 
         /*
          * check library dependencies
