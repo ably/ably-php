@@ -8,7 +8,7 @@ class ChannelTest extends PHPUnit_Framework_TestCase {
     protected $app;
 
     protected function setUp() {
-        $this->app = Ably::get_instance(array(
+        $this->app = Ably::rest(array(
             'host' => ABLY_HOST,
             'key'  => ABLY_KEY,
             'debug' => true

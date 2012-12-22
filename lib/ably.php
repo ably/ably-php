@@ -24,7 +24,7 @@ class Ably {
      * Singleton Pattern
      */
     private static $instance;
-    public static function get_instance($options = array()) {
+    public static function rest($options = array()) {
         if (!self::$instance) {
             if (is_string($options)) {
                 $options = array('key' => $options);
