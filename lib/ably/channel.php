@@ -28,6 +28,10 @@ class Channel extends Ably {
             return $this->get_resource('/presence');
         }
 
+        public function presence_history($options = array()) {
+            return $this->get_resource('/presence/history');
+        }
+
         public function publish($name, $data) {
             $this->ably->logAction('Channel.publish()', 'name = '. $name);
             return $this->post_resource('/publish', array( 'name' => $name, 'payload' => $data ));

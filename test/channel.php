@@ -37,6 +37,14 @@ class ChannelTest extends PHPUnit_Framework_TestCase {
         $this->assertFalse(true);
     }
 
+    public function testChannelPresenceHistory() {
+        echo '== testChannelPresenceHistory()';
+        # pending implementation
+        $channel0 = $this->app->channel('my_channel');
+        $history = $channel0->presence_history();
+        $this->assertFalse(true);
+    }
+
     public function testChannelPublish() {
         echo '== testChannelPublish()';
         # pending implementation
