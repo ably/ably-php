@@ -2,3 +2,4 @@
 define('ABLY_HOST',    getenv('ABLY_HOST'));
 define('ABLY_KEY',     getenv('ABLY_KEY'));
 define('ABLY_WS_HOST', getenv('ABLY_WS_HOST'));
+define('ABLY_APP_ROOT', dir(__FILE__));

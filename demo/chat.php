@@ -14,8 +14,11 @@ $ws_host = ABLY_WS_HOST;
 $app = new Ably(array(
     'host' => $host,
     'key'  => $api_key,
-    'debug' => true
+    'debug' => 'log'
 ));
+
+# TODO : demo how to use the auth token for real-time connections
+# $authToken = $app->token;
 
 # publish something
 if (!empty($_POST)) {

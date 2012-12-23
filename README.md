@@ -12,15 +12,21 @@ Include the library:
 
 Use it like this:
 
-    $ably = new Ably('{Your-Private-API-Key}');
+    $app = new Ably('{Your-Private-API-Key}');
 
 Or, pass multiple options:
 
-    $ably = new Ably(array(
+    $app = new Ably(array(
         'key'    => '{Your-Private-API-Key}',
         'format' => 'json',
         'debug'  => true,
     ));
+
+Setup a channel and broadcast a message:
+
+    $channel0 = $app->channel('my_channel');
+    $channel0->publish('test', 'hey, this is awesome!');
+
 
 ## Testing
 

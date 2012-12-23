@@ -56,6 +56,8 @@ class Ably {
         $settings['baseUri']   = $settings['authority'] . '/apps/' . $settings['appId'];
 
         $this->settings = $settings;
+
+        return $this->authorise();
     }
 
     /*
@@ -71,7 +73,7 @@ class Ably {
                     if ( empty($options['force']) || !$options['force'] ) {
                         # using cached token
                         $this->logAction( 'authorise()', sprintf("\tusing cached token; expires = %s\n\tfor humans token expires on %s", $this->token->expires, gmdate("r",$this->token->expires)) );
-                        return $this->token;
+                        return $this;
                     }
                 } else {
                     # deleting expired token
@@ -80,6 +82,8 @@ class Ably {
                 }
             }
             $this->token = $this->request_token($options);
+
+            return $this;
         }
 
         /*
@@ -220,15 +224,35 @@ class Ably {
          */
         protected function logAction( $action, $msg ) {
 
-            if ( !$this->getopt('debug') ) return;
+            $debug = $this->getopt('debug');
 
-            # TODO : use logfile or syslog
-            # var_dump for now!
+            if ( !$debug ) return;
+
+            ob_start();
+
             echo "\n\n---\n{$action}:\n";
             if (is_string($msg)) {
                 echo $msg;
             } else {
                 var_dump($msg);
+            }
+
+            $output = ob_get_contents();
+
+            ob_end_clean();
+
+            if ($debug === 'log') {
+                # if ABLY_APP_ROOT is not set then the log is saved inside a sub tmp folder otherwise defaults to root /tmp folder
+                $root = defined('ABLY_APP_ROOT') ? ABLY_APP_ROOT : '';
+                $handle = fopen( $root . '/tmp/ably.log', 'a' );
+                if ($handle) {
+                    fwrite( $handle, $output );
+                    fclose( $handle );
+                } else {
+                    trigger_error("logAction(): Could not write to log. Please ensure you have write access to the tmp/ folder.");
+                }
+            } else {
+                echo $output;
             }
         }
 
