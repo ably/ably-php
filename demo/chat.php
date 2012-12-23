@@ -35,8 +35,8 @@ if (!empty($_POST)) {
     <title>Simple Chat</title>
     <style>
         body { font-family: sans-serif }
-        .chat-window { overflow: hidden; min-width: 320px; width: 100%; height: 500px; border: 2px inset #e1e1e1 }
-        .chat-window-content { overflow: auto; font-size: 12px; line-height: 1.4; color: #888 }
+        .chat-window { overflow: hidden; min-width: 320px; width: 100%; border: 2px inset #e1e1e1 }
+        .chat-window-content { overflow: auto; font-size: 12px; line-height: 1.4; color: #888; height: 300px; }
         .chat-window-content > ul { list-style: none; margin: 0; padding: 0 }
         .chat-window-content > ul > li { border-bottom: 1px solid #e1e1e1; padding: 2px 10px }
         .handle { color: #2f91ff; font-weight: bold }
