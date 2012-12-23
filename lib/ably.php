@@ -26,7 +26,7 @@ class Ably {
     public function __construct( $options = array() ) {
 
         # check dependencies
-        $this->check_dependencies( ['curl', 'json'] );
+        $this->check_dependencies( array('curl', 'json') );
 
         # merge options into defaults
         $settings = array_merge( self::$defaults, $options );
