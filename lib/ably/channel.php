@@ -10,7 +10,7 @@ class Channel extends Ably {
     /*
      * Constructor
      */
-        public function __construct(Ably $ably, $name) {
+        public function __construct( Ably $ably, $name ) {
             $this->ably = $ably;
             $this->name = $name;
             $this->domain = "/channels/{$name}";
@@ -20,39 +20,39 @@ class Channel extends Ably {
     /*
      * Public methods
      */
-        public function history($options = array()) {
-            return $this->get_resource('/events');
+        public function history( $options = array() ) {
+            return $this->get_resource( '/events' );
         }
 
-        public function presence($options = array()) {
-            return $this->get_resource('/presence');
+        public function presence( $options = array() ) {
+            return $this->get_resource( '/presence' );
         }
 
-        public function presence_history($options = array()) {
-            return $this->get_resource('/presence/history');
+        public function presence_history( $options = array() ) {
+            return $this->get_resource( '/presence/history' );
         }
 
-        public function publish($name, $data) {
-            $this->ably->logAction('Channel.publish()', 'name = '. $name);
-            return $this->post_resource('/publish', array( 'name' => $name, 'payload' => $data ));
+        public function publish( $name, $data ) {
+            $this->ably->logAction( 'Channel.publish()', 'name = '. $name );
+            return $this->post_resource( '/publish', array( 'name' => $name, 'payload' => $data ) );
         }
 
-        public function stats($options = array()) {
-            return $this->get_resource('/stats');
+        public function stats( $options = array() ) {
+            return $this->get_resource( '/stats' );
         }
 
 
     /*
      * Private methods
      */
-        private function get_resource($path) {
+        private function get_resource( $path ) {
             $this->ably->authorise();
-            return $this->ably->get($this->domain, $path, $this->ably->auth_headers());
+            return $this->ably->get( $this->domain, $path, $this->ably->auth_headers() );
         }
 
-        private function post_resource($path, $params = array()) {
+        private function post_resource( $path, $params = array() ) {
             $this->ably->authorise();
-            return $this->ably->post($this->domain, $path, $this->ably->auth_headers(), $params);
+            return $this->ably->post( $this->domain, $path, $this->ably->auth_headers(), $params );
         }
 
 }

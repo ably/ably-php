@@ -23,31 +23,31 @@ class Ably {
     /*
      * Constructor
      */
-    public function __construct($options = array()) {
+    public function __construct( $options = array() ) {
 
         # check dependencies
-        $this->check_dependencies(['curl', 'json']);
+        $this->check_dependencies( ['curl', 'json'] );
 
         # merge options into defaults
-        $settings = array_merge(self::$defaults, $options);
+        $settings = array_merge( self::$defaults, $options );
 
         # check key format is correct
-        $this->check_key_format($settings);
+        $this->check_key_format( $settings );
 
         # setup keys
-        list($settings['appId'], $settings['keyId'], $settings['keyValue']) = explode(':', $settings['key']);
+        list( $settings['appId'], $settings['keyId'], $settings['keyValue'] ) = explode( ':', $settings['key'] );
 
         # determine default auth method
-        if (!empty($settings['keyValue'])) {
-            if (empty($settings['clientId'])) {
+        if ( !empty($settings['keyValue']) ) {
+            if ( empty($settings['clientId']) ) {
                 # we have the and do not need to authenticate the client
-                $settings['method'] = 'basic';
-                $settings['basicKey']  = base64_encode($settings['key']);
+                $settings['method']    = 'basic';
+                $settings['basicKey']  = base64_encode( $settings['key'] );
             }
         } else {
             $settings['method'] = 'token';
-            if (!empty($options['authToken'])) {
-                $this->token = json_decode(json_encode(array('id' => $options['authToken'])));
+            if ( !empty($options['authToken']) ) {
+                $this->token = $this->simple_array_to_object( array('id' => $options['authToken']) );
             }
         }
 
@@ -65,13 +65,13 @@ class Ably {
         /*
          * Authorise request
          */
-        public function authorise($options = array()) {
+        public function authorise( $options = array() ) {
             if ( !empty($this->token) ) {
-                if ($this->token->expires > $this->timestamp()) {
-                    if (empty($options['force']) || !$options['force']) {
+                if ( $this->token->expires > $this->timestamp() ) {
+                    if ( empty($options['force']) || !$options['force'] ) {
                         # using cached token
-                        $this->logAction('authorise()', "\tusing cached token; expires = {$this->token->expires}\n\tfor humans token expires on ". gmdate("r",$this->token->expires));
-                        return;
+                        $this->logAction( 'authorise()', sprintf("\tusing cached token; expires = %s\n\tfor humans token expires on %s", $this->token->expires, gmdate("r",$this->token->expires)) );
+                        return $this->token;
                     }
                 } else {
                     # deleting expired token
@@ -85,8 +85,8 @@ class Ably {
         /*
          * channel
          */
-        public function channel($name) {
-            if (empty($this->channels[$name])) {
+        public function channel( $name ) {
+            if ( empty($this->channels[$name]) ) {
                 $this->channels[$name] = new Channel($this, $name);
             }
             return $this->channels[$name];
@@ -95,9 +95,9 @@ class Ably {
         /*
          * history
          */
-        public function history($options=array()) {
+        public function history( $options = array() ) {
             $this->authorise();
-            $res = $this->get('baseUri', '/events', $this->auth_headers());
+            $res = $this->get( 'baseUri', '/events', $this->auth_headers() );
             return $res;
         }
 
@@ -124,31 +124,31 @@ class Ably {
                 $request['nonce'],
             )) . "\n";
 
-            $this->logAction('request_token()', "--signText Start--\n". $signText . "\n--signText End--");
+            $this->logAction( 'request_token()', sprintf("--signText Start--\n%s\n--signText End--", $signText) );
 
-            if (empty($request['mac'])) {
-                $hmac = hash_hmac('sha1',$signText, $this->getopt('keyValue'),true);
-                $request['mac'] = $this->getopt('mac', $this->base64_encode_safe($hmac));
-                $this->logAction('request_token()', "\tbase64 = ".base64_encode($hmac)."\n\tmac = {$request['mac']}");
+            if ( empty($request['mac']) ) {
+                $hmac           = hash_hmac( 'sha1',$signText, $this->getopt('keyValue'),true );
+                $request['mac'] = $this->getopt( 'mac', $this->safe_base64_encode($hmac) );
+                $this->logAction( 'request_token()', sprintf("\tbase64 = %s\n\tmac = %s", base64_encode($hmac), $request['mac']) );
             }
 
-            $res = $this->post('baseUri', '/authorise', null, $request);
+            $res = $this->post( 'baseUri', '/authorise', null, $request );
 
-            if (!empty($res->access_token)) {
+            if ( !empty($res->access_token) ) {
                 return $res->access_token;
             } else {
-                trigger_error('request_token(): Could not get new access token');
-                return;
+                trigger_error( 'request_token(): Could not get new access token' );
+                return false;
             }
         }
 
         /*
          * query raw curl responses.
          */
-        public function responses($label = null) {
-            if (empty($this->raw)) return;
+        public function responses( $label = null ) {
+            if ( empty($this->raw) ) return false;
             $raw = $this->raw;
-            switch($label) {
+            switch( $label ) {
                 case null:
                     $res = $raw; break;
                 case 'first':
@@ -168,7 +168,7 @@ class Ably {
         }
 
         public function time() {
-            $res = $this->get('authority', '/time');
+            $res = $this->get( 'authority', '/time' );
             return $res[0];
         }
 
@@ -180,11 +180,12 @@ class Ably {
          * Get authentication headers
          */
         protected function auth_headers() {
+
             $header = array();
-            if ($this->getopt('method') == 'basic') {
-                $header = array("authorization: Basic {$this->getopt('basicKey')}");
-            } else if (!empty($this->token)) {
-                $header = array("authorization: Bearer {$this->token->id}");
+            if ( $this->getopt('method') == 'basic' ) {
+                $header = array( "authorization: Basic {$this->getopt('basicKey')}" );
+            } else if ( !empty($this->token) ) {
+                $header = array( "authorization: Bearer {$this->token->id}" );
             }
             return $header;
         }
@@ -194,10 +195,13 @@ class Ably {
          */
         protected function auth_params() {
 
-            if ($this->getopt('method') == 'basic') {
-                $params = array('key_id' => $this->getopt('keyId'), 'key_value' => $this->getopt('keyValue'));
+            if ( $this->getopt('method') == 'basic' ) {
+                $params = array(
+                    'key_id'    => $this->getopt('keyId'),
+                    'key_value' => $this->getopt('keyValue')
+                );
             } else {
-                $params = array("authorisation: Bearer {$this->token->id}");
+                $params = array( "authorisation: Bearer {$this->token->id}" );
             }
 
             return $params;
@@ -206,15 +210,17 @@ class Ably {
         /*
          * curl wrapper to do GET
          */
-        protected function get($domain, $path, $headers=array()) {
-            return $this->request($this->getopt($domain, $this->getopt('authority').$domain) . $path, $headers);
+        protected function get( $domain, $path, $headers = array() ) {
+            $fallback = $this->getopt('authority') . $domain;
+            return $this->request( $this->getopt( $domain, $fallback ) . $path, $headers );
         }
 
         /*
          * log action into logfile / syslog (Only in debug mode)
          */
-        protected function logAction($action, $msg) {
-            if (!$this->getopt('debug')) return;
+        protected function logAction( $action, $msg ) {
+
+            if ( !$this->getopt('debug') ) return;
 
             # TODO : use logfile or syslog
             # var_dump for now!
@@ -229,8 +235,9 @@ class Ably {
         /*
          * curl wrapper to do POST
          */
-        protected function post($domain, $path, $header=array(), $params=array()) {
-            return $this->request($this->getopt($domain, $this->getopt('authority').$domain) . $path, $header, $params);
+        protected function post( $domain, $path, $header = array(), $params = array() ) {
+            $fallback = $this->getopt('authority') . $domain;
+            return $this->request( $this->getopt($domain, $fallback) . $path, $header, $params );
         }
 
 
@@ -239,22 +246,13 @@ class Ably {
      */
 
         /*
-         * URL safe base64 encode
-         */
-        private function base64_encode_safe($str) {
-            $b64 = base64_encode($str);
-            //return strtr(trim($b64,'='),'+/','-_');
-            return urlencode($b64);
-        }
-
-        /*
          * check library dependencies
          */
-        private function check_dependencies($modules) {
+        private function check_dependencies( $modules ) {
             $loaded = get_loaded_extensions();
-            foreach($modules as $module) {
-                if (!in_array($module, $loaded)) {
-                    throw new Exception("{$module} extension required.");
+            foreach( $modules as $module ) {
+                if ( !in_array($module, $loaded) ) {
+                    throw new Exception( "{$module} extension required." );
                 }
             }
         }
@@ -262,18 +260,18 @@ class Ably {
         /*
          * Basic check for the presence of key and it's format
          */
-        private function check_key_format($options) {
+        private function check_key_format( $options ) {
             # if no key passed then stop
-            if (!array_key_exists('key', $options)) trigger_error("An API key is required to use the service.");
+            if ( !array_key_exists('key', $options) ) trigger_error( "An API key is required to use the service." );
             # if key is not in 3 parts then stop
-            if (count(explode(':', $options['key'])) != 3) trigger_error("The API key format is incorrect.");
+            if ( count(explode(':', $options['key']) ) != 3) trigger_error( "The API key format is incorrect." );
         }
 
         /*
          * Shorthand to get a setting value with an optional fallback value
          */
-        private function getopt($key, $fallback=null) {
-            return empty($this->settings[$key]) ? $fallback : $this->settings[$key];
+        private function getopt( $key, $fallback = null ) {
+            return empty( $this->settings[$key] ) ? $fallback : $this->settings[$key];
         }
 
         /*
@@ -287,19 +285,19 @@ class Ably {
         /*
          * Build the curl request
          */
-        private function request($url, $header = array(), $params = array()) {
+        private function request( $url, $header = array(), $params = array() ) {
             $ch = curl_init($url);
             $parts = parse_url($url);
 
             if (!empty($header)) {
-                curl_setopt ($ch, CURLOPT_HEADER, true);
-                curl_setopt ($ch, CURLOPT_HTTPHEADER, $header);
+                curl_setopt ( $ch, CURLOPT_HEADER, true );
+                curl_setopt ( $ch, CURLOPT_HTTPHEADER, $header );
             }
             if (!empty($params)) {
-                curl_setopt ($ch, CURLOPT_POST, true);
-                curl_setopt ($ch, CURLOPT_POSTFIELDS, urldecode(http_build_query($params)));
+                curl_setopt ( $ch, CURLOPT_POST, true );
+                curl_setopt ( $ch, CURLOPT_POSTFIELDS, $this->safe_params($params) );
             }
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
 
             $raw = curl_exec($ch);
             $info = curl_getinfo($ch);
@@ -307,25 +305,26 @@ class Ably {
             curl_close ($ch);
 
             $this->raw[$parts['path']] = $raw;
-            $this->logAction('_request()', $info );
+            $this->logAction( '_request()', $info );
 
             $response = $this->response_format($raw);
 
-            if (!empty($response->error)) {
-                $msg = is_string($response->error) ? $response->error : $response->error->reason;
+            if ( !empty($response->error) ) {
+                $msg = is_string( $response->error ) ? $response->error : $response->error->reason;
                 trigger_error($msg);
                 return;
             }
 
-            $this->logAction('_response()', $response );
+            $this->logAction( '_response()', $response );
+
             return $response;
         }
 
         /*
          * determine the format to return depending on format setting
          */
-        private function response_format($raw) {
-            switch ($this->getopt('format')) {
+        private function response_format( $raw ) {
+            switch ( $this->getopt('format') ) {
                 case 'json': $response = json_decode($raw); break;
                 default:     $response = $raw;
             }
@@ -333,9 +332,34 @@ class Ably {
         }
 
         /*
+         * URL safe base64 encode
+         */
+        private function safe_base64_encode( $str ) {
+            $b64 = base64_encode( $str );
+            //return strtr(trim($b64,'='),'+/','-_');
+            return urlencode( $b64 );
+        }
+
+        /*
+         * URL safe params
+         */
+        private function safe_params( $params )
+        {
+            return urldecode( http_build_query($params) );
+        }
+
+        /*
+         * simple way of converting an associative array to stdObject - does not support multi-dimension arrays
+         */
+        private function simple_array_to_object( $arr )
+        {
+            return json_decode( json_encode($arr) );
+        }
+
+        /*
          * Gets a timestamp
          */
-        private function timestamp($query=false) {
+        private function timestamp( $query = false ) {
             return floor( $query ? $this->time()/1000 : time() );
         }
 }

@@ -8,7 +8,7 @@ For complete API documentation, see the [ably documentation](https://ably.io/doc
 
 Include the library:
 
-    require_once 'path/to/ably.php';
+    require_once 'path/to/lib/ably.php';
 
 Use it like this:
 
