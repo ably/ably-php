@@ -29,7 +29,7 @@ class Ably {
         $this->check_dependencies( array('curl', 'json') );
 
         # merge options into defaults
-        $settings = array_merge( self::$defaults, $options );
+        $settings = array_merge( self::$defaults, array_filter($options) );
 
         # check key format is correct
         $this->check_key_format( $settings );
