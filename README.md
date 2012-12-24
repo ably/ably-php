@@ -1,6 +1,6 @@
 # ably-php
 
-This repo contains the ably PHP client libraries.
+This is the Ably REST client library for PHP.
 
 For complete API documentation, see the [ably documentation](https://ably.io/documentation).
 

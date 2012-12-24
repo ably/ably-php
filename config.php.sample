@@ -3,16 +3,16 @@
 # This is your private API key obtained from your Ably Dashboard
 define( 'ABLY_KEY', getenv('ABLY_KEY') );
 
-# This is the Ably service host domain
+# This is the Ably service domain
 # If not defined will default to rest.ably.io
 # define( 'ABLY_HOST', getenv('ABLY_HOST') );
 
-# This is the Ably service websocket host domain
+# This is the Ably service websocket domain
 # If not defined will default to realtime.ably.io
 # define( 'ABLY_WS_HOST', getenv('ABLY_WS_HOST') );
 
-# This is the application root assumed to be the folder that is containing this config file.
-# If not defined logs will be written to the root tmp folder.
-# If you enable this configuration please ensure you have a tmp/ folder that is writable by
-# PHP in your application root.
+# This is the application root.
+# If not defined logs will be written to the root /tmp folder.
+# If you enable this configuration please ensure you have a tmp/ folder
+# in application root that is writable by PHP.
 define( 'ABLY_APP_ROOT', dirname(__FILE__) );
