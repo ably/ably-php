@@ -7,8 +7,8 @@ require_once '../lib/ably.php';
 $api_key = ABLY_KEY;
 $channel_name = isset($_REQUEST['channel']) ? $_REQUEST['channel'] : 'chat';
 $event_name = isset($_REQUEST['event']) ? $_REQUEST['event'] : 'guest';
-$host = ABLY_HOST;
-$ws_host = ABLY_WS_HOST;
+$host = defined('ABLY_HOST') ? ABLY_HOST : '';
+$ws_host = defined('ABLY_WS_HOST') ? ABLY_WS_HOST : '';
 
 # instantiate Ably
 $app = new Ably(array(
