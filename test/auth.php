@@ -9,7 +9,7 @@ class AuthTest extends PHPUnit_Framework_TestCase {
 
     protected function setUp() {
         $this->app = new Ably(array(
-            'host' => ABLY_HOST,
+            'host' => defined('ABLY_HOST') ? ABLY_HOST : '',
             'key'  => ABLY_KEY,
             'debug' => true
         ));

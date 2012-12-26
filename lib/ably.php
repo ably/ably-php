@@ -72,13 +72,13 @@ class Ably {
                 if ( $this->token->expires > $this->timestamp() ) {
                     if ( empty($options['force']) || !$options['force'] ) {
                         # using cached token
-                        $this->logAction( 'authorise()', sprintf("\tusing cached token; expires = %s\n\tfor humans token expires on %s", $this->token->expires, gmdate("r",$this->token->expires)) );
+                        $this->log_action( 'authorise()', sprintf("\tusing cached token; expires = %s\n\tfor humans token expires on %s", $this->token->expires, gmdate("r",$this->token->expires)) );
                         return $this;
                     }
                 } else {
                     # deleting expired token
                     unset($this->token);
-                    $this->logAction('authorise()', 'deleting expired token');
+                    $this->log_action('authorise()', 'deleting expired token');
                 }
             }
             $this->token = $this->request_token($options);
@@ -128,12 +128,12 @@ class Ably {
                 $request['nonce'],
             )) . "\n";
 
-            $this->logAction( 'request_token()', sprintf("--signText Start--\n%s\n--signText End--", $signText) );
+            $this->log_action( 'request_token()', sprintf("--signText Start--\n%s\n--signText End--", $signText) );
 
             if ( empty($request['mac']) ) {
                 $hmac           = hash_hmac( 'sha1',$signText, $this->getopt('keyValue'),true );
                 $request['mac'] = $this->getopt( 'mac', $this->safe_base64_encode($hmac) );
-                $this->logAction( 'request_token()', sprintf("\tbase64 = %s\n\tmac = %s", base64_encode($hmac), $request['mac']) );
+                $this->log_action( 'request_token()', sprintf("\tbase64 = %s\n\tmac = %s", base64_encode($hmac), $request['mac']) );
             }
 
             $res = $this->post( 'baseUri', '/authorise', null, $request );
@@ -222,7 +222,7 @@ class Ably {
         /*
          * log action into logfile / syslog (Only in debug mode)
          */
-        protected function logAction( $action, $msg ) {
+        protected function log_action( $action, $msg ) {
 
             $debug = $this->getopt('debug');
 
@@ -249,7 +249,7 @@ class Ably {
                     fwrite( $handle, $output );
                     fclose( $handle );
                 } else {
-                    trigger_error("logAction(): Could not write to log. Please ensure you have write access to the tmp/ folder.");
+                    trigger_error("log_action(): Could not write to log. Please ensure you have write access to the tmp/ folder.");
                 }
             } else {
                 echo $output;
@@ -329,7 +329,7 @@ class Ably {
             curl_close ($ch);
 
             $this->raw[$parts['path']] = $raw;
-            $this->logAction( '_request()', $info );
+            $this->log_action( '_request()', $info );
 
             $response = $this->response_format($raw);
 
@@ -339,7 +339,7 @@ class Ably {
                 return;
             }
 
-            $this->logAction( '_response()', $response );
+            $this->log_action( '_response()', $response );
 
             return $response;
         }
