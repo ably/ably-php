@@ -259,9 +259,9 @@ class Ably {
         /*
          * curl wrapper to do POST
          */
-        protected function post( $domain, $path, $header = array(), $params = array() ) {
+        protected function post( $domain, $path, $headers = array(), $params = array() ) {
             $fallback = $this->getopt('authority') . $domain;
-            return $this->request( $this->getopt($domain, $fallback) . $path, $header, $params );
+            return $this->request( $this->getopt($domain, $fallback) . $path, $headers, $params );
         }
 
 
