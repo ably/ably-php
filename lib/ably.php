@@ -14,9 +14,9 @@ class Ably {
 
     private static $defaults = array(
         'debug'   => false,
+        'encrypted' => true,
         'format'  => 'json',
         'host'    => 'rest.ably.io',
-        'scheme'  => 'https',
         'version' => 1,
     );
 
@@ -52,6 +52,7 @@ class Ably {
         }
 
         # basic common routes
+        $settings['scheme']    = 'http' . ($settings['encrypted'] ? 's' : '');
         $settings['authority'] = $settings['scheme'] .'://'. $settings['host'];
         $settings['baseUri']   = $settings['authority'] . '/apps/' . $settings['appId'];
 
