@@ -339,8 +339,7 @@ class Ably {
             if (!empty($msg)) {
                 $trace=debug_backtrace();
                 $caller=array_shift($trace);
-                $action = "{$caller['function']}()";
-                $this->log_action($action, $msg );
+                $this->log_action("{$caller['function']}()", $msg );
                 trigger_error( $msg );
                 return true;
             }
