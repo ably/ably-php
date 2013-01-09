@@ -69,9 +69,9 @@ class Ably {
         }
 
         # basic common routes
-        $settings['scheme']    = 'http' . ($settings['encrypted'] ? 's' : '');
         !isset($settings['port'])
-          && $settings['port'] = $settings['encrypted'] ? self::$defaults['wss_port'] : self::$defaults['ws_port'];
+          && $settings['port'] = self::$defaults[ $settings['encrypted'] ?  'wss_port' : 'ws_port' ];
+        $settings['scheme']    = 'http' . ($settings['encrypted'] ? 's' : '');
         $settings['authority'] = $settings['scheme'] .'://'. $settings['host'] .':'. $settings['port'];
         $settings['baseUri']   = $settings['authority'] . '/apps/' . $settings['appId'];
 
