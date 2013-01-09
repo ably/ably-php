@@ -30,17 +30,29 @@ class Ably {
         # check dependencies
         $this->check_dependencies( array('curl', 'json') );
 
+        # convert to options if a single key provided
+        is_string($options) && $options = array('key' => $options );
+
         # sanitize options
         $options = $this->sanitize_options( $options );
+
+        # check options
+        $this->check_options( $options, 'EMPTY' );
 
         # merge options with defaults
         $settings = array_merge( self::$defaults, $options );
 
-        # check key format is correct
-        $this->check_key_format( $settings );
+        if ( !empty( $settings['key'] ) ) {
 
-        # setup keys
-        list( $settings['appId'], $settings['keyId'], $settings['keyValue'] ) = explode( ':', $settings['key'] );
+            # check options
+            $this->check_options( $settings, 'INVALID_KEY' );
+
+            # setup keys
+            list( $settings['appId'], $settings['keyId'], $settings['keyValue'] ) = explode( ':', $settings['key'] );
+        }
+
+        # check options
+        $this->check_options( $settings, 'EMPTY_APP_ID' );
 
         # determine default auth method
         if ( !empty($settings['keyValue']) ) {
@@ -58,13 +70,14 @@ class Ably {
 
         # basic common routes
         $settings['scheme']    = 'http' . ($settings['encrypted'] ? 's' : '');
-        $settings['port']      = $settings['encrypted'] ? self::$defaults['wss_port'] : self::$defaults['ws_port'];
+        !isset($settings['port'])
+          && $settings['port'] = $settings['encrypted'] ? self::$defaults['wss_port'] : self::$defaults['ws_port'];
         $settings['authority'] = $settings['scheme'] .'://'. $settings['host'] .':'. $settings['port'];
         $settings['baseUri']   = $settings['authority'] . '/apps/' . $settings['appId'];
 
         $this->settings = $settings;
 
-        return $this->authorise();
+        return $this;
     }
 
     /*
@@ -296,11 +309,43 @@ class Ably {
         /*
          * Basic check for the presence of key and it's format
          */
-        private function check_key_format( $options ) {
-            # if no key passed then stop
-            if ( !array_key_exists('key', $options) ) trigger_error( "An API key is required to use the service." );
-            # if key is not in 3 parts then stop
-            if ( count(explode(':', $options['key']) ) != 3) trigger_error( "The API key format is incorrect." );
+//        private function check_key_format( $options ) {
+//            # if no key passed then stop
+//            if ( !array_key_exists('key', $options) ) trigger_error( "An API key is required to use the service." );
+//            # if key is not in 3 parts then stop
+//            if ( count(explode(':', $options['key']) ) != 3) trigger_error( "The API key format is incorrect." );
+//        }
+
+        private function check_options( $options, $state ) {
+
+            $msg = '';
+
+            switch ($state) {
+                case 'EMPTY':
+                    empty($options) && $msg = 'no options provided';
+                    break;
+
+                case 'INVALID_KEY':
+                    if (!empty($options['key']) && count(explode(':', $options['key']) ) != 3) {
+                        $msg = 'invalid key parameter';
+                    }
+                    break;
+
+                case 'EMPTY_APP_ID':
+                    empty($options['appId']) && $msg = 'no appId provided';
+                    break;
+            }
+
+            if (!empty($msg)) {
+                $trace=debug_backtrace();
+                $caller=array_shift($trace);
+                $action = "{$caller['function']}()";
+                $this->log_action($action, $msg );
+                trigger_error( $msg );
+                return true;
+            }
+
+            return false;
         }
 
         /*
