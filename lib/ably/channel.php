@@ -21,7 +21,7 @@ class Channel extends Ably {
      * Public methods
      */
         public function history( $options = array() ) {
-            return $this->get_resource( '/events' );
+            return $this->get_resource( '/history' );
         }
 
         public function presence( $options = array() ) {

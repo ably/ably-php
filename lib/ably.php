@@ -13,11 +13,13 @@ class Ably {
     private $raw;
 
     private static $defaults = array(
-        'debug'   => false,
+        'debug'     => false,
         'encrypted' => true,
-        'format'  => 'json',
-        'host'    => 'rest.ably.io',
-        'version' => 1,
+        'format'    => 'json',
+        'host'      => 'rest.ably.io',
+        'version'   => 1,
+        'ws_port'   => 80,
+        'wss_port'  => 443,
     );
 
     /*
@@ -28,8 +30,11 @@ class Ably {
         # check dependencies
         $this->check_dependencies( array('curl', 'json') );
 
-        # merge options into defaults
-        $settings = array_merge( self::$defaults, array_filter($options) );
+        # sanitize options
+        $options = $this->sanitize_options( $options );
+
+        # merge options with defaults
+        $settings = array_merge( self::$defaults, $options );
 
         # check key format is correct
         $this->check_key_format( $settings );
@@ -53,7 +58,8 @@ class Ably {
 
         # basic common routes
         $settings['scheme']    = 'http' . ($settings['encrypted'] ? 's' : '');
-        $settings['authority'] = $settings['scheme'] .'://'. $settings['host'];
+        $settings['port']      = $settings['encrypted'] ? self::$defaults['wss_port'] : self::$defaults['ws_port'];
+        $settings['authority'] = $settings['scheme'] .'://'. $settings['host'] .':'. $settings['port'];
         $settings['baseUri']   = $settings['authority'] . '/apps/' . $settings['appId'];
 
         $this->settings = $settings;
@@ -113,16 +119,16 @@ class Ably {
 
             $request = array_merge(array(
                 'id'         => $this->getopt( 'keyId' ),
-                'expires'    => $this->getopt( 'expires', 3600 ),
+                'ttl'        => $this->getopt( 'ttl', '' ),
                 'capability' => $this->getopt( 'capability' ),
                 'client_id'  => $this->getopt( 'clientId' ),
                 'timestamp'  => $this->getopt( 'timestamp', $this->timestamp() ),
                 'nonce'      => $this->getopt( 'nonce', $this->random() ),
-            ), $options);
+            ), $this->sanitize_options($options) );
 
             $signText = implode("\n", array(
                 $request['id'],
-                $request['expires'],
+                $request['ttl'],
                 $request['capability'],
                 $request['client_id'],
                 $request['timestamp'],
@@ -132,7 +138,7 @@ class Ably {
             $this->log_action( 'request_token()', sprintf("--signText Start--\n%s\n--signText End--", $signText) );
 
             if ( empty($request['mac']) ) {
-                $hmac           = hash_hmac( 'sha1',$signText, $this->getopt('keyValue'),true );
+                $hmac           = hash_hmac( 'sha256',$signText, $this->getopt('keyValue'),true );
                 $request['mac'] = $this->getopt( 'mac', $this->safe_base64_encode($hmac) );
                 $this->log_action( 'request_token()', sprintf("\tbase64 = %s\n\tmac = %s", base64_encode($hmac), $request['mac']) );
             }
@@ -270,6 +276,11 @@ class Ably {
      * Private methods
      */
 
+        private function cb_filter($var) {
+            $var = isset($var) && is_string($var) ? trim($var) : $var;
+            return ( $var == '' || $var == NULL || $var == array() );
+        }
+
         /*
          * check library dependencies
          */
@@ -368,16 +379,26 @@ class Ably {
         /*
          * URL safe params
          */
-        private function safe_params( $params )
-        {
+        private function safe_params( $params ) {
             return urldecode( http_build_query($params) );
+        }
+
+        /*
+         * sanitize option hashes that come from external sources.
+         * This method takes an option hash and removes all empty/blank values
+         * returning a new and clean options hash
+         */
+        private function sanitize_options( $options ) {
+            return array_filter($options, function($var) {
+                $var = isset($var) && is_string($var) ? trim($var) : $var;
+                return $var !== '' && $var !== NULL && $var !== array();
+            });
         }
 
         /*
          * simple way of converting an associative array to stdObject - does not support multi-dimension arrays
          */
-        private function simple_array_to_object( $arr )
-        {
+        private function simple_array_to_object( $arr ) {
             return json_decode( json_encode($arr) );
         }
 

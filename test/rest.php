@@ -15,11 +15,6 @@ class RestTest extends PHPUnit_Framework_TestCase {
         ));
     }
 
-    public function testTime() {
-        echo '== testTime()';
-        $this->assertGreaterThanOrEqual(time(), $this->app->time());
-    }
-
     public function testHistory() {
         echo '== testHistory()';
         $res = $this->app->history(array(

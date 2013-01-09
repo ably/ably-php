@@ -49,7 +49,13 @@ class ChannelTest extends PHPUnit_Framework_TestCase {
         echo '== testChannelPublish()';
         # pending implementation
         $channel0 = $this->app->channel('my_channel');
-        $channel0->publish('caphun', 'this is awesome!');
+        $channel0->publish("publish0", TRUE);
+        $channel0->publish("publish1", 24);
+        $channel0->publish("publish2", 24.234);
+        $channel0->publish("publish3", 'This is a string message payload');
+        sleep(10);
+        $messages = $channel0->history();
+        var_dump($messages);
         $this->assertFalse(true);
     }
 
