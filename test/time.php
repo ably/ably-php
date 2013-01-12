@@ -1,23 +1,32 @@
 <?php
 
-require_once '../config.php';
 require_once '../lib/ably.php';
+require_once 'factories/TestOption.php';
 
 class TimeTest extends PHPUnit_Framework_TestCase {
 
+    protected static $options;
     protected $defaults;
+
+    public static function setUpBeforeClass() {
+
+        self::$options = TestOption::get_instance()->get_opts();
+
+    }
+
+    public static function tearDownAfterClass() {
+        TestOption::get_instance()->clear_opts();
+    }
 
     protected function setUp() {
 
-        $defaults = array( 'host' => getenv("WEBSOCKET_ADDRESS"), 'debug' => true );
-
-        if (empty($defaults['host'])) {
-            $defaults['host'] = "staging-rest.ably.io";
-            $defaults['encrypted'] = true;
-        } else {
-            $defaults['encrypted'] = $defaults['host'] != "localhost";
-            $defaults['port'] = $defaults['encrypted'] ? 8081 : 8080;
-        }
+        $options = self::$options;
+        $defaults = array(
+            'debug' => true,
+            'encrypted' => $options['encrypted'],
+            'host' => $options['host'],
+            'port' => $options['port'],
+        );
 
         $this->defaults = $defaults;
     }
@@ -28,8 +37,7 @@ class TimeTest extends PHPUnit_Framework_TestCase {
     public function testAccuracyWithTwoSecondVariation() {
         echo '== testAccuracyWithTwoSecondVariation()';
         $ably = new Ably(array_merge($this->defaults, array(
-            'host' => defined('ABLY_HOST') ? ABLY_HOST : '',
-            'key'  => ABLY_KEY,
+            'key' => self::$options['first_private_api_key'],
         )));
 
         $reportedTime = intval($ably->time());
@@ -59,7 +67,7 @@ class TimeTest extends PHPUnit_Framework_TestCase {
     public function testTimeFailsWithInvalidHost() {
         echo '== testTimeFailsWithInvalidHost()';
         $ablyInvalidHost = new Ably(array_merge( $this->defaults, array(
-            'appId' => 'fakeAppId',
+            'key' => self::$options['first_private_api_key'],
             'host'  => 'this.host.does.not.exist',
         )));
 

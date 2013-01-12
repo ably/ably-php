@@ -2,6 +2,7 @@
 /*
  * Ably Client API (REST) Library
  */
+require_once 'ably/enum.php';
 require_once 'ably/channel.php';
 
 class Ably {
@@ -33,11 +34,11 @@ class Ably {
         # convert to options if a single key provided
         is_string($options) && $options = array('key' => $options );
 
-        # sanitize options
-        $options = $this->sanitize_options( $options );
-
         # check options
         $this->check_options( $options, 'EMPTY' );
+
+        # sanitize options
+        $options = $this->sanitize_options( $options );
 
         # merge options with defaults
         $settings = array_merge( self::$defaults, $options );
@@ -58,11 +59,11 @@ class Ably {
         if ( !empty($settings['keyValue']) ) {
             if ( empty($settings['clientId']) ) {
                 # we have the and do not need to authenticate the client
-                $settings['method']    = 'basic';
+                $settings['method']    = AuthMethod::BASIC;
                 $settings['basicKey']  = base64_encode( $settings['key'] );
             }
         } else {
-            $settings['method'] = 'token';
+            $settings['method'] = AuthMethod::TOKEN;
             if ( !empty($options['authToken']) ) {
                 $this->token = $this->simple_array_to_object( array('id' => $options['authToken']) );
             }
@@ -104,6 +105,41 @@ class Ably {
             $this->token = $this->request_token($options);
 
             return $this;
+        }
+
+        /*
+         * Get authentication headers
+         */
+        public function auth_headers() {
+
+            $header = array();
+            if ( $this->getopt('method') == AuthMethod::BASIC ) {
+                $header = array( "authorization: Basic {$this->getopt('basicKey')}" );
+            } else if ( !empty($this->token) ) {
+                $header = array( "authorization: Bearer {$this->token->id}" );
+            }
+            return $header;
+        }
+
+        public function auth_method() {
+            return $this->getopt('method');
+        }
+
+        /*
+         * Get authentication params
+         */
+        public function auth_params() {
+
+            if ( $this->getopt('method') == AuthMethod::BASIC ) {
+                $params = array(
+                    'key_id'    => $this->getopt('keyId'),
+                    'key_value' => $this->getopt('keyValue')
+                );
+            } else {
+                $params = array( "authorisation: Bearer {$this->token->id}" );
+            }
+
+            return $params;
         }
 
         /*
@@ -201,37 +237,6 @@ class Ably {
      */
 
         /*
-         * Get authentication headers
-         */
-        protected function auth_headers() {
-
-            $header = array();
-            if ( $this->getopt('method') == 'basic' ) {
-                $header = array( "authorization: Basic {$this->getopt('basicKey')}" );
-            } else if ( !empty($this->token) ) {
-                $header = array( "authorization: Bearer {$this->token->id}" );
-            }
-            return $header;
-        }
-
-        /*
-         * Get authentication params
-         */
-        protected function auth_params() {
-
-            if ( $this->getopt('method') == 'basic' ) {
-                $params = array(
-                    'key_id'    => $this->getopt('keyId'),
-                    'key_value' => $this->getopt('keyValue')
-                );
-            } else {
-                $params = array( "authorisation: Bearer {$this->token->id}" );
-            }
-
-            return $params;
-        }
-
-        /*
          * curl wrapper to do GET
          */
         protected function get( $domain, $path, $headers = array() ) {
@@ -288,11 +293,6 @@ class Ably {
     /*
      * Private methods
      */
-
-        private function cb_filter($var) {
-            $var = isset($var) && is_string($var) ? trim($var) : $var;
-            return ( $var == '' || $var == NULL || $var == array() );
-        }
 
         /*
          * check library dependencies
@@ -369,15 +369,19 @@ class Ably {
             $ch = curl_init($url);
             $parts = parse_url($url);
 
-            if (!empty($header)) {
-                curl_setopt ( $ch, CURLOPT_HEADER, true );
-                curl_setopt ( $ch, CURLOPT_HTTPHEADER, $header );
-            }
             if (!empty($params)) {
-                curl_setopt ( $ch, CURLOPT_POST, true );
-                curl_setopt ( $ch, CURLOPT_POSTFIELDS, $this->safe_params($params) );
+                curl_setopt( $ch, CURLOPT_POST, true );
+                curl_setopt( $ch, CURLOPT_POSTFIELDS, $this->safe_params($params) );
+                array_push( $header, 'Accept: application/json', 'Content-Type: application/json' );
             }
+
+            if (!empty($header)) {
+                curl_setopt( $ch, CURLOPT_HEADER, true );
+                curl_setopt( $ch, CURLOPT_HTTPHEADER, $header );
+            }
+
             curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+            curl_setopt( $ch, CURLOPT_VERBOSE, $this->getopt('debug') );
 
             $raw = curl_exec($ch);
             $info = curl_getinfo($ch);
