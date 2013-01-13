@@ -55,10 +55,9 @@ class TimeTest extends PHPUnit_Framework_TestCase {
             'appId' => 'fakeAppId',
         )));
 
-        $actualTime = intval(microtime(true)*1000);
         $reportedTime = $ablyNoAuth->time();
 
-        $this->assertGreaterThanOrEqual( $actualTime, $reportedTime );
+        $this->assertNotNull( $reportedTime );
     }
 
     /**

@@ -6,6 +6,7 @@ require_once 'factories/TestOption.php';
 class AuthTest extends PHPUnit_Framework_TestCase {
 
     protected static $options;
+    protected $defaults;
 
     public static function setUpBeforeClass() {
 
@@ -17,13 +18,27 @@ class AuthTest extends PHPUnit_Framework_TestCase {
         TestOption::get_instance()->clear_opts();
     }
 
+    protected function setUp() {
+
+        $options = self::$options;
+        $defaults = array(
+            'debug' => true,
+            'encrypted' => $options['encrypted'],
+            'host' => $options['host'],
+            'port' => $options['port'],
+        );
+
+        $this->defaults = $defaults;
+    }
 
     /**
      * Init library with a key only
      */
     public function testAuthoriseWithKeyOnly() {
         echo '== testAuthoriseWithKeyOnly()';
-        $ably = new Ably(self::$options['first_private_api_key']);
+        $ably = new Ably(array_merge($this->defaults, array(
+            'key' => self::$options['first_private_api_key'],
+        )));
         $this->assertEquals( AuthMethod::BASIC, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
     }
 
@@ -33,13 +48,32 @@ class AuthTest extends PHPUnit_Framework_TestCase {
      */
     public function testAuthoriseWithTokenOnly() {
         echo '== testAuthoriseWithTokenOnly()';
+        $options = self::$options;
+        $ably = new Ably(array_merge($this->defaults, array(
+            'appId'     => $options['appId'],
+            'authToken' => "this_is_not_really_a_token",
+        )));
+        $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
     }
 
     /**
      * Init library with a token callback
      */
+    protected $authinit2_cbCalled = false;
     public function testAuthoriseWithTokenCallback() {
         echo '== testAuthoriseWithTokenCallback()';
+        $options = self::$options;
+        $ably = new Ably(array_merge($this->defaults, array(
+            'appId'        => $options['appId'],
+            'authCallback' => function( $params ) {
+                $this->authinit2_cbCalled = true;
+                return "this_is_not_really_a_token_request";
+            }
+        )));
+        // make a call to trigger a token request
+        $ably->stats();
+        $this->assertTrue( $this->authinit2_cbCalled, 'Token callback not called' );
+        $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
     }
 
 
@@ -48,49 +82,31 @@ class AuthTest extends PHPUnit_Framework_TestCase {
      */
     public function testAuthoriseWithKeyAndClientId() {
         echo '== testAuthoriseWithKeyAndClientId()';
+        $options = self::$options;
+        $ably = new Ably(array_merge($this->defaults, array(
+            'key'      => $options['first_private_api_key'],
+            'clientId' => 'testClientId',
+        )));
+        $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
     }
 
     /**
      * Init library with a token
      */
     public function testAuthoriseWithToken() {
-        echo '== testAuthoriseWithKeyOnly()';
+        echo '== testAuthoriseWithToken()';
+        $options = self::$options;
+
+        $ably_for_token = new Ably(array_merge($this->defaults, array(
+            'key' => $options['first_private_api_key'],
+        )));
+        $token_details = $ably_for_token->request_token();
+        $this->assertNotNull($token_details->id, 'Expected token id' );
+
+        $ably = new Ably(array_merge($this->defaults, array(
+            'appId'     => $options['appId'],
+            'authToken' => $token_details->id,
+        )));
+        $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
     }
-
-
-    /*
-     * OLD TESTS - DEPRECATED
-     */
-
-//    public function testAuthoriseWithSignedToken() {
-//        echo '== testAuthoriseWithSignedToken()';
-//        # first authorise
-//        $this->app->authorise();
-//        # get token after authorise
-//        $id1 = $this->app->token->id;
-//        # re-authorise
-//        $this->app->authorise();
-//        $id2 = $this->app->token->id;
-//        $this->assertEquals($id1, $id2);
-//    }
-//
-//    public function testAuthoriseWithUnsignedToken() {
-//        echo '== testAuthoriseWithUnsignedToken()';
-//        $this->app->token = null;
-//        $this->app->authorise();
-//        $this->assertNotNull($this->app->token);
-//    }
-//
-//    public function testAuthoriseWithForceOption() {
-//        echo '== testAuthoriseWithForceOption()';
-//        # first authorise
-//        $this->app->authorise();
-//        # get token after authorise
-//        $id1 = $this->app->token->id;
-//        # re-authorise
-//        $this->app->authorise(array('force' => true));
-//        $id2 = $this->app->token->id;
-//        $this->assertNotEquals($id1, $id2);
-//    }
-
 }

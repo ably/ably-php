@@ -11,6 +11,7 @@ class Ably {
 
     private $settings = array();
     private $channels = array();
+    private $token_options = array();
     private $raw;
 
     private static $defaults = array(
@@ -55,17 +56,40 @@ class Ably {
         # check options
         $this->check_options( $settings, 'EMPTY_APP_ID' );
 
-        # determine default auth method
+        # $token_options contains the parameters that may be used in
+        # token requests
+        $token_options = array();
+		!empty($settings['keyId']) && $token_options['keyId'] = $settings['keyId'];
+        !empty($settings['keyValue']) && $token_options['keyValue'] = $settings['keyValue'];
+
+        # determine default auth method start with token
+        $settings['method'] = AuthMethod::TOKEN;
         if ( !empty($settings['keyValue']) ) {
             if ( empty($settings['clientId']) ) {
                 # we have the and do not need to authenticate the client
+                $this->log_action( 'authorise()', 'anonymous, using basic auth' );
                 $settings['method']    = AuthMethod::BASIC;
                 $settings['basicKey']  = base64_encode( $settings['key'] );
             }
-        } else {
-            $settings['method'] = AuthMethod::TOKEN;
-            if ( !empty($options['authToken']) ) {
-                $this->token = $this->simple_array_to_object( array('id' => $options['authToken']) );
+        }
+        if ( $settings['method'] == AuthMethod::TOKEN ) {
+            if ( !empty($settings['authToken']) ) {
+                $this->token = $this->simple_array_to_object( array('id' => $settings['authToken']) );
+            }
+            if ( !empty($settings['authCallback']) ) {
+                $this->log_action( 'authorise()', 'using token auth with authCallback' );
+                $token_options['authCallback'] = $settings['authCallback'];
+            } elseif ( !empty($settings['authUrl']) ) {
+                $this->log_action( 'authorise()', 'using token auth with authUrl' );
+                $token_options['authUrl'] = $settings['authUrl'];
+                $token_options['authHeader'] = $settings['authHeader'] || array();
+            } elseif ( !empty($options['keyValue']) ) {
+                $this->log_action( 'authorise()', 'using token auth with client-side signing' );
+            } elseif ( !empty($options['authToken']) ) {
+                $this->log_action( 'authorise()', 'using token auth with supplied token only' );
+            } else {
+                # this is not a hard error - but any operation that requires authentication will fail
+                $this->log_action( 'authorise()', 'no authentication parameters supplied' );
             }
         }
 
@@ -77,6 +101,7 @@ class Ably {
         $settings['baseUri']   = $settings['authority'] . '/apps/' . $settings['appId'];
 
         $this->settings = $settings;
+        $this->token_options = $token_options;
 
         return $this;
     }
@@ -99,10 +124,10 @@ class Ably {
                 } else {
                     # deleting expired token
                     unset($this->token);
-                    $this->log_action('authorise()', 'deleting expired token');
+                    $this->log_action( 'authorise()', 'deleting expired token' );
                 }
             }
-            $this->token = $this->request_token($options);
+            $this->token = $this->request_token( $options );
 
             return $this;
         }
@@ -166,40 +191,30 @@ class Ably {
          */
         public function request_token( $options = array() ) {
 
-            $request = array_merge(array(
-                'id'         => $this->getopt( 'keyId' ),
-                'ttl'        => $this->getopt( 'ttl', '' ),
-                'capability' => $this->getopt( 'capability' ),
-                'client_id'  => $this->getopt( 'clientId' ),
-                'timestamp'  => $this->getopt( 'timestamp', $this->timestamp() ),
-                'nonce'      => $this->getopt( 'nonce', $this->random() ),
-            ), $this->sanitize_options($options) );
+            # merge supplied options with already-known options
+            $options = array_merge( $this->token_options, $this->sanitize_options($options) );
 
-            $signText = implode("\n", array(
-                $request['id'],
-                $request['ttl'],
-                $request['capability'],
-                $request['client_id'],
-                $request['timestamp'],
-                $request['nonce'],
-            )) . "\n";
-
-            $this->log_action( 'request_token()', sprintf("--signText Start--\n%s\n--signText End--", $signText) );
-
-            if ( empty($request['mac']) ) {
-                $hmac           = hash_hmac( 'sha256',$signText, $this->getopt('keyValue'),true );
-                $request['mac'] = $this->getopt( 'mac', $this->safe_base64_encode($hmac) );
-                $this->log_action( 'request_token()', sprintf("\tbase64 = %s\n\tmac = %s", base64_encode($hmac), $request['mac']) );
-            }
-
-            $res = $this->post( 'baseUri', '/authorise', null, $request );
-
-            if ( !empty($res->access_token) ) {
-                return $res->access_token;
+            # get the signed token request
+            $signed_token_request = null;
+            if ( !empty($options['authCallback']) ) {
+                $this->log_action( 'request_token()', 'using token auth with auth_callback' );
+                $signed_token_request = $options['authCallback']($options);
+            } elseif ( !empty($options['authUrl']) ) {
+                $this->log_action( 'request_token()', 'using token auth with auth_url' );
+                $signed_token_request = $this->request( $options['authUrl'], $options['authHeaders'], array_merge( $this->auth_params(), $options ) );
+            } elseif ( !empty($options['keyValue']) ) {
+                $this->log_action( 'request_token()', 'using token auth with client-side signing' );
+                $signed_token_request = $this->create_token( $options );
             } else {
-                trigger_error( 'request_token(): Could not get new access token' );
-                return false;
+                trigger_error( 'request_token(): options must include valid authentication parameters' );
             }
+
+            # finally check if signed token request is in correct format
+            if (is_string($signed_token_request)) {
+                $signed_token_request = $this->simple_array_to_object( array('id' => $signed_token_request) );
+            }
+
+            return $signed_token_request;
         }
 
         /*
@@ -306,16 +321,6 @@ class Ably {
             }
         }
 
-        /*
-         * Basic check for the presence of key and it's format
-         */
-//        private function check_key_format( $options ) {
-//            # if no key passed then stop
-//            if ( !array_key_exists('key', $options) ) trigger_error( "An API key is required to use the service." );
-//            # if key is not in 3 parts then stop
-//            if ( count(explode(':', $options['key']) ) != 3) trigger_error( "The API key format is incorrect." );
-//        }
-
         private function check_options( $options, $state ) {
 
             $msg = '';
@@ -347,6 +352,46 @@ class Ably {
             return false;
         }
 
+        private function create_token( $options = array() ) {
+            $request = array_merge(array(
+                'id'         => $this->getopt( 'keyId' ),
+                'ttl'        => $this->getopt( 'ttl', '' ),
+                'capability' => $this->getopt( 'capability' ),
+                'client_id'  => $this->getopt( 'clientId' ),
+                'timestamp'  => $this->getopt( 'timestamp', $this->timestamp() ),
+                'nonce'      => $this->getopt( 'nonce', $this->random() ),
+            ), $options );
+
+            $signText = implode("\n", array(
+                $request['id'],
+                $request['ttl'],
+                $request['capability'],
+                $request['client_id'],
+                $request['timestamp'],
+                $request['nonce'],
+            )) . "\n";
+
+            $this->log_action( 'request_token()', sprintf("--signText Start--\n%s\n--signText End--", $signText) );
+
+            if ( empty($request['mac']) ) {
+                $hmac           = hash_hmac( 'sha256',$signText, $this->getopt('keyValue'),true );
+                $request['mac'] = $this->getopt( 'mac', $this->safe_base64_encode($hmac) );
+                $this->log_action( 'request_token()', sprintf("\tbase64 = %s\n\tmac = %s", base64_encode($hmac), $request['mac']) );
+            }
+
+            $res = $this->post( 'baseUri', '/authorise', null, $request );
+
+            $this->log_action( 'request_token() - result', $res );
+
+            if ( !empty($res->access_token) ) {
+                return $res->access_token;
+            } else {
+                trigger_error( 'request_token(): Could not get new access token' );
+                return false;
+            }
+        }
+
+
         /*
          * Shorthand to get a setting value with an optional fallback value
          */
@@ -365,19 +410,19 @@ class Ably {
         /*
          * Build the curl request
          */
-        private function request( $url, $header = array(), $params = array() ) {
+        private function request( $url, $headers = array(), $params = array() ) {
             $ch = curl_init($url);
             $parts = parse_url($url);
+            ($headers === NULL) && $headers = array();
 
             if (!empty($params)) {
                 curl_setopt( $ch, CURLOPT_POST, true );
                 curl_setopt( $ch, CURLOPT_POSTFIELDS, $this->safe_params($params) );
-                array_push( $header, 'Accept: application/json', 'Content-Type: application/json' );
             }
 
-            if (!empty($header)) {
+            if (!empty($headers)) {
                 curl_setopt( $ch, CURLOPT_HEADER, true );
-                curl_setopt( $ch, CURLOPT_HTTPHEADER, $header );
+                curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
             }
 
             curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
@@ -388,17 +433,16 @@ class Ably {
 
             curl_close ($ch);
 
-            $this->raw[$parts['path']] = $raw;
             $this->log_action( '_request()', $info );
+            $this->log_action( '_request()', $raw );
 
-            $response = $this->response_format($raw);
-
-            if ( !empty($response->error) ) {
-                $msg = is_string( $response->error ) ? $response->error : $response->error->reason;
-                trigger_error($msg);
-                return;
+            if ( $info['http_code'] != 200 ) {
+                #trigger_error( $raw );
+                return $raw;
             }
 
+            $this->raw[$parts['path']] = $raw;
+            $response = $this->response_format($raw);
             $this->log_action( '_response()', $response );
 
             return $response;
