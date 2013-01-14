@@ -40,7 +40,10 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         # wait for the start of next minute
         $ably_time = ceil($this->ably->time()/1000);
+        var_dump($ably_time);
+        var_dump(time());
         $interval_start = ceil($ably_time/60)*60;
+        var_dump($interval_start);
         sleep($interval_start - time());
 
         # publish some messages

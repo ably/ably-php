@@ -34,7 +34,7 @@ class Channel extends Ably {
 
         public function publish( $name, $data ) {
             $this->ably->log_action( 'Channel.publish()', 'name = '. $name );
-            return $this->post_resource( '/publish', array( 'name' => $name, 'data' => $data, 'timestamp' => time() ) );
+            return $this->post_resource( '/publish', array( 'name' => $name, 'data' => $data ) );
         }
 
         public function stats( $options = array() ) {
