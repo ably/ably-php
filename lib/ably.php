@@ -236,9 +236,9 @@ class Ably {
             return $res;
         }
 
-        public function stats() {
+        public function stats( $params = array() ) {
             $this->authorise();
-            $res = $this->get( 'baseUri', '/stats', $this->auth_headers() );
+            $res = $this->get( 'baseUri', '/stats', $this->auth_headers(), $params );
             return $res;
         }
 
@@ -421,7 +421,6 @@ class Ably {
             }
 
             if (!empty($headers)) {
-                curl_setopt( $ch, CURLOPT_HEADER, true );
                 curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
             }
 
@@ -442,6 +441,7 @@ class Ably {
             }
 
             $this->raw[$parts['path']] = $raw;
+
             $response = $this->response_format($raw);
             $this->log_action( '_response()', $response );
 

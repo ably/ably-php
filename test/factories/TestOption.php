@@ -56,13 +56,7 @@ class TestOption {
             }
 
             $raw = $this->request( 'POST', join('/', array($this->settings['authority'], 'apps') ) , array(), $app_spec_text );
-
-            # explode into lines
-            $lines = explode("\n",$raw);
-            # find empty line separator
-            $pos_of_empty_line = array_search('{', $lines, 1);
-            # usable json response
-            $response = json_decode(join("\n", array_slice($lines, $pos_of_empty_line)));
+            $response = json_decode($raw);
 
             $keys = $response->keys;
             $app_id = $response->id;
@@ -113,7 +107,6 @@ class TestOption {
         }
 
         if (!empty($headers)) {
-            curl_setopt( $ch, CURLOPT_HEADER, 1 );
             curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
         }
 

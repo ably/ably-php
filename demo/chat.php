@@ -16,9 +16,7 @@ $app = new Ably(array(
     'key'  => $api_key,
     'debug' => 'log'
 ));
-
-# TODO : demo how to use the auth token for real-time connections
-# $authToken = $app->token;
+$app->authorise();
 
 # publish something
 if (!empty($_POST)) {
