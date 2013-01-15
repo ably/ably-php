@@ -408,7 +408,11 @@ class AblyRest {
 
         if (!empty($params)) {
             curl_setopt( $ch, CURLOPT_POST, true );
-            curl_setopt( $ch, CURLOPT_POSTFIELDS, $this->safe_params($params) );
+            # if an array is passed in we will convert it to parameters
+            curl_setopt( $ch, CURLOPT_POSTFIELDS, is_array($params) ? $this->safe_params($params) : $params );
+            # if not a array then the data will be assume JSON and passed through the body
+            if (!is_array($params))
+                array_push( $headers, 'Accept: application/json', 'Content-Type: application/json' );
         }
 
         if (!empty($headers)) {

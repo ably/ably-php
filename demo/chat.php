@@ -17,10 +17,11 @@ $app = new AblyRest(array(
     'debug' => 'log'
 ));
 $app->authorise();
+$channel0 = $app->channel($channel_name);
+$messages = $channel0->history(array('direction' => 'forwards'));
 
 # publish something
 if (!empty($_POST)) {
-    $channel0 = $app->channel($channel_name);
     $channel0->publish($event_name, json_encode(array('handle' => $_POST['handle'], 'message' => $_POST['message'])));
     die();
 }
@@ -53,7 +54,12 @@ if (!empty($_POST)) {
 
 <div class="chat-window">
     <div class="chat-window-content">
-        <ul id="message_pool"></ul>
+        <ul id="message_pool">
+            <?php for ($i=0; $i<count($messages); $i++): ?>
+            <?php if (property_exists($messages[$i], 'data')) : $message = json_decode($messages[$i]->data); ?>
+            <li><b class="handle"><?= $message->handle ?>:</b> <?= $message->message ?></li>
+            <?php endif; endfor; ?>
+        </ul>
     </div>
 </div>
 
