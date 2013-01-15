@@ -6,7 +6,7 @@ require_once 'factories/TestOption.php';
 class CapabilityTest extends PHPUnit_Framework_TestCase {
 
     protected static $options;
-    protected $defaults;
+    protected $ably;
 
     public static function setUpBeforeClass() {
 
@@ -22,22 +22,33 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
 
         $options = self::$options;
         $defaults = array(
-            'debug' => true,
+            'debug'     => false,
             'encrypted' => $options['encrypted'],
-            'host' => $options['host'],
-            'port' => $options['port'],
+            'host'      => $options['host'],
+            'key'       => $options['first_private_api_key'],
+            'port'      => $options['port'],
         );
 
-        $this->defaults = $defaults;
+        $this->ably = new Ably( $defaults );
     }
 
     /**
      * Blanket intersection with specified key
      */
+    public function testBlanketIntersectionWithSpecifiedKey() {
+        $token_details = $this->ably->request_token();
+        $this->assertNotNull($token_details->id, 'Expected token id');
+        $this->assertEquals(self::$options['capability'], $token_details->capability, 'Unexpected capability');
+    }
 
     /**
      * Equal intersection with specified key
      */
+    public function testEqualIntersectionWithSpecifiedKey() {
+        $token_details = $this->ably->request_token();
+        $this->assertNotNull($token_details.id, 'Expected token id');
+        $this->assertEquals(self::$options['capability'], $token_details->capability, 'Unexpected capability');
+    }
 
     /**
      * Empty ops intersection

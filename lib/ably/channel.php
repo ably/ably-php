@@ -20,16 +20,16 @@ class Channel extends Ably {
     /*
      * Public methods
      */
-        public function history( $options = array() ) {
-            return $this->get_resource( '/history' );
+        public function history( $params = array() ) {
+            return $this->get_resource( '/history', $this->ably->auth_headers(), $params );
         }
 
-        public function presence( $options = array() ) {
-            return $this->get_resource( '/presence' );
+        public function presence( $params = array() ) {
+            return $this->get_resource( '/presence', $this->ably->auth_headers(), $params );
         }
 
-        public function presence_history( $options = array() ) {
-            return $this->get_resource( '/presence/history' );
+        public function presence_history( $params = array() ) {
+            return $this->get_resource( '/presence/history', $this->ably->auth_headers(), $params );
         }
 
         public function publish( $name, $data ) {
@@ -37,8 +37,8 @@ class Channel extends Ably {
             return $this->post_resource( '/publish', array( 'name' => $name, 'data' => $data ) );
         }
 
-        public function stats( $options = array() ) {
-            return $this->get_resource( '/stats' );
+        public function stats( $params = array() ) {
+            return $this->get_resource( '/stats', $this->ably->auth_headers(), $params );
         }
 
 
