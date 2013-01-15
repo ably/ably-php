@@ -243,13 +243,9 @@ class AblyRest {
     }
 
     /*
-     * Protected methods
-     */
-
-    /*
      * curl wrapper to do GET
      */
-    protected function get( $domain, $path, $headers = array(), $params = array() ) {
+    public function get( $domain, $path, $headers = array(), $params = array() ) {
         $fallback = $this->getopt('authority') . $domain;
         return $this->request( $this->getopt( $domain, $fallback ) . $path . ( !empty($params) ? '?' . $this->safe_params($params) : '' ), $headers );
     }
@@ -257,7 +253,7 @@ class AblyRest {
     /*
      * log action into logfile / syslog (Only in debug mode)
      */
-    protected function log_action( $action, $msg ) {
+    public function log_action( $action, $msg ) {
 
         $debug = $this->getopt('debug');
 
@@ -294,7 +290,7 @@ class AblyRest {
     /*
      * curl wrapper to do POST
      */
-    protected function post( $domain, $path, $headers = array(), $params = array() ) {
+    public function post( $domain, $path, $headers = array(), $params = array() ) {
         $fallback = $this->getopt('authority') . $domain;
         return $this->request( $this->getopt($domain, $fallback) . $path, $headers, $params );
     }

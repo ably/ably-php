@@ -1,6 +1,6 @@
 <?php
 
-class Channel extends AblyRest {
+class Channel {
 
     public $name;
     public $domain;
@@ -16,20 +16,19 @@ class Channel extends AblyRest {
             $this->domain = "/channels/{$name}";
         }
 
-
     /*
      * Public methods
      */
         public function history( $params = array() ) {
-            return $this->get_resource( '/history', $this->ably->auth_headers(), $params );
+            return $this->get_resource( '/history', $params );
         }
 
         public function presence( $params = array() ) {
-            return $this->get_resource( '/presence', $this->ably->auth_headers(), $params );
+            return $this->get_resource( '/presence', $params );
         }
 
         public function presence_history( $params = array() ) {
-            return $this->get_resource( '/presence/history', $this->ably->auth_headers(), $params );
+            return $this->get_resource( '/presence/history', $params );
         }
 
         public function publish( $name, $data ) {
@@ -38,16 +37,16 @@ class Channel extends AblyRest {
         }
 
         public function stats( $params = array() ) {
-            return $this->get_resource( '/stats', $this->ably->auth_headers(), $params );
+            return $this->get_resource( '/stats', $params );
         }
 
 
     /*
      * Private methods
      */
-        private function get_resource( $path ) {
+        private function get_resource( $path, $params = array() ) {
             $this->ably->authorise();
-            return $this->ably->get( $this->domain, $path, $this->ably->auth_headers() );
+            return $this->ably->get( $this->domain, $path, $this->ably->auth_headers(), $params );
         }
 
         private function post_resource( $path, $params = array() ) {
