@@ -1,6 +1,6 @@
 <?php
 
-class Channel extends Ably {
+class Channel extends AblyRest {
 
     public $name;
     public $domain;
@@ -10,7 +10,7 @@ class Channel extends Ably {
     /*
      * Constructor
      */
-        public function __construct( Ably $ably, $name ) {
+        public function __construct( AblyRest $ably, $name ) {
             $this->ably = $ably;
             $this->name = $name;
             $this->domain = "/channels/{$name}";

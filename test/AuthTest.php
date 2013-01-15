@@ -36,7 +36,7 @@ class AuthTest extends PHPUnit_Framework_TestCase {
      */
     public function testAuthoriseWithKeyOnly() {
         echo '== testAuthoriseWithKeyOnly()';
-        $ably = new Ably(array_merge($this->defaults, array(
+        $ably = new AblyRest(array_merge($this->defaults, array(
             'key' => self::$options['first_private_api_key'],
         )));
         $this->assertEquals( AuthMethod::BASIC, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
@@ -49,7 +49,7 @@ class AuthTest extends PHPUnit_Framework_TestCase {
     public function testAuthoriseWithTokenOnly() {
         echo '== testAuthoriseWithTokenOnly()';
         $options = self::$options;
-        $ably = new Ably(array_merge($this->defaults, array(
+        $ably = new AblyRest(array_merge($this->defaults, array(
             'appId'     => $options['appId'],
             'authToken' => "this_is_not_really_a_token",
         )));
@@ -63,7 +63,7 @@ class AuthTest extends PHPUnit_Framework_TestCase {
     public function testAuthoriseWithTokenCallback() {
         echo '== testAuthoriseWithTokenCallback()';
         $options = self::$options;
-        $ably = new Ably(array_merge($this->defaults, array(
+        $ably = new AblyRest(array_merge($this->defaults, array(
             'appId'        => $options['appId'],
             'authCallback' => function( $params ) {
                 $this->authinit2_cbCalled = true;
@@ -83,7 +83,7 @@ class AuthTest extends PHPUnit_Framework_TestCase {
     public function testAuthoriseWithKeyAndClientId() {
         echo '== testAuthoriseWithKeyAndClientId()';
         $options = self::$options;
-        $ably = new Ably(array_merge($this->defaults, array(
+        $ably = new AblyRest(array_merge($this->defaults, array(
             'key'      => $options['first_private_api_key'],
             'clientId' => 'testClientId',
         )));
@@ -97,13 +97,13 @@ class AuthTest extends PHPUnit_Framework_TestCase {
         echo '== testAuthoriseWithToken()';
         $options = self::$options;
 
-        $ably_for_token = new Ably(array_merge($this->defaults, array(
+        $ably_for_token = new AblyRest(array_merge($this->defaults, array(
             'key' => $options['first_private_api_key'],
         )));
         $token_details = $ably_for_token->request_token();
         $this->assertNotNull($token_details->id, 'Expected token id' );
 
-        $ably = new Ably(array_merge($this->defaults, array(
+        $ably = new AblyRest(array_merge($this->defaults, array(
             'appId'     => $options['appId'],
             'authToken' => $token_details->id,
         )));

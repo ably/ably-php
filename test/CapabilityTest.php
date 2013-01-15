@@ -22,14 +22,14 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
 
         $options = self::$options;
         $defaults = array(
-            'debug'     => false,
+            'debug'     => true,
             'encrypted' => $options['encrypted'],
             'host'      => $options['host'],
             'key'       => $options['first_private_api_key'],
             'port'      => $options['port'],
         );
 
-        $this->ably = new Ably( $defaults );
+        $this->ably = new AblyRest( $defaults );
     }
 
     /**

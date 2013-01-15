@@ -11,7 +11,7 @@ $host = defined('ABLY_HOST') ? ABLY_HOST : null;
 $ws_host = defined('ABLY_WS_HOST') ? ABLY_WS_HOST : null;
 
 # instantiate Ably
-$app = new Ably(array(
+$app = new AblyRest(array(
     'host' => $host,
     'key'  => $api_key,
     'debug' => 'log'

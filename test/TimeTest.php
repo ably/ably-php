@@ -36,7 +36,7 @@ class TimeTest extends PHPUnit_Framework_TestCase {
      */
     public function testAccuracyWithTwoSecondVariation() {
         echo '== testAccuracyWithTwoSecondVariation()';
-        $ably = new Ably(array_merge($this->defaults, array(
+        $ably = new AblyRest(array_merge($this->defaults, array(
             'key' => self::$options['first_private_api_key'],
         )));
 
@@ -51,7 +51,7 @@ class TimeTest extends PHPUnit_Framework_TestCase {
      */
     public function testTimeWithoutValidKeyToken() {
         echo '== testTimeWithoutValidKeyToken()';
-        $ablyNoAuth = new Ably(array_merge( $this->defaults, array(
+        $ablyNoAuth = new AblyRest(array_merge( $this->defaults, array(
             'appId' => 'fakeAppId',
         )));
 
@@ -65,7 +65,7 @@ class TimeTest extends PHPUnit_Framework_TestCase {
      */
     public function testTimeFailsWithInvalidHost() {
         echo '== testTimeFailsWithInvalidHost()';
-        $ablyInvalidHost = new Ably(array_merge( $this->defaults, array(
+        $ablyInvalidHost = new AblyRest(array_merge( $this->defaults, array(
             'key' => self::$options['first_private_api_key'],
             'host'  => 'this.host.does.not.exist',
         )));

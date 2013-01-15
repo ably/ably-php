@@ -12,11 +12,11 @@ Include the library:
 
 Use it like this:
 
-    $app = new Ably('{Your-Private-API-Key}');
+    $app = new AblyRest('{Your-Private-API-Key}');
 
 Or, pass multiple options:
 
-    $app = new Ably(array(
+    $app = new AblyRest(array(
         'key'    => '{Your-Private-API-Key}',
         'format' => 'json',
         'debug'  => true,

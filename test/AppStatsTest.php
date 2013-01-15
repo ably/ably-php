@@ -29,7 +29,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
             'port'      => $options['port'],
         );
 
-        $this->ably = new Ably( $defaults );
+        $this->ably = new AblyRest( $defaults );
     }
 
     /**
