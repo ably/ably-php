@@ -1,5 +1,9 @@
 <?php
 
+require_once 'AuthMethod.php';
+require_once 'PresenceState.php';
+require_once 'Channel.php';
+
 class AblyRest {
 
     public $token;
