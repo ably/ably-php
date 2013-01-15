@@ -5,4 +5,4 @@
 require_once 'ably/AuthMethod.php';
 require_once 'ably/PresenceState.php';
 require_once 'ably/AblyRest.php';
-require_once 'ably/channel_old.php';
+require_once 'ably/Channel.php';
