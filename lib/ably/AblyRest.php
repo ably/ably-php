@@ -249,9 +249,9 @@ class AblyRest {
     /*
      * curl wrapper to do GET
      */
-    protected function get( $domain, $path, $headers = array() ) {
+    protected function get( $domain, $path, $headers = array(), $params = array() ) {
         $fallback = $this->getopt('authority') . $domain;
-        return $this->request( $this->getopt( $domain, $fallback ) . $path, $headers );
+        return $this->request( $this->getopt( $domain, $fallback ) . $path . ( !empty($params) ? '?' . $this->safe_params($params) : '' ), $headers );
     }
 
     /*
