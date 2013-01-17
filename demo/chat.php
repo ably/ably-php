@@ -18,12 +18,14 @@ $app = new AblyRest(array(
 ));
 $app->authorise();
 $channel0 = $app->channel($channel_name);
-$messages = $channel0->history(array('direction' => 'forwards'));
+$messages = array();
 
 # publish something
 if (!empty($_POST)) {
     $channel0->publish($event_name, json_encode(array('handle' => $_POST['handle'], 'message' => $_POST['message'])));
     die();
+} else {
+    $messages = $channel0->history(array('direction' => 'forwards'));
 }
 
 ?>

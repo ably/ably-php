@@ -190,6 +190,8 @@ class AblyRest {
      */
     public function request_token( $options = array() ) {
 
+        if ($options == null) $options = array();
+
         # merge supplied options with already-known options
         $options = array_merge( $this->token_options, $this->sanitize_options($options) );
 
@@ -348,12 +350,14 @@ class AblyRest {
     }
 
     private function create_token( $options = array() ) {
+        $query_time = isset($options['query']) && $options['query'];
+
         $request = array_merge(array(
             'id'         => $this->getopt( 'keyId' ),
             'ttl'        => $this->getopt( 'ttl', '' ),
             'capability' => $this->getopt( 'capability' ),
             'client_id'  => $this->getopt( 'clientId' ),
-            'timestamp'  => $this->getopt( 'timestamp', $this->timestamp() ),
+            'timestamp'  => $this->getopt( 'timestamp', $this->timestamp( $query_time ) ),
             'nonce'      => $this->getopt( 'nonce', $this->random() ),
         ), $options );
 
@@ -375,8 +379,6 @@ class AblyRest {
         }
 
         $res = $this->post( 'baseUri', '/authorise', null, $request );
-
-        $this->log_action( 'request_token() - result', $res );
 
         if ( !empty($res->access_token) ) {
             return $res->access_token;
@@ -432,7 +434,6 @@ class AblyRest {
         curl_close ($ch);
 
         $this->log_action( '_request()', $info );
-        $this->log_action( '_request()', $raw );
 
         if ( $info['http_code'] != 200 ) {
             #trigger_error( $raw );
