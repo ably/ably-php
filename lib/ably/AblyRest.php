@@ -267,7 +267,8 @@ class AblyRest {
 
         ob_start();
 
-        echo "\n\n---\n{$action}:\n";
+        $micro = microtime(true)*1000;
+        echo "\n\n---\n_tick: {$micro} ms\n{$action}:\n";
         if (is_string($msg)) {
             echo $msg;
         } else {
@@ -411,14 +412,20 @@ class AblyRest {
         $ch = curl_init($url);
         $parts = parse_url($url);
         ($headers === NULL) && $headers = array();
+        $curl_cmd = 'curl ';
 
         if (!empty($params)) {
             curl_setopt( $ch, CURLOPT_POST, true );
             # if an array is passed in we will convert it to parameters
             curl_setopt( $ch, CURLOPT_POSTFIELDS, is_array($params) ? $this->safe_params($params) : $params );
             # if not a array then the data will be assume JSON and passed through the body
-            if (!is_array($params))
-                array_push( $headers, 'Accept: application/json', 'Content-Type: application/json' );
+            (!is_array($params)) && array_push( $headers, 'Accept: application/json', 'Content-Type: application/json' );
+            if (is_array($params)) {
+                $curl_cmd .= '--data "'. $this->safe_params($params) .'" ';
+            } else {
+                $curl_cmd .= "--data '{$params}' ";
+            }
+            $curl_cmd .= '-X POST ';
         }
 
         if (!empty($headers)) {
@@ -428,12 +435,22 @@ class AblyRest {
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
         curl_setopt( $ch, CURLOPT_VERBOSE, $this->getopt('debug') );
 
+        if (!empty($headers)) {
+            foreach($headers as $header) {
+                $curl_cmd .= "-H {$header} ";
+            }
+        }
+
+        $curl_cmd .= $url;
+
+        $this->log_action( '_request_build()', $curl_cmd );
+
         $raw = curl_exec($ch);
         $info = curl_getinfo($ch);
 
         curl_close ($ch);
 
-        $this->log_action( '_request()', $info );
+        $this->log_action( '_request_info()', $info );
 
         if ( $info['http_code'] != 200 ) {
             #trigger_error( $raw );
@@ -443,7 +460,7 @@ class AblyRest {
         $this->raw[$parts['path']] = $raw;
 
         $response = $this->response_format($raw);
-        $this->log_action( '_response()', $response );
+        $this->log_action( '_request_result()', $response );
 
         return $response;
     }
