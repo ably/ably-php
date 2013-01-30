@@ -181,6 +181,13 @@ class AblyRest {
     }
 
     /*
+     * get the current rest host
+     */
+    public function get_setting($key) {
+        return $this->getopt($key);
+    }
+
+    /*
      * history
      */
     public function history( $options = array() ) {
@@ -278,7 +285,7 @@ class AblyRest {
 
         $debug = $this->getopt('debug');
 
-        if ( !$debug ) return;
+        if ( !$debug ) return false;
 
         ob_start();
 
@@ -304,9 +311,13 @@ class AblyRest {
             } else {
                 trigger_error("log_action(): Could not write to log. Please ensure you have write access to the tmp/ folder.");
             }
+        } elseif ( is_callable($debug) ) {
+            $debug($output);
         } else {
             echo $output;
         }
+
+        return true;
     }
 
     /*
