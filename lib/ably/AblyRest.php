@@ -12,6 +12,7 @@ class AblyRest {
     private $channels = array();
     private $token_options = array();
     private $raw;
+    private $client_id;
 
     private static $defaults = array(
         'debug'     => false,
@@ -99,8 +100,11 @@ class AblyRest {
         $settings['authority'] = $settings['scheme'] .'://'. $settings['host'] .':'. $settings['port'];
         $settings['baseUri']   = $settings['authority'] . '/apps/' . $settings['appId'];
 
+        !isset($settings['clientId']) && $settings['clientId'] = null;
+
         $this->settings = $settings;
         $this->token_options = $token_options;
+        $this->client_id = $settings['clientId'];
 
         return $this;
     }
@@ -112,10 +116,10 @@ class AblyRest {
     /*
      * Authorise request
      */
-    public function authorise( $options = array() ) {
+    public function authorise( $options = array(), $params = array(), $force = false ) {
         if ( !empty($this->token) ) {
             if ( $this->token->expires > $this->timestamp() ) {
-                if ( empty($options['force']) || !$options['force'] ) {
+                if ( !$force ) {
                     # using cached token
                     $this->log_action( 'authorise()', sprintf("\tusing cached token; expires = %s\n\tfor humans token expires on %s", $this->token->expires, gmdate("r",$this->token->expires)) );
                     return $this;
@@ -126,7 +130,7 @@ class AblyRest {
                 $this->log_action( 'authorise()', 'deleting expired token' );
             }
         }
-        $this->token = $this->request_token( $options );
+        $this->token = $this->request_token( $options, $params );
 
         return $this;
     }
@@ -188,24 +192,35 @@ class AblyRest {
     /*
      * Request a New Auth Token
      */
-    public function request_token( $options = array() ) {
+    public function request_token( $options = array(), $params = array() ) {
 
         if ($options == null) $options = array();
 
         # merge supplied options with already-known options
         $options = array_merge( $this->token_options, $this->sanitize_options($options) );
 
+        # setup the request params
+        if ( $params == null ) $params = array();
+        if ( empty($params['client_id']) ) {
+            $params['client_id'] = isset($options['clientId']) ? $options['clientId'] : $this->client_id;
+        }
+        if ( !empty($params['capability']) ) {
+            $params['capability'] = $this->c14n($params['capability']);
+        } else {
+            $params['capability'] = '';
+        }
+
         # get the signed token request
         $signed_token_request = null;
         if ( !empty($options['authCallback']) ) {
             $this->log_action( 'request_token()', 'using token auth with auth_callback' );
-            $signed_token_request = $options['authCallback']($options);
+            $signed_token_request = $options['authCallback']($params);
         } elseif ( !empty($options['authUrl']) ) {
             $this->log_action( 'request_token()', 'using token auth with auth_url' );
-            $signed_token_request = $this->request( $options['authUrl'], $options['authHeaders'], array_merge( $this->auth_params(), $options ) );
+            $signed_token_request = $this->request( $options['authUrl'], $options['authHeaders'], array_merge( $this->auth_params(), $params ) );
         } elseif ( !empty($options['keyValue']) ) {
             $this->log_action( 'request_token()', 'using token auth with client-side signing' );
-            $signed_token_request = $this->create_token( $options );
+            $signed_token_request = $this->create_token( $options, $params );
         } else {
             trigger_error( 'request_token(): options must include valid authentication parameters' );
         }
@@ -308,6 +323,13 @@ class AblyRest {
      */
 
     /*
+     * get canonicalised string
+     */
+    private function c14n( $str ) {
+        return json_encode($str);
+    }
+
+    /*
      * check library dependencies
      */
     private function check_dependencies( $modules ) {
@@ -350,8 +372,22 @@ class AblyRest {
         return false;
     }
 
-    private function create_token( $options = array() ) {
+    private function create_token( $options = array(), $params = array() ) {
         $query_time = isset($options['query']) && $options['query'];
+
+        # key_id option
+        $key_id = $options['keyId'];
+        if (empty($params['id'])) {
+            $params['id'] = $key_id;
+        } else if ( $params['id'] != $key_id ) {
+            trigger_error( 'Incompatible keys specified' );
+        }
+
+        # key_value options
+        $key_value = $options['keyValue'];
+        if (empty($key_id) || empty($key_value)) {
+            trigger_error('No key specified');
+        }
 
         $request = array_merge(array(
             'id'         => $this->getopt( 'keyId' ),
@@ -360,7 +396,7 @@ class AblyRest {
             'client_id'  => $this->getopt( 'clientId' ),
             'timestamp'  => $this->getopt( 'timestamp', $this->timestamp( $query_time ) ),
             'nonce'      => $this->getopt( 'nonce', $this->random() ),
-        ), $options );
+        ), $params );
 
         $signText = implode("\n", array(
             $request['id'],
@@ -371,7 +407,7 @@ class AblyRest {
             $request['nonce'],
         )) . "\n";
 
-        $this->log_action( 'request_token()', sprintf("--signText Start--\n%s\n--signText End--", $signText) );
+        $this->log_action( 'create_token()', sprintf("--signText Start--\n%s\n--signText End--", $signText) );
 
         if ( empty($request['mac']) ) {
             $hmac           = hash_hmac( 'sha256',$signText, $this->getopt('keyValue'),true );
@@ -381,12 +417,19 @@ class AblyRest {
 
         $res = $this->post( 'baseUri', '/authorise', null, $request );
 
-        if ( !empty($res->access_token) ) {
-            return $res->access_token;
-        } else {
-            trigger_error( 'request_token(): Could not get new access token' );
-            return false;
+        if ( empty($res->access_token) ) {
+            $error = json_decode($res)->error;
+            if (is_string($error)) {
+                $msg = $error;
+                $code = 50000;
+            } else {
+                $msg = $error->reason;
+                $code = $error->code;
+            }
+            throw new Exception( 'create_token(): Could not get new access token. '. $msg, $code );
         }
+
+        return $res->access_token;
     }
 
 
@@ -437,7 +480,7 @@ class AblyRest {
 
         if (!empty($headers)) {
             foreach($headers as $header) {
-                $curl_cmd .= "-H {$header} ";
+                $curl_cmd .= "-H '{$header}' ";
             }
         }
 
