@@ -22,7 +22,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $options = self::$options;
         $defaults = array(
-            'debug'     => false,
+            'debug'     => true,
             'encrypted' => $options['encrypted'],
             'host'      => $options['host'],
             'key'       => $options['first_private_api_key'],
@@ -61,7 +61,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 5, $stats[0]->published->messageCount );
+        $this->assertEquals ( 5, $stats[0]->inbound->all->all->count );
     }
 
     /**
@@ -99,6 +99,6 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 5, $stats[0]->published->messageCount );
+        $this->assertEquals ( 5, $stats[0]->inbound->all->all-count );
     }
 }
