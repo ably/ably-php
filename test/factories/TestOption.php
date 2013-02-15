@@ -25,7 +25,7 @@ class TestOption {
 
     private function __construct() {
 
-        $settings = array( 'host' => getenv("WEBSOCKET_ADDRESS") );
+        $settings = array( 'host' => getenv("WEBSOCKET_ADDRESS"), 'debug' => false );
 
         if (empty($settings['host'])) {
             $settings['host'] = "staging-rest.ably.io";
@@ -97,6 +97,7 @@ class TestOption {
      */
     private function request( $mode, $url, $headers = array(), $params = array() ) {
         $ch = curl_init($url);
+        $curl_cmd = 'curl ';
 
         if ( $mode == 'DELETE') curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, 'DELETE' );
         if ( $mode == 'POST' )  curl_setopt ( $ch, CURLOPT_POST, 1 );
@@ -104,17 +105,36 @@ class TestOption {
         if (!empty($params)) {
             curl_setopt( $ch, CURLOPT_POSTFIELDS, $params );
             array_push( $headers, 'Accept: application/json', 'Content-Type: application/json' );
+            if (is_array($params)) {
+                $curl_cmd .= '--data "'. $this->safe_params($params) .'" ';
+            } else {
+                $curl_cmd .= "--data '{$params}' ";
+            }
+            $curl_cmd .= '-X POST ';
         }
 
         if (!empty($headers)) {
             curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
         }
 
+        if (!empty($headers)) {
+            foreach($headers as $header) {
+                $curl_cmd .= "-H '{$header}' ";
+            }
+        }
+
+        $curl_cmd .= $url;
+
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-        curl_setopt( $ch, CURLOPT_VERBOSE, 1 );
+        $this->settings['debug'] && curl_setopt( $ch, CURLOPT_VERBOSE, 1 );
 
         $raw = curl_exec($ch);
         curl_close ($ch);
+
+        if ($this->settings['debug']) {
+            var_dump($curl_cmd);
+            var_dump($raw);
+        }
 
         return $raw;
     }
