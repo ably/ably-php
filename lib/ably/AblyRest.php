@@ -50,7 +50,9 @@ class AblyRest {
             $this->check_options( $settings, 'INVALID_KEY' );
 
             # setup keys
-            list( $settings['appId'], $settings['keyId'], $settings['keyValue'] ) = explode( ':', $settings['key'] );
+            #list( $username, $settings['keyValue'] ) = explode( ':', $settings['key'] );
+            #list($settings['appId'], $settings['keyId']) = explode( '.', $username );
+            list( $settings['appId'], $settings['keyId'], $settings['keyValue'] ) = $this->explode_key( $settings['key'] );
         }
 
         # check options
@@ -362,7 +364,7 @@ class AblyRest {
                 break;
 
             case 'INVALID_KEY':
-                if (!empty($options['key']) && count(explode(':', $options['key']) ) != 3) {
+                if (!empty($options['key']) && count($this->explode_key($options['key']) ) != 3) {
                     $msg = 'invalid key parameter';
                 }
                 break;
@@ -441,6 +443,15 @@ class AblyRest {
         }
 
         return $res->access_token;
+    }
+
+    /*
+     * Shorthand to explode the combined private key
+     */
+    private function explode_key( $key ) {
+        list( $username, $keyValue ) = explode( ':', $key );
+        list($appId, $keyId ) = explode( '.', $username );
+        return array( $appId, $keyId, $keyValue );
     }
 
 

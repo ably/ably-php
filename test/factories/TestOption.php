@@ -67,7 +67,7 @@ class TestOption {
                 $obj = new stdClass();
                 $obj->key_id = $key->id;
                 $obj->key_value = $key->value;
-                $obj->key_str = implode(':', array($app_id, $obj->key_id, $obj->key_value));
+                $obj->key_str = implode('.', array($app_id, implode(':', array($obj->key_id, $obj->key_value))));
                 $obj->capability = $key->capability;
                 array_push($key_objs, $obj);
 
