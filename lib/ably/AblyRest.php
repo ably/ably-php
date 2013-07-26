@@ -100,7 +100,8 @@ class AblyRest {
             && $settings['port'] = self::$defaults[ $settings['encrypted'] ?  'wss_port' : 'ws_port' ];
         $settings['scheme']    = 'http' . ($settings['encrypted'] ? 's' : '');
         $settings['authority'] = $settings['scheme'] .'://'. $settings['host'] .':'. $settings['port'];
-        $settings['baseUri']   = $settings['authority'] . '/apps/' . $settings['appId'];
+        //$settings['baseUri']   = $settings['authority'] . '/apps/' . $settings['appId'];
+        $settings['baseUri']   = $settings['authority'];
 
         !isset($settings['clientId']) && $settings['clientId'] = null;
 
@@ -388,10 +389,14 @@ class AblyRest {
     private function create_token( $options = array(), $params = array() ) {
         $query_time = isset($options['query']) && $options['query'];
 
+
+        # app_id setting
+        $app_id = $this->getopt('appId');
+
         # key_id option
         $key_id = $options['keyId'];
         if (empty($params['id'])) {
-            $params['id'] = $key_id;
+            $params['id'] = "{$app_id}.{$key_id}";
         } else if ( $params['id'] != $key_id ) {
             trigger_error( 'Incompatible keys specified' );
         }
@@ -403,7 +408,7 @@ class AblyRest {
         }
 
         $request = array_merge(array(
-            'id'         => $this->getopt( 'keyId' ),
+            'id'         => "{$app_id}.{$this->getopt('keyId')}",
             'ttl'        => $this->getopt( 'ttl', '' ),
             'capability' => $this->getopt( 'capability' ),
             'client_id'  => $this->getopt( 'clientId' ),
@@ -428,7 +433,7 @@ class AblyRest {
             $this->log_action( 'request_token()', sprintf("\tbase64 = %s\n\tmac = %s", base64_encode($hmac), $request['mac']) );
         }
 
-        $res = $this->post( 'baseUri', '/authorise', null, $request );
+        $res = $this->post( 'baseUri', "/keys/$app_id.$key_id/authorise", null, $request );
 
         if ( empty($res->access_token) ) {
             $error = json_decode($res)->error;
@@ -517,8 +522,7 @@ class AblyRest {
 
         $this->log_action( '_request_info()', $info );
 
-        if ( $info['http_code'] != 200 ) {
-            #trigger_error( $raw );
+        if ( !in_array( $info['http_code'], array(200,201) ) ) {
             return $raw;
         }
 
