@@ -50,8 +50,6 @@ class AblyRest {
             $this->check_options( $settings, 'INVALID_KEY' );
 
             # setup keys
-            #list( $username, $settings['keyValue'] ) = explode( ':', $settings['key'] );
-            #list($settings['appId'], $settings['keyId']) = explode( '.', $username );
             list( $settings['appId'], $settings['keyId'], $settings['keyValue'] ) = $this->explode_key( $settings['key'] );
         }
 
@@ -100,7 +98,6 @@ class AblyRest {
             && $settings['port'] = self::$defaults[ $settings['encrypted'] ?  'wss_port' : 'ws_port' ];
         $settings['scheme']    = 'http' . ($settings['encrypted'] ? 's' : '');
         $settings['authority'] = $settings['scheme'] .'://'. $settings['host'] .':'. $settings['port'];
-        //$settings['baseUri']   = $settings['authority'] . '/apps/' . $settings['appId'];
         $settings['baseUri']   = $settings['authority'];
 
         !isset($settings['clientId']) && $settings['clientId'] = null;
