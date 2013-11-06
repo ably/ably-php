@@ -7,6 +7,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
 
     protected static $options;
     protected $ably;
+    protected $timeOffset;
 
     public static function setUpBeforeClass() {
 
@@ -30,6 +31,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         );
 
         $this->ably = new AblyRest( $defaults );
+        $this->timeOffset = $this->ably->time() - $this->ably->system_time();
     }
 
     /**
@@ -49,7 +51,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         $history0->publish("history6", json_encode(array('This is a JSONArray message payload')));
 
         # wait for history to be persisted
-        sleep(10);
+        sleep(30);
 
         # get the history for this channel
         $messages = $history0->history();
@@ -90,7 +92,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         }
 
         # wait for the history to be persisted
-        sleep(10);
+        sleep(30);
 
         # get the history for this channel
         $messages = $history1->history( array('direction' => 'forwards') );
@@ -119,7 +121,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         }
 
         # wait for the history to be persisted
-        sleep(10);
+        sleep(30);
 
         $messages = $history2->history( array('direction' => 'backwards') );
         $this->assertNotNull( $messages, 'Expected non-null messages' );
@@ -148,7 +150,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         }
 
         # wait for the history to be persisted
-        sleep(10);
+        sleep(30);
 
         $messages = $history3->history( array('direction' => 'forwards', 'limit' => 25) );
         $this->assertNotNull( $messages, 'Expected non-null messages' );
@@ -176,7 +178,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         }
 
         # wait for the history to be persisted
-        sleep(10);
+        sleep(30);
 
         $messages = $history4->history( array('direction' => 'backwards', 'limit' => 25) );
         $this->assertNotNull( $messages, 'Expected non-null messages' );
@@ -207,19 +209,19 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
             $history5->publish('history'.$i, $i);
             usleep(100000); // sleep for 0.1 of a second
         }
-        $interval_start = intval(microtime(true)*1000);
+        $interval_start = $this->timeOffset + $this->ably->system_time() + 1;
         for ($i=20; $i<40; $i++) {
             $history5->publish('history'.$i, $i);
             usleep(100000); // sleep for 0.1 of a second
         }
-        $interval_end = intval(microtime(true)*1000) - 1;
-        for ($i=20; $i<40; $i++) {
+        $interval_end = $this->timeOffset + $this->ably->system_time();
+        for ($i=40; $i<60; $i++) {
             $history5->publish('history'.$i, $i);
             usleep(100000); // sleep for 0.1 of a second
         }
 
         # wait for the history to be persisted
-        sleep(10);
+        sleep(30);
 
         # get the history for this channel
         $messages = $history5->history(array(
@@ -233,7 +235,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         # verify message order
         $actual_message_history = array();
         for ($i=20; $i<40; $i++) {
-            array_push( $actual_message_history, $messages[$i]->data);
+            array_push( $actual_message_history, $messages[$i-20]->data);
         }
         $expected_message_history = range(20, 39);
         $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in forward order');
@@ -255,19 +257,19 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
             $history6->publish('history'.$i, $i);
             usleep(100000); // sleep for 0.1 of a second
         }
-        $interval_start = intval(microtime(true)*1000);
+        $interval_start = $this->timeOffset + $this->ably->system_time() + 1;
         for ($i=20; $i<40; $i++) {
             $history6->publish('history'.$i, $i);
             usleep(100000); // sleep for 0.1 of a second
         }
-        $interval_end = intval(microtime(true)*1000) - 1;
-        for ($i=20; $i<40; $i++) {
+        $interval_end = $this->timeOffset + $this->ably->system_time();
+        for ($i=40; $i<60; $i++) {
             $history6->publish('history'.$i, $i);
             usleep(100000); // sleep for 0.1 of a second
         }
 
         # wait for the history to be persisted
-        sleep(10);
+        sleep(30);
 
         # get the history for this channel
         $messages = $history6->history(array(
@@ -275,13 +277,14 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
             'start'     => $interval_start,
             'end'       => $interval_end,
         ));
+
         $this->assertNotNull( $messages, 'Expect non-null messages' );
         $this->assertEquals( 20, count($messages), 'Expected 20 messages' );
 
         # verify message order
         $actual_message_history = array();
         for ($i=20; $i<40; $i++) {
-            array_push( $actual_message_history, $messages[$i]->data);
+            array_push( $actual_message_history, $messages[$i-20]->data);
         }
         $expected_message_history = range(39, 20, -1);
         $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in backward order' );

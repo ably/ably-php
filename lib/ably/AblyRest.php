@@ -62,6 +62,9 @@ class AblyRest {
         !empty($settings['keyId']) && $token_options['keyId'] = $settings['keyId'];
         !empty($settings['keyValue']) && $token_options['keyValue'] = $settings['keyValue'];
 
+        # pre-set global settings
+        $this->settings = $settings;
+
         # determine default auth method start with token
         $settings['method'] = AuthMethod::TOKEN;
         if ( !empty($settings['keyValue']) ) {
@@ -192,7 +195,7 @@ class AblyRest {
      */
     public function history( $options = array() ) {
         $this->authorise();
-        $res = $this->get( 'baseUri', '/events', $this->auth_headers() );
+        $res = $this->get( 'baseUri', '/history', $this->auth_headers() );
         return $res;
     }
 
@@ -265,9 +268,20 @@ class AblyRest {
         return $res;
     }
 
+    # service time in milliseconds
     public function time() {
         $res = $this->get( 'authority', '/time' );
         return $res[0];
+    }
+
+    # service time in seconds
+    public function time_in_seconds() {
+        return intval($this->time())/1000;
+    }
+
+    # system time in milliseconds
+    public function system_time() {
+        return round(microtime(true)*1000);
     }
 
     /*
@@ -430,7 +444,7 @@ class AblyRest {
             $this->log_action( 'request_token()', sprintf("\tbase64 = %s\n\tmac = %s", base64_encode($hmac), $request['mac']) );
         }
 
-        $res = $this->post( 'baseUri', "/keys/$app_id.$key_id/authorise", null, $request );
+        $res = $this->post( 'baseUri', "/keys/$app_id.$key_id/requestToken", null, $request );
 
         if ( empty($res->access_token) ) {
             $error = json_decode($res)->error;

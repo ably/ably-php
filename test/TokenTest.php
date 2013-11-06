@@ -8,6 +8,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
     protected static $options;
     protected $ably;
     protected $token_params;
+    protected $error_margin = 10;
 
     public static function setUpBeforeClass() {
 
@@ -41,10 +42,10 @@ class TokenTest extends PHPUnit_Framework_TestCase {
      */
     public function testBaseRequestTokenWithNullParams() {
         echo '==testBaseRequestTokenWithNullParams()';
-        $request_time = time();
+        $request_time = $this->ably->time_in_seconds();
         $token_details = $this->ably->request_token(null, null);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertTrue( ($token_details->issued_at >= $request_time - 1) && ($token_details->issued_at <= $request_time + 1), 'Unexpected issued_at time' );
+        $this->assertTrue( ($token_details->issued_at >= $request_time - $this->error_margin) && ($token_details->issued_at <= $request_time + $this->error_margin), 'Unexpected issued_at time' );
         $this->assertEquals( $token_details->issued_at + 60*60, $token_details->expires, 'Unexpected expires time' );
         $this->assertEquals( $this->permit_all, $token_details->capability, 'Unexpected capability' );
     }
@@ -54,11 +55,11 @@ class TokenTest extends PHPUnit_Framework_TestCase {
      */
     public function testBaseRequestTokenWithNonNullButEmptyParams() {
         echo '==testBaseRequestTokenWithNonNullButEmptyParams()';
-        $request_time = time();
+        $request_time = $this->ably->time_in_seconds();
         $params = $this->token_params;
         $token_details = $this->ably->request_token(null, $params);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertTrue( ($token_details->issued_at >= $request_time - 1) && ($token_details->issued_at <= $request_time + 1), 'Unexpected issued_at time' );
+        $this->assertTrue( ($token_details->issued_at >= $request_time - $this->error_margin) && ($token_details->issued_at <= $request_time + $this->error_margin), 'Unexpected issued_at time' );
         $this->assertEquals( $token_details->issued_at + 60*60, $token_details->expires, 'Unexpected expires time' );
         $this->assertEquals( $this->permit_all, $token_details->capability, 'Unexpected capability' );
     }
@@ -68,13 +69,13 @@ class TokenTest extends PHPUnit_Framework_TestCase {
      */
     public function testRequestTokenWithExplicitTimestamp() {
         echo '==testRequestTokenWithExplicitTimestamp()';
-        $request_time = time();
+        $request_time = $this->ably->time_in_seconds();
         $params = array_merge($this->token_params, array(
             'timestamp' => $request_time
         ));
         $token_details = $this->ably->request_token(null, $params);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertTrue( ($token_details->issued_at >= $request_time - 1) && ($token_details->issued_at <= $request_time + 1), 'Unexpected issued_at time' );
+        $this->assertTrue( ($token_details->issued_at >= $request_time - $this->error_margin) && ($token_details->issued_at <= $request_time + $this->error_margin), 'Unexpected issued_at time' );
         $this->assertEquals( $token_details->issued_at + 60*60, $token_details->expires, 'Unexpected expires time' );
         $this->assertEquals( $this->permit_all, $token_details->capability, 'Unexpected capability' );
     }
@@ -84,7 +85,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
      */
     public function testRequestTokenWithExplicitInvalidTimestamp() {
         echo '==testRequestTokenWithExplicitInvalidTimestamp()';
-        $request_time = time();
+        $request_time = $this->ably->time_in_seconds();
         $params = array_merge($this->token_params, array(
             'timestamp' => $request_time - 30 * 60
         ));
@@ -105,7 +106,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
         $auth_options = array('query' => true);
         $token_details = $this->ably->request_token($auth_options, null);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertTrue( ($token_details->issued_at >= $request_time - 1) && ($token_details->issued_at <= $request_time + 1), 'Unexpected issued_at time' );
+        $this->assertTrue( ($token_details->issued_at >= $request_time - $this->error_margin) && ($token_details->issued_at <= $request_time + $this->error_margin), 'Unexpected issued_at time' );
         $this->assertEquals( $token_details->issued_at + 60*60, $token_details->expires, 'Unexpected expires time' );
         $this->assertEquals( $this->permit_all, $token_details->capability, 'Unexpected capability' );
     }
@@ -115,7 +116,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
      */
     public function testRequestTokenWithDuplicateNonce() {
         echo '==testRequestTokenWithDuplicateNonce()';
-        $request_time = time();
+        $request_time = $this->ably->time_in_seconds();
         $token_params = array(
             'timestamp' => $request_time,
             'nonce' => "1234567890123456",
@@ -134,16 +135,16 @@ class TokenTest extends PHPUnit_Framework_TestCase {
      */
     public function testBaseRequestTokenCaseWithNonNullButEmptyParams() {
         echo '==testBaseRequestTokenCaseWithNonNullButEmptyParams()';
-        $request_time = time();
+        $request_time = $this->ably->time_in_seconds();
         $token_params = array(
             'client_id' => 'test client id',
         );
         $token_details = $this->ably->request_token( null, $token_params );
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertTrue( ($token_details->issued_at >= $request_time - 1) && ($token_details->issued_at <= $request_time + 1), 'Unexpected issued_at time' );
+        $this->assertTrue( ($token_details->issued_at >= $request_time - $this->error_margin) && ($token_details->issued_at <= $request_time + $this->error_margin), 'Unexpected issued_at time' );
         $this->assertEquals( $token_details->issued_at + 60*60, $token_details->expires, 'Unexpected expires time' );
         $this->assertEquals( $this->permit_all, $token_details->capability, 'Unexpected capability' );
-        $this->assertEquals( $token_params['client_id'], $token_details->clientId, 'Unexpected clientId' );
+        $this->assertEquals( $token_params['client_id'], $token_details->client_id, 'Unexpected clientId' );
     }
 
     /**
@@ -152,11 +153,11 @@ class TokenTest extends PHPUnit_Framework_TestCase {
     public function testTokenGenerationWithCapabilityKey() {
         echo '==testTokenGenerationWithCapabilityKey()';
         $capability = array( 'onlythischannel' => array('subscribe') );
-        $capability_text = json_encode($capability);
-        $token_params = array('capability' => $capability_text );
+        $capability_obj = json_decode(json_encode($capability), false);
+        $token_params = array('capability' => $capability );
         $token_details = $this->ably->request_token( null, $token_params );
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( $token_details->capability, $capability_text, 'Unexpected capability' );
+        $this->assertEquals( $token_details->capability, $capability_obj, 'Unexpected capability' );
     }
 
     /**
