@@ -407,7 +407,7 @@ class AblyRest {
         # key_id option
         $key_id = $options['keyId'];
         if (empty($params['id'])) {
-            $params['id'] = "{$app_id}.{$key_id}";
+            $params['id'] = "$app_id.$key_id";
         } else if ( $params['id'] != $key_id ) {
             trigger_error( 'Incompatible keys specified' );
         }
@@ -419,7 +419,7 @@ class AblyRest {
         }
 
         $request = array_merge(array(
-            'id'         => "{$app_id}.{$this->getopt('keyId')}",
+            'id'         => "$app_id.$key_id",
             'ttl'        => $this->getopt( 'ttl', '' ),
             'capability' => $this->getopt( 'capability' ),
             'client_id'  => $this->getopt( 'clientId' ),
@@ -439,7 +439,7 @@ class AblyRest {
         $this->log_action( 'create_token()', sprintf("--signText Start--\n%s\n--signText End--", $signText) );
 
         if ( empty($request['mac']) ) {
-            $hmac           = hash_hmac( 'sha256',$signText, $this->getopt('keyValue'),true );
+            $hmac           = hash_hmac( 'sha256',$signText, $key_value,true );
             $request['mac'] = $this->getopt( 'mac', $this->safe_base64_encode($hmac) );
             $this->log_action( 'request_token()', sprintf("\tbase64 = %s\n\tmac = %s", base64_encode($hmac), $request['mac']) );
         }
