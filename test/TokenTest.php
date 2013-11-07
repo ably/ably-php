@@ -93,7 +93,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
             $this->ably->request_token(null, $params);
             $this->fail('Expected token request rejection');
         } catch (Exception $e) {
-            $this->assertEquals( 40101, $e->getCode(), 'Unexpected error code' );
+            $this->assertEquals( 401, (int)substr((string)$e->getCode(),0,3), 'Unexpected error code' );
         }
     }
 
@@ -126,7 +126,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
         try {
             $this->ably->request_token( null, $token_params );
         } catch (Exception $e) {
-            $this->assertEquals( 40101, $e->getCode(), 'Unexpected error code' );
+            $this->assertEquals( 401, (int)substr((string)$e->getCode(),0,3), 'Unexpected error code' );
         }
     }
 
@@ -190,7 +190,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
             $this->ably->request_token( null, $token_params );
             $this->fail('Expected token request rejection');
         } catch (Exception $e) {
-            $this->assertEquals( 40101, $e->getCode(), 'Unexpected error code' );
+            $this->assertEquals( 401, (int)substr((string)$e->getCode(),0,3), 'Unexpected error code' );
         }
     }
 
