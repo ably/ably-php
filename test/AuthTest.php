@@ -1,6 +1,6 @@
 <?php
 
-require_once '../lib/ably.php';
+require_once dirname(__FILE__) . '/../lib/ably.php';
 require_once 'factories/TestOption.php';
 
 class AuthTest extends PHPUnit_Framework_TestCase {
@@ -22,7 +22,7 @@ class AuthTest extends PHPUnit_Framework_TestCase {
 
         $options = self::$options;
         $defaults = array(
-            'debug' => true,
+            'debug' => false,
             'encrypted' => $options['encrypted'],
             'host' => $options['host'],
             'port' => $options['port'],

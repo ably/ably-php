@@ -1,6 +1,6 @@
 <?php
 
-require_once '../lib/ably.php';
+require_once dirname(__FILE__) . '/../lib/ably.php';
 require_once 'factories/TestOption.php';
 
 class CapabilityTest extends PHPUnit_Framework_TestCase {
@@ -22,7 +22,7 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
 
         $options = self::$options;
         $defaults = array(
-            'debug'     => true,
+            'debug'     => false,
             'encrypted' => $options['encrypted'],
             'host'      => $options['host'],
             'key'       => $options['first_private_api_key'],
@@ -43,7 +43,7 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, null);
         $this->assertNotNull($token_details->id, 'Expected token id');
-        $this->assertEquals($key->capability, $token_details->capability, 'Unexpected capability');
+        $this->assertEquals($key->capability, json_encode($token_details->capability), 'Unexpected capability');
     }
 
     /**
@@ -56,11 +56,11 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
             'keyValue' => $key->key_value,
         );
         $token_params = array(
-            'capability' => $key->capability,
+            'capability' => json_decode($key->capability),
         );
         $token_details = $this->ably->request_token($auth_options, $token_params);
-        $this->assertNotNull($token_details.id, 'Expected token id');
-        $this->assertEquals($key->capability, $token_details->capability, 'Unexpected capability');
+        $this->assertNotNull($token_details->id, 'Expected token id');
+        $this->assertEquals($key->capability, json_encode($token_details->capability), 'Unexpected capability');
     }
 
     /**
@@ -81,7 +81,7 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
             $token_details = $this->ably->request_token($auth_options, $token_params);
             $this->fail('Invalid capability, expected rejection');
         } catch (Exception $e) {
-            $this->assertEquals( 40160, $e->getCode(), 'Unexpected error code' );
+            $this->assertEquals( 401, (int)substr((string)$e->getCode(),0,3), 'Unexpected error code' );
         }
     }
 
@@ -103,7 +103,7 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
             $token_details = $this->ably->request_token($auth_options, $token_params);
             $this->fail('Invalid capability, expected rejection');
         } catch (Exception $e) {
-            $this->assertEquals( 40160, $e->getCode(), 'Unexpected error code' );
+            $this->assertEquals( 401, (int)substr((string)$e->getCode(),0,3), 'Unexpected error code' );
         }
     }
 
@@ -124,7 +124,7 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, $token_params);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( json_encode($expected_capability), $token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $expected_capability, (array)$token_details->capability, 'Unexpected capability' );
     }
 
     /**
@@ -149,7 +149,7 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, $token_params);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( json_encode($expected_capability), $token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $expected_capability, (array)$token_details->capability, 'Unexpected capability' );
     }
 
     /**
@@ -169,7 +169,7 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, $token_params);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( json_encode($expected_capability), $token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $expected_capability, (array)$token_details->capability, 'Unexpected capability' );
     }
 
     public function testWildcardOpsIntersection1() {
@@ -186,7 +186,7 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, $token_params);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( json_encode($expected_capability), $token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $expected_capability, (array)$token_details->capability, 'Unexpected capability' );
     }
 
     /**
@@ -205,7 +205,7 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, $token_params);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( json_encode($requested_capability), $token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $requested_capability, (array)$token_details->capability, 'Unexpected capability' );
     }
 
     public function testWildcardResourcesIntersection1() {
@@ -221,7 +221,7 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, $token_params);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( json_encode($requested_capability), $token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $requested_capability, (array)$token_details->capability, 'Unexpected capability' );
     }
 
     public function testWildcardResourcesIntersection2() {
@@ -237,7 +237,7 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, $token_params);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( json_encode($requested_capability), $token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $requested_capability, (array)$token_details->capability, 'Unexpected capability' );
     }
 
     /**

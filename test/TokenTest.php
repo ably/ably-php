@@ -1,6 +1,6 @@
 <?php
 
-require_once '../lib/ably.php';
+require_once dirname(__FILE__) . '/../lib/ably.php';
 require_once 'factories/TestOption.php';
 
 class TokenTest extends PHPUnit_Framework_TestCase {
@@ -24,7 +24,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
 
         $options = self::$options;
         $defaults = array(
-            'debug'     => true,
+            'debug'     => false,
             'encrypted' => $options['encrypted'],
             'host'      => $options['host'],
             'key'       => $options['first_private_api_key'],
@@ -166,13 +166,17 @@ class TokenTest extends PHPUnit_Framework_TestCase {
     public function testTokenGenerationWithSpecifiedKey() {
         echo '==testTokenGenerationWithSpecifiedKey()';
         $key = self::$options['keys'][1];
+        var_dump($key);
         $auth_options = array(
             'keyId' => $key->key_id,
             'keyValue' => $key->key_value,
         );
         $token_details = $this->ably->request_token($auth_options, null);
+        $capability_obj = json_decode($key->capability, false);
+        var_dump('cap obj');
+        var_dump($capability_obj);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( $token_details->capability, $key->capability, 'Unexpected capability' );
+        $this->assertEquals( $token_details->capability, $capability_obj, 'Unexpected capability' );
     }
 
 

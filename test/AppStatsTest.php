@@ -1,12 +1,13 @@
 <?php
 
-require_once '../lib/ably.php';
+require_once dirname(__FILE__) . '/../lib/ably.php';
 require_once 'factories/TestOption.php';
 
 class AppStatsTest extends PHPUnit_Framework_TestCase {
 
     protected static $options;
     protected $ably;
+    protected $timeOffset;
 
     public static function setUpBeforeClass() {
 
@@ -22,7 +23,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $options = self::$options;
         $defaults = array(
-            'debug'     => true,
+            'debug'     => false,
             'encrypted' => $options['encrypted'],
             'host'      => $options['host'],
             'key'       => $options['first_private_api_key'],
@@ -30,6 +31,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
         );
 
         $this->ably = new AblyRest( $defaults );
+        $this->timeOffset = $this->ably->time() - $this->ably->system_time();
     }
 
     /**
@@ -38,10 +40,11 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
     public function testStatsExistForwards() {
         echo '== testStatsExistForwards()';
 
-        # wait for the start of next minute
-        $ably_time = ceil($this->ably->time()/1000);
-        $interval_start = ceil(time()/60)*60 + abs($ably_time - time()) + 1;
-        sleep($interval_start - time());
+        # wait for the start of the next minute
+        $t = $this->timeOffset + $this->ably->system_time();
+        $interval_start = ceil(($t + 1000)/60000)*60000;
+        $wait = ceil(($interval_start - $t)/1000);
+        sleep($wait);
 
         # publish some messages
         $stats0 = $this->ably->channel('stats0');
@@ -50,13 +53,13 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
         }
 
         # wait for the stats to be persisted
-        $interval_end = time();
-        sleep( 120 );
+        $interval_end = $this->timeOffset + $this->ably->system_time();
+        sleep( 10 );
 
         $stats = $this->ably->stats(array(
             'direction' => 'forwards',
-            'start'     => $interval_start*1000,
-            'end'       => $interval_end*1000,
+            'start'     => $interval_start,
+            'end'       => $interval_end,
         ));
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
@@ -71,10 +74,10 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
         echo '== testStatsExistBackwards()';
 
         # wait for the start of next minute
-        $ably_time = ceil($this->ably->time()/1000);
-        $interval_start = ceil(time()/60)*60 + abs($ably_time - time()) + 1;
-        #var_dump(gmdate("r",$interval_start));
-        sleep($interval_start - time());
+        $t = $this->timeOffset + $this->ably->system_time();
+        $interval_start = ceil(($t + 1000)/60000)*60000;
+        $wait = ceil(($interval_start - $t)/1000);
+        sleep($wait);
 
         # publish some messages
         $stats1 = $this->ably->channel('stats1');
@@ -83,19 +86,14 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
         }
 
         # wait for the stats to be persisted
-        $interval_end = time();
-        #var_dump(gmdate("r",$interval_end));
-        sleep( 120 );
-
-        #var_dump($interval_start*1000);
-        #var_dump($interval_end*1000);
+        $interval_end = $this->timeOffset + $this->ably->system_time();
+        sleep( 10 );
 
         $stats = $this->ably->stats(array(
             'direction' => 'backwards',
-            'start'     => $interval_start*1000,
-            'end'       => $interval_end*1000,
+            'start'     => $interval_start,
+            'end'       => $interval_end,
         ));
-        #var_dump($stats);
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
