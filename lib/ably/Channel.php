@@ -45,7 +45,7 @@ class Channel {
      * Private methods
      */
         private function get( $path, $params = array() ) {
-            $this->ably->authorise();
+//            $this->ably->authorise();
             return $this->ably->get( $this->domain, $path, $this->ably->auth_headers(), $params );
         }
 
@@ -54,7 +54,7 @@ class Channel {
         }
 
         private function post( $path, $params = array() ) {
-            $this->ably->authorise();
+//            $this->ably->authorise();
             return $this->ably->post( $this->domain, $path, $this->ably->auth_headers(), $params );
         }
 }

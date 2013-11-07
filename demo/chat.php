@@ -5,7 +5,7 @@ require_once '../lib/ably.php';
 
 # private api key
 $api_key = ABLY_KEY;
-$channel_name = isset($_REQUEST['channel']) ? $_REQUEST['channel'] : 'chat';
+$channel_name = isset($_REQUEST['channel']) ? $_REQUEST['channel'] : 'chat2';
 $event_name = isset($_REQUEST['event']) ? $_REQUEST['event'] : 'guest';
 $host = defined('ABLY_HOST') ? ABLY_HOST : null;
 $ws_host = defined('ABLY_WS_HOST') ? ABLY_WS_HOST : null;
@@ -25,7 +25,7 @@ if (!empty($_POST)) {
     $channel0->publish($event_name, json_encode(array('handle' => $_POST['handle'], 'message' => $_POST['message'])));
     die();
 } else {
-    $messages = $channel0->history(array('direction' => 'forwards'));
+    $messages = $channel0->history(array('direction' => 'backwards'));
 }
 
 ?>
@@ -51,7 +51,7 @@ if (!empty($_POST)) {
     <input type="hidden" name="channel" value="<?= $channel_name ?>">
     <input type="hidden" name="event" value="<?= $event_name ?>">
     <p>Your handle: <input type="text" name="handle"></p>
-    <p>Say something: <input type="text" name="message" size="50"> <button type="submit">Send</button></p>
+    <p>Say something: <input type="text" name="message" size="50"> <button id="rest" type="button">Send REST</button> <button id="realtime" type="button">Send REALTIME</button></p>
 </form>
 
 <div class="chat-window">
@@ -68,23 +68,26 @@ if (!empty($_POST)) {
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script type="text/javascript">
     (function($) {
-        $.getScript('https://cdn.ably.io/lib/ably.js', function() {
+        var channel = {};
+
+        $.getScript('lib/ably.min.js', function() {
             var ably = new Ably.Realtime({
                         key: '<?= $api_key ?>',
-                        encrypted: true,
-                        log: {level:4},
-                        wsHost: '<?= $ws_host ?>'
-                    }),
-                    channel = ably.channels.get('<?= $channel_name ?>');
+                        tls: true,
+                        log: {level:4}
+                    });
+
+            channel = ably.channels.get('<?= $channel_name ?>');
 
             channel.subscribe('<?= $event_name ?>', function(response) {
                 var data = JSON.parse(response.data);
-                $('#message_pool').append('<li><b class="handle">'+ data.handle +':</b> '+ data.message +'</li>');
+                $('#message_pool').prepend('<li><b class="handle">'+ data.handle +':</b> '+ data.message +'</li>');
             });
         });
 
-        $('#message_form').on('submit', function(event) {
-            var $form = $(this), broadcast = true,
+        function sendMessage(mode) {
+            var $form = $('#message_form'),
+                broadcast = true,
                 $handle = $('[name="handle"]', $form),
                 $message = $('[name="message"]', $form);
 
@@ -101,17 +104,30 @@ if (!empty($_POST)) {
             }
 
             if (broadcast) {
-                $.ajax({
-                    url: $form[0].action,
-                    data: $form.serialize(),
-                    type: $form[0].method,
-                    dataType: 'json',
-                    complete: function() {
-                        $message.val('');
-                    }
-                });
+                if (mode === 'realtime') {
+                    channel.publish('<?= $event_name ?>', JSON.stringify({ handle: $handle.val(), message: $message.val() }) );
+                    $message.val('');
+                } else {
+                    $.ajax({
+                        url: $form[0].action,
+                        data: $form.serialize(),
+                        type: $form[0].method,
+                        dataType: 'json',
+                        complete: function() {
+                            $message.val('');
+                        }
+                    });
+                }
             }
+        }
 
+        $('#rest').on('click', function() {
+            sendMessage('rest');
+            return false;
+        });
+
+        $('#realtime').on('click', function() {
+            sendMessage('realtime');
             return false;
         });
     })(jQuery);

@@ -308,7 +308,7 @@ class AblyRest {
         if (is_string($msg)) {
             echo $msg;
         } else {
-            var_dump($msg);
+            echo print_r($msg, true);
         }
 
         $output = ob_get_contents();
