@@ -16,7 +16,7 @@ $app = new AblyRest(array(
     'key'  => $api_key,
     'debug' => 'log'
 ));
-$app->authorise();
+//$app->authorise();
 $channel0 = $app->channel($channel_name);
 $messages = array();
 
