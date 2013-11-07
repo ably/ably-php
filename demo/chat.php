@@ -7,16 +7,13 @@ require_once '../lib/ably.php';
 $api_key = ABLY_KEY;
 $channel_name = isset($_REQUEST['channel']) ? $_REQUEST['channel'] : 'chat2';
 $event_name = isset($_REQUEST['event']) ? $_REQUEST['event'] : 'guest';
-$host = defined('ABLY_HOST') ? ABLY_HOST : null;
-$ws_host = defined('ABLY_WS_HOST') ? ABLY_WS_HOST : null;
 
 # instantiate Ably
 $app = new AblyRest(array(
-    'host' => $host,
     'key'  => $api_key,
     'debug' => 'log'
 ));
-//$app->authorise();
+
 $channel0 = $app->channel($channel_name);
 $messages = array();
 
@@ -66,23 +63,20 @@ if (!empty($_POST)) {
 </div>
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="lib/ably.min.js"></script>
 <script type="text/javascript">
     (function($) {
-        var channel = {};
+        var ably = new Ably.Realtime({
+            key: '<?= $api_key ?>',
+            tls: true,
+            log: {level:4}
+        });
 
-        $.getScript('lib/ably.min.js', function() {
-            var ably = new Ably.Realtime({
-                        key: '<?= $api_key ?>',
-                        tls: true,
-                        log: {level:4}
-                    });
+        var channel = ably.channels.get('<?= $channel_name ?>');
 
-            channel = ably.channels.get('<?= $channel_name ?>');
-
-            channel.subscribe('<?= $event_name ?>', function(response) {
-                var data = JSON.parse(response.data);
-                $('#message_pool').prepend('<li><b class="handle">'+ data.handle +':</b> '+ data.message +'</li>');
-            });
+        channel.subscribe('<?= $event_name ?>', function(response) {
+            var data = JSON.parse(response.data);
+            $('#message_pool').prepend('<li><b class="handle">'+ data.handle +':</b> '+ data.message +'</li>');
         });
 
         function sendMessage(mode) {
