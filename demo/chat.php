@@ -22,7 +22,7 @@ if (!empty($_POST)) {
     $channel0->publish($event_name, json_encode(array('handle' => $_POST['handle'], 'message' => $_POST['message'])));
     die();
 } else {
-    $messages = $channel0->history(array('direction' => 'backwards'));
+    $messages = $channel0->history(array('direction' => 'forwards'));
 }
 
 ?>
@@ -44,23 +44,27 @@ if (!empty($_POST)) {
 
 <h1>Let's Chat</h1>
 
-<form id="message_form" method="post" action="/demo/chat.php">
-    <input type="hidden" name="channel" value="<?= $channel_name ?>">
-    <input type="hidden" name="event" value="<?= $event_name ?>">
-    <p>Your handle: <input type="text" name="handle"></p>
-    <p>Say something: <input type="text" name="message" size="50"> <button id="rest" type="button">Send REST</button> <button id="realtime" type="button">Send REALTIME</button></p>
-</form>
-
 <div class="chat-window">
     <div class="chat-window-content">
         <ul id="message_pool">
+            <?php $stamp = null ?>
             <?php for ($i=0; $i<count($messages); $i++): ?>
-            <?php if (property_exists($messages[$i], 'data')) : $message = json_decode($messages[$i]->data); ?>
-            <li><b class="handle"><?= $message->handle ?>:</b> <?= $message->message ?></li>
+            <?php if (property_exists($messages[$i], 'data')) : $message = json_decode($messages[$i]->data); $timestamp = strlen($messages[$i]->timestamp) > 10 ? intval($messages[$i]->timestamp)/1000 : $messages[$i]->timestamp; $day = date('D jS F, Y', $timestamp); ?>
+            <?php if ($stamp != $day) : ?>
+            <li><h3><?= $day ?></h3></li>
+            <?php $stamp = $day; endif; ?>
+            <li><time><?= date('H:i:s', $timestamp) ?></time> <b class="handle"><?= $message->handle ?>:</b> <?= $message->message ?></li>
             <?php endif; endfor; ?>
         </ul>
     </div>
 </div>
+
+<form id="message_form" method="post" action="/demo/chat.php">
+    <input type="hidden" name="channel" value="<?= $channel_name ?>">
+    <input type="hidden" name="event" value="<?= $event_name ?>">
+    <input type="text" name="handle" placeholder="Your handle" size="10"> <input type="text" name="message" size="50" placeholder="Say something"> <button id="rest" type="button">REST</button> <button id="realtime" type="button">REALTIME</button>
+</form>
+
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script src="lib/ably.min.js"></script>
@@ -76,7 +80,8 @@ if (!empty($_POST)) {
 
         channel.subscribe('<?= $event_name ?>', function(response) {
             var data = JSON.parse(response.data);
-            $('#message_pool').prepend('<li><b class="handle">'+ data.handle +':</b> '+ data.message +'</li>');
+            var timestamp = response.timestamp;
+            $('#message_pool').append('<li><time>'+ timestamp +'</time> <b class="handle">'+ data.handle +':</b> '+ data.message +'</li>');
         });
 
         function sendMessage(mode) {

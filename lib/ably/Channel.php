@@ -33,7 +33,7 @@ class Channel {
 
         public function publish( $name, $data ) {
             $this->log_action( 'Channel.publish()', 'name = '. $name );
-            return $this->post( '/publish', json_encode(array( 'name' => $name, 'data' => $data, 'timestamp' => time() )) );
+            return $this->post( '/publish', json_encode(array( 'name' => $name, 'data' => $data, 'timestamp' => $this->ably->system_time() )) );
         }
 
         public function stats( $params = array() ) {
