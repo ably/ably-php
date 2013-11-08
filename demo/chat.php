@@ -30,42 +30,54 @@ if (!empty($_POST)) {
 <html lang="en-US">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1; user-scalable=no">
     <title>Simple Chat</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
     <style>
-        body { font-family: sans-serif }
-        .chat-window { overflow: hidden; min-width: 320px; width: 100%; border: 2px inset #e1e1e1 }
-        .chat-window-content { overflow: auto; font-size: 12px; line-height: 1.4; color: #888; height: 300px; }
+        body { padding: 10px; overflow: hidden; }
+        .chat-window { overflow: hidden; min-width: 300px; border-top: 1px solid #e1e1e1 }
+        .chat-window-content { overflow: auto; color: #888; height: 500px; }
         .chat-window-content > ul { list-style: none; margin: 0; padding: 0 }
-        .chat-window-content > ul > li { border-bottom: 1px solid #e1e1e1; padding: 2px 10px }
+        /*.chat-window-content > ul > li { border-bottom: 1px solid #e1e1e1; padding: 2px 10px }*/
         .handle { color: #2f91ff; font-weight: bold }
-        .gutter { border-right: 1px solid #e1e1e1; padding-right: 5px; margin-right: 5px }
         time { float: right; color: #ccc; }
     </style>
 </head>
 <body>
 
-<h1>Let's Chat</h1>
-
-<form id="message_form" method="post" action="/demo/chat.php">
-    <input type="hidden" name="channel" value="<?= $channel_name ?>">
-    <input type="hidden" name="event" value="<?= $event_name ?>">
-    <p>Your handle: <input type="text" name="handle"></p>
-    <p>Say something: <input type="text" name="message" size="50"> <button id="rest" type="button">Send REST</button> <button id="realtime" type="button">Send REALTIME</button></p>
-</form>
-
-<div class="chat-window">
-    <div class="chat-window-content">
-        <ul id="message_pool">
-            <?php $date_format = 'D jS F, Y'; $stamp = date($date_format) ?>
-            <?php for ($i=0; $i<count($messages); $i++): ?>
-            <?php if (property_exists($messages[$i], 'data')) : $message = json_decode($messages[$i]->data); $timestamp = strlen($messages[$i]->timestamp) > 10 ? intval($messages[$i]->timestamp)/1000 : $messages[$i]->timestamp; $day = gmdate($date_format, $timestamp); ?>
-            <?php if ($stamp != $day) : ?>
-            <li><h3><?= $day ?></h3></li>
-            <?php $stamp = $day; endif; ?>
-            <li><span class="gutter">php</span><time><?= gmdate('h:i a', $timestamp) ?></time> <b class="handle"><?= $message->handle ?>:</b> <?= $message->message ?></li>
-            <?php endif; endfor; ?>
-        </ul>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h1 class="panel-title">Let's Chat</h1>
+    </div>
+    <div class="panel-body">
+        <form id="message_form" method="post" action="/demo/chat.php" class="form-inline" role="form">
+            <input type="hidden" name="channel" value="<?= $channel_name ?>">
+            <input type="hidden" name="event" value="<?= $event_name ?>">
+            <div class="form-group">
+                <input type="text" name="handle" class="form-control input-sm" placeholder="Your handle">
+            </div>
+            <div class="form-group">
+                <input type="text" name="message" class="form-control input-sm" placeholder="Say something">
+            </div>
+            <button id="rest" type="button" class="btn btn-default btn-sm">Send REST</button>
+            <button id="realtime" type="button" class="btn btn-default btn-sm">Send REALTIME</button>
+        </form>
+    </div>
+    <div class="chat-window list-group">
+        <div class="chat-window-content">
+            <ul id="message_pool">
+                <?php $date_format = 'D jS F, Y'; $stamp = date($date_format) ?>
+                <?php for ($i=0; $i<count($messages); $i++): ?>
+                    <?php if (property_exists($messages[$i], 'data')) : $message = json_decode($messages[$i]->data); $timestamp = strlen($messages[$i]->timestamp) > 10 ? intval($messages[$i]->timestamp)/1000 : $messages[$i]->timestamp; $day = gmdate($date_format, $timestamp); ?>
+                        <?php if ($stamp != $day) : ?>
+                            <li class="list-group-item"><h2 class="h4"><?= $day ?></h2></li>
+                            <?php $stamp = $day; endif; ?>
+                        <li class="list-group-item"><span class="label label-primary">php</span> <time><?= gmdate('h:i a', $timestamp) ?></time> <b class="handle"><?= $message->handle ?>:</b> <?= $message->message ?></li>
+                    <?php endif; endfor; ?>
+            </ul>
+        </div>
     </div>
 </div>
 
@@ -73,6 +85,14 @@ if (!empty($_POST)) {
 <script src="lib/ably.min.js"></script>
 <script type="text/javascript">
     (function($) {
+
+        // adjust chat window height
+        var $chatWindowContent = $('.chat-window-content');
+
+        $(window).on('resize', function() {
+            $chatWindowContent.height($(this).height() - $chatWindowContent.offset().top - 10);
+        }).resize();
+
         var ably = new Ably.Realtime({
             key: '<?= $api_key ?>',
             tls: true,
@@ -84,7 +104,6 @@ if (!empty($_POST)) {
         channel.subscribe('<?= $event_name ?>', function(response) {
             var data = JSON.parse(response.data);
             var timestamp = response.timestamp
-            console.log('length', timestamp.toString().length);
             var d = new Date( timestamp.toString().length > 10 ? timestamp : timestamp*1000 );
             var hours = d.getUTCHours();
             var ampm = hours > 12 ? ' pm' : ' am';
@@ -92,8 +111,7 @@ if (!empty($_POST)) {
             hours = hours === 0 ? 12 : hours;
             var minutes = ('0'+d.getUTCMinutes()).substr(-2);
             var post_time = [hours, minutes].join(':') + ampm;
-            console.log('post_time', post_time);
-            $('#message_pool').prepend('<li><span class="gutter">js</span><time>'+ post_time +'</time> <b class="handle">'+ data.handle +':</b>'+ data.message +'</li>');
+            $('#message_pool').prepend('<li class="list-group-item"><span class="label label-danger">js</span> <time>'+ post_time +'</time> <b class="handle">'+ data.handle +':</b> '+ data.message +'</li>');
         });
 
         function sendMessage(mode) {
