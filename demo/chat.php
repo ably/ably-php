@@ -36,7 +36,7 @@ if (!empty($_POST)) {
     <title>Simple Chat</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
     <style>
-        body { padding: 10px; overflow: hidden; }
+        body { padding: 10px; overflow: hidden; background: url(//d6i46dwqrtafp.cloudfront.net/images/bg/carbon_fibre.png) } }
         .chat-window { overflow: hidden; border-top: 1px solid #e1e1e1 }
         .chat-window-content { overflow: auto; color: #888; height: 500px; }
         .chat-window-content > ul { list-style: none; margin: 0; padding: 0 }
