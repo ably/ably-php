@@ -37,7 +37,7 @@ if (!empty($_POST)) {
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
     <style>
         body { padding: 10px; overflow: hidden; }
-        .chat-window { overflow: hidden; min-width: 300px; border-top: 1px solid #e1e1e1 }
+        .chat-window { overflow: hidden; border-top: 1px solid #e1e1e1 }
         .chat-window-content { overflow: auto; color: #888; height: 500px; }
         .chat-window-content > ul { list-style: none; margin: 0; padding: 0 }
         /*.chat-window-content > ul > li { border-bottom: 1px solid #e1e1e1; padding: 2px 10px }*/
@@ -74,7 +74,7 @@ if (!empty($_POST)) {
                         <?php if ($stamp != $day) : ?>
                             <li class="list-group-item"><h2 class="h4"><?= $day ?></h2></li>
                             <?php $stamp = $day; endif; ?>
-                        <li class="list-group-item"><span class="label label-primary">php</span> <time><?= gmdate('h:i a', $timestamp) ?></time> <b class="handle"><?= $message->handle ?>:</b> <?= $message->message ?></li>
+                        <li class="list-group-item"><time><?= gmdate('h:i a', $timestamp) ?></time> <b class="handle"><?= $message->handle ?>:</b> <?= $message->message ?></li>
                     <?php endif; endfor; ?>
             </ul>
         </div>
