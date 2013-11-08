@@ -22,7 +22,7 @@ if (!empty($_POST)) {
     $channel0->publish($event_name, json_encode(array('handle' => $_POST['handle'], 'message' => $_POST['message'])));
     die();
 } else {
-    $messages = $channel0->history(array('direction' => 'forwards'));
+    $messages = $channel0->history(array('direction' => 'backwards'));
 }
 
 ?>
@@ -30,6 +30,7 @@ if (!empty($_POST)) {
 <html lang="en-US">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Simple Chat</title>
     <style>
         body { font-family: sans-serif }
@@ -38,33 +39,35 @@ if (!empty($_POST)) {
         .chat-window-content > ul { list-style: none; margin: 0; padding: 0 }
         .chat-window-content > ul > li { border-bottom: 1px solid #e1e1e1; padding: 2px 10px }
         .handle { color: #2f91ff; font-weight: bold }
+        .gutter { border-right: 1px solid #e1e1e1; padding-right: 5px; margin-right: 5px }
+        time { float: right; color: #ccc; }
     </style>
 </head>
 <body>
 
 <h1>Let's Chat</h1>
 
+<form id="message_form" method="post" action="/demo/chat.php">
+    <input type="hidden" name="channel" value="<?= $channel_name ?>">
+    <input type="hidden" name="event" value="<?= $event_name ?>">
+    <p>Your handle: <input type="text" name="handle"></p>
+    <p>Say something: <input type="text" name="message" size="50"> <button id="rest" type="button">Send REST</button> <button id="realtime" type="button">Send REALTIME</button></p>
+</form>
+
 <div class="chat-window">
     <div class="chat-window-content">
         <ul id="message_pool">
-            <?php $stamp = null ?>
+            <?php $date_format = 'D jS F, Y'; $stamp = date($date_format) ?>
             <?php for ($i=0; $i<count($messages); $i++): ?>
-            <?php if (property_exists($messages[$i], 'data')) : $message = json_decode($messages[$i]->data); $timestamp = strlen($messages[$i]->timestamp) > 10 ? intval($messages[$i]->timestamp)/1000 : $messages[$i]->timestamp; $day = date('D jS F, Y', $timestamp); ?>
+            <?php if (property_exists($messages[$i], 'data')) : $message = json_decode($messages[$i]->data); $timestamp = strlen($messages[$i]->timestamp) > 10 ? intval($messages[$i]->timestamp)/1000 : $messages[$i]->timestamp; $day = gmdate($date_format, $timestamp); ?>
             <?php if ($stamp != $day) : ?>
             <li><h3><?= $day ?></h3></li>
             <?php $stamp = $day; endif; ?>
-            <li><time><?= date('H:i:s', $timestamp) ?></time> <b class="handle"><?= $message->handle ?>:</b> <?= $message->message ?></li>
+            <li><span class="gutter">php</span><time><?= gmdate('h:i a', $timestamp) ?></time> <b class="handle"><?= $message->handle ?>:</b> <?= $message->message ?></li>
             <?php endif; endfor; ?>
         </ul>
     </div>
 </div>
-
-<form id="message_form" method="post" action="/demo/chat.php">
-    <input type="hidden" name="channel" value="<?= $channel_name ?>">
-    <input type="hidden" name="event" value="<?= $event_name ?>">
-    <input type="text" name="handle" placeholder="Your handle" size="10"> <input type="text" name="message" size="50" placeholder="Say something"> <button id="rest" type="button">REST</button> <button id="realtime" type="button">REALTIME</button>
-</form>
-
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script src="lib/ably.min.js"></script>
@@ -80,8 +83,17 @@ if (!empty($_POST)) {
 
         channel.subscribe('<?= $event_name ?>', function(response) {
             var data = JSON.parse(response.data);
-            var timestamp = response.timestamp;
-            $('#message_pool').append('<li><time>'+ timestamp +'</time> <b class="handle">'+ data.handle +':</b> '+ data.message +'</li>');
+            var timestamp = response.timestamp
+            console.log('length', timestamp.toString().length);
+            var d = new Date( timestamp.toString().length > 10 ? timestamp : timestamp*1000 );
+            var hours = d.getUTCHours();
+            var ampm = hours > 12 ? ' pm' : ' am';
+            hours = hours % 12;
+            hours = hours === 0 ? 12 : hours;
+            var minutes = ('0'+d.getUTCMinutes()).substr(-2);
+            var post_time = [hours, minutes].join(':') + ampm;
+            console.log('post_time', post_time);
+            $('#message_pool').prepend('<li><span class="gutter">js</span><time>'+ post_time +'</time> <b class="handle">'+ data.handle +':</b>'+ data.message +'</li>');
         });
 
         function sendMessage(mode) {
