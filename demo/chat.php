@@ -58,7 +58,7 @@ if (!empty($_POST)) {
         <form id="message_form" method="post" action="/demo/chat.php" class="form-inline" role="form">
             <input type="hidden" name="channel" value="<?= $channel_name ?>">
             <input type="hidden" name="event" value="<?= $event_name ?>">
-            <div class="form-group">
+            <div id="form-group-handle" class="form-group">
                 <input type="text" name="handle" class="form-control input-sm" placeholder="Your handle">
             </div>
             <div class="form-group">
@@ -66,6 +66,7 @@ if (!empty($_POST)) {
             </div>
             <button id="rest" type="button" class="btn btn-default btn-sm">Send REST</button>
             <button id="realtime" type="button" class="btn btn-default btn-sm">Send REALTIME</button>
+            <button id="resetHandle" type="button" class="btn btn-default btn-sm">Reset Handle</button>
         </form>
     </div>
     <div class="chat-window list-group">
@@ -87,9 +88,32 @@ if (!empty($_POST)) {
 </div>
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="lib/jquery.storageapi.min.js"></script>
 <script src="lib/ably.min.js"></script>
 <script type="text/javascript">
+
     (function($) {
+
+        var as = $.initNamespaceStorage('ably_storage');
+        var ls = as.localStorage;
+
+        var $handle = $('#form-group-handle input');
+
+        var showStoredHandle = function(){
+            if(!ls.isEmpty('handle')){
+                var hv = ls.get('handle');
+                $handle.val(hv).hide();
+                if (!$handle.siblings('label').length) {
+                    $handle.parent().append('<label>'+hv+'</label>');
+                }
+                
+            }
+        }
+
+        showStoredHandle();
+
+        
+
 
         // adjust chat window height
         var $chatWindowContent = $('.chat-window-content');
@@ -130,6 +154,10 @@ if (!empty($_POST)) {
                 $handle.focus();
                 broadcast = false;
             }
+            else {
+                ls.set('handle', $handle.val());
+                showStoredHandle();
+            }
 
             if ($.trim($message.val()) === '') {
                 alert('you must type a message');
@@ -164,6 +192,11 @@ if (!empty($_POST)) {
             sendMessage('realtime');
             return false;
         });
+        $('#resetHandle').on('click', function() {
+            ls.remove('handle');
+            $handle.siblings('label').remove().end().val('').fadeIn();
+        });
+
     })(jQuery);
 </script>
 
