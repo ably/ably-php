@@ -36,11 +36,14 @@ if (!empty($_POST)) {
     <title>Simple Chat</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
     <style>
-        body { padding: 10px; overflow: hidden; background: url(//d6i46dwqrtafp.cloudfront.net/images/bg/carbon_fibre.png) } }
-        .chat-window { overflow: hidden; border-top: 1px solid #e1e1e1 }
+        body { padding: 10px; overflow: hidden; background: url(//d6i46dwqrtafp.cloudfront.net/images/bg/carbon_fibre.png) }
+        .chat-window { overflow: hidden; border-top: 1px solid #e1e1e1; position: relative; }
         .chat-window-content { overflow: auto; color: #888; height: 500px; }
-        .chat-window-content > ul { list-style: none; margin: 0; padding: 0 }
+        .chat-window-content > ul { list-style: none; margin: 25px 0 50px; padding: 0; }
         /*.chat-window-content > ul > li { border-bottom: 1px solid #e1e1e1; padding: 2px 10px }*/
+        .chat-window-shadow { position: absolute; z-index: 100; height: 50px; width: 100%; }
+        .chat-window-shadow-top { top: 0; background-image: -webkit-linear-gradient(top, rgba(255,255,255, 1), rgba(255,255,255, 0)) }
+        .chat-window-shadow-bottom { bottom: 0; background-image: -webkit-linear-gradient(bottom, rgba(255,255,255, 1), rgba(255,255,255, 0)) }
         .handle { color: #2f91ff; font-weight: bold }
         time { float: right; color: #ccc; }
     </style>
@@ -77,6 +80,8 @@ if (!empty($_POST)) {
                         <li class="list-group-item"><time><?= gmdate('h:i a', $timestamp) ?></time> <b class="handle"><?= $message->handle ?>:</b> <?= $message->message ?></li>
                     <?php endif; endfor; ?>
             </ul>
+            <div class="chat-window-shadow chat-window-shadow-top"></div>
+            <div class="chat-window-shadow chat-window-shadow-bottom"></div>
         </div>
     </div>
 </div>

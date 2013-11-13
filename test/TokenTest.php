@@ -6,6 +6,7 @@ require_once 'factories/TestOption.php';
 class TokenTest extends PHPUnit_Framework_TestCase {
 
     protected static $options;
+    protected static $ably0;
     protected $ably;
     protected $token_params;
     protected $error_margin = 10;
@@ -13,7 +14,15 @@ class TokenTest extends PHPUnit_Framework_TestCase {
     public static function setUpBeforeClass() {
 
         self::$options = TestOption::get_instance()->get_opts();
+        $defaults = array(
+            'debug'     => false,
+            'encrypted' => self::$options['encrypted'],
+            'host'      => self::$options['host'],
+            'key'       => self::$options['first_private_api_key'],
+            'port'      => self::$options['port'],
+        );
 
+        self::$ably0 = new AblyRest( $defaults );
     }
 
     public static function tearDownAfterClass() {
@@ -22,16 +31,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
 
     protected function setUp() {
 
-        $options = self::$options;
-        $defaults = array(
-            'debug'     => false,
-            'encrypted' => $options['encrypted'],
-            'host'      => $options['host'],
-            'key'       => $options['first_private_api_key'],
-            'port'      => $options['port'],
-        );
-
-        $this->ably = new AblyRest( $defaults );
+        $this->ably = self::$ably0;
         $this->permit_all = json_decode(json_encode(array('*' => array('*'))));
         #$this->token_params = array('id' => '', 'ttl' =>  null, 'capability' => '', 'client_id' => '', 'timestamp' => null, 'nonce' => '', 'mac' => '');
         $this->token_params = array();
@@ -166,15 +166,14 @@ class TokenTest extends PHPUnit_Framework_TestCase {
     public function testTokenGenerationWithSpecifiedKey() {
         echo '==testTokenGenerationWithSpecifiedKey()';
         $key = self::$options['keys'][1];
-        var_dump($key);
+
         $auth_options = array(
             'keyId' => $key->key_id,
             'keyValue' => $key->key_value,
         );
         $token_details = $this->ably->request_token($auth_options, null);
         $capability_obj = json_decode($key->capability, false);
-        var_dump('cap obj');
-        var_dump($capability_obj);
+
         $this->assertNotNull( $token_details->id, 'Expected token id' );
         $this->assertEquals( $token_details->capability, $capability_obj, 'Unexpected capability' );
     }

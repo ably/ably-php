@@ -6,12 +6,20 @@ require_once 'factories/TestOption.php';
 class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
 
     protected static $options;
+    protected static $ably0;
     protected $ably;
     protected $timeOffset;
 
     public static function setUpBeforeClass() {
 
         self::$options = TestOption::get_instance()->get_opts();
+        self::$ably0 = new AblyRest(array(
+            'debug'     => false,
+            'encrypted' => self::$options['encrypted'],
+            'host'      => self::$options['host'],
+            'key'       => self::$options['first_private_api_key'],
+            'port'      => self::$options['port'],
+        ));
 
     }
 
@@ -21,16 +29,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
 
     protected function setUp() {
 
-        $options = self::$options;
-        $defaults = array(
-            'debug'     => false,
-            'encrypted' => $options['encrypted'],
-            'host'      => $options['host'],
-            'key'       => $options['first_private_api_key'],
-            'port'      => $options['port'],
-        );
-
-        $this->ably = new AblyRest( $defaults );
+        $this->ably = self::$ably0;
         $this->timeOffset = $this->ably->time() - $this->ably->system_time();
     }
 
