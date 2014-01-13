@@ -5,7 +5,7 @@ require_once '../lib/ably.php';
 
 # private api key
 $api_key = ABLY_KEY;
-$channel_name = isset($_REQUEST['channel']) ? $_REQUEST['channel'] : 'chat2';
+$channel_name = isset($_REQUEST['channel']) ? $_REQUEST['channel'] : 'persist:chat';
 $event_name = isset($_REQUEST['event']) ? $_REQUEST['event'] : 'guest';
 
 # instantiate Ably
