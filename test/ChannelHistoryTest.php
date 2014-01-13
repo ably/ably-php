@@ -40,7 +40,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         echo '==testPublishEventsWithVariousDataTypes()';
 
         # first publish some messages
-        $history0 = $this->ably->channel('history0');
+        $history0 = $this->ably->channel('persisted:history0');
         $history0->publish("history0", true);
         $history0->publish("history1", 24);
         $history0->publish("history2", 24.234);
@@ -85,7 +85,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         echo '==testPublishEventsAndCheckOrderForwards()';
 
         # publish some messages
-        $history1 = $this->ably->channel('history1');
+        $history1 = $this->ably->channel('persisted:history1');
         for ($i=0; $i<50; $i++) {
             $history1->publish('history'.$i, $i);
         }
@@ -114,7 +114,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         echo '==testPublishEventsAndCheckOrderBackwards()';
 
         # publish some messages
-        $history2 = $this->ably->channel('history2');
+        $history2 = $this->ably->channel('persisted:history2');
         for ($i=0; $i<50; $i++) {
             $history2->publish('history'.$i, $i);
         }
@@ -143,7 +143,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         echo '==testPublishEventsGetLimitedHistoryAndCheckOrderForwards()';
 
         # publish some messages
-        $history3 = $this->ably->channel('history3');
+        $history3 = $this->ably->channel('persisted:history3');
         for ($i=0; $i<50; $i++) {
             $history3->publish('history'.$i, $i);
         }
@@ -171,7 +171,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         echo '==testPublishEventsGetLimitedHistoryAndCheckOrderBackwards()';
 
         # publish some messages
-        $history4 = $this->ably->channel('history4');
+        $history4 = $this->ably->channel('persisted:history4');
         for ($i=0; $i<50; $i++) {
             $history4->publish('history'.$i, $i);
         }
@@ -201,7 +201,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         $interval_start = $interval_end = 0;
 
         # first publish some messages
-        $history5 = $this->ably->channel('history5');
+        $history5 = $this->ably->channel('persisted:history5');
 
         # send batches of messages with short inter-message delay
         for ($i=0; $i<20; $i++) {
@@ -249,7 +249,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         $interval_start = $interval_end = 0;
 
         # first publish some messages
-        $history6 = $this->ably->channel('history6');
+        $history6 = $this->ably->channel('persisted:history6');
 
         # send batches of messages with short inter-message delay
         for ($i=0; $i<20; $i++) {

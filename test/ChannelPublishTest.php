@@ -35,7 +35,7 @@ class ChannelPublishTest extends PHPUnit_Framework_TestCase {
         echo '==testPublishEventsWithVariousDataTypes()';
 
         # first publish some messages
-        $publish0 = $this->ably->channel('publish0');
+        $publish0 = $this->ably->channel('persisted:publish0');
         $publish0->publish("publish0", true);
         $publish0->publish("publish1", 24);
         $publish0->publish("publish2", 24.234);
