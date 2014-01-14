@@ -125,7 +125,9 @@ if (!empty($_POST)) {
         var ably = new Ably.Realtime({
             key: '<?= $api_key ?>',
             tls: true,
-            log: {level:4}
+            log: {level:4},
+            host: '<?= ABLY_HOST ?>',
+            wsHost: '<?= ABLY_WS_HOST ?>'
         });
 
         var channel = ably.channels.get('<?= $channel_name ?>');
