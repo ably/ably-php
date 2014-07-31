@@ -28,7 +28,9 @@ class TestOption {
         $settings = array( 'host' => getenv("WEBSOCKET_ADDRESS"), 'debug' => false );
 
         if (empty($settings['host'])) {
-            $settings['host'] = "staging-rest.ably.io";
+            //$settings['host'] = "staging-rest.ably.io";
+            $settings['host'] = "sandbox-rest.ably.io";
+            //$settings['host'] = "rest.ably.io";
             $settings['encrypted'] = true;
         } else {
             $settings['encrypted'] = $settings['host'] != "localhost";
