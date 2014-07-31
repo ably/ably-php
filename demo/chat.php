@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL ^ E_NOTICE);
+
 # include the ably library
 require_once '../config.php';
 require_once '../lib/ably.php';
@@ -52,7 +54,7 @@ if (!empty($_POST)) {
 
 <div class="panel panel-default">
     <div class="panel-heading">
-        <h1 class="panel-title">Let's Chat</h1>
+        <h1 class="panel-title">Let's Chat [api_time: <?php echo gmdate('r', $app->time()/1000) ?> | server_time: <?php echo gmdate('r', time()) ?>]</h1>
     </div>
     <div class="panel-body">
         <form id="message_form" method="post" action="/demo/chat.php" class="form-inline" role="form">
