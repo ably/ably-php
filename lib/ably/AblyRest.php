@@ -452,7 +452,7 @@ class AblyRest {
                 $msg = $error;
                 $code = 50000;
             } else {
-                $msg = $error->reason;
+                $msg = $error->message;
                 $code = $error->code;
             }
             throw new Exception( 'create_token(): Could not get new access token. '. $msg, $code );
