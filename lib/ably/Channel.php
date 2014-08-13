@@ -12,8 +12,8 @@ class Channel {
      */
         public function __construct( AblyRest $ably, $name ) {
             $this->ably = $ably;
-            $this->name = $name;
-            $this->domain = "/channels/{$name}";
+            $this->name = urlencode($name);
+            $this->domain = "/channels/{$this->name}";
         }
 
     /*
@@ -32,8 +32,8 @@ class Channel {
         }
 
         public function publish( $name, $data ) {
-            $this->log_action( 'Channel.publish()', 'name = '. $name );
-            return $this->post( '/publish', json_encode(array( 'name' => $name, 'data' => $data, 'timestamp' => $this->ably->system_time() )) );
+            $this->log_action( 'Channel.publish()', 'name = '. urlencode($name) );
+            return $this->post( '/publish', json_encode(array( 'name' => urlencode($name), 'data' => $data, 'timestamp' => $this->ably->system_time() )) );
         }
 
         public function stats( $params = array() ) {
