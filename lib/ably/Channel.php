@@ -20,7 +20,7 @@ class Channel {
      * Public methods
      */
         public function history( $params = array() ) {
-            return $this->get( '/history', $params );
+            return $this->get( '/messages', $params );
         }
 
         public function presence( $params = array() ) {
@@ -28,12 +28,12 @@ class Channel {
         }
 
         public function presence_history( $params = array() ) {
-            return $this->get( '/presence/history', $params );
+            return $this->get( '/presence/messages', $params );
         }
 
         public function publish( $name, $data ) {
             $this->log_action( 'Channel.publish()', 'name = '. urlencode($name) );
-            return $this->post( '/publish', json_encode(array( 'name' => urlencode($name), 'data' => $data, 'timestamp' => $this->ably->system_time() )) );
+            return $this->post( '/messages', json_encode(array( 'name' => urlencode($name), 'data' => $data, 'timestamp' => $this->ably->system_time() )) );
         }
 
         public function stats( $params = array() ) {
