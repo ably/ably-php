@@ -32,6 +32,15 @@ Setup a channel and broadcast a message:
 
 Before you can run the tests you will need to install some tools:
 
+    # Install Composer from https://getcomposer.org/
+    # Then download dependencies
+    $ composer install
+
+    # Run a test
+    $ vendor/bin/phpunit test/TimeTest.php
+
+Old instructions (Does not work!):
+
     # Install PHPUnit 3.7 (assumes PEAR already installed)
     $ sudo pear config-set auto_discover 1
     $ sudo pear install pear.phpunit.de/PHPUnit
