@@ -9,12 +9,18 @@ require_once '../lib/ably.php';
 $api_key = ABLY_KEY;
 $channel_name = isset($_REQUEST['channel']) ? $_REQUEST['channel'] : 'persist:chat';
 $event_name = isset($_REQUEST['event']) ? $_REQUEST['event'] : 'guest';
-
-# instantiate Ably
-$app = new AblyRest(array(
+$settings = array(
     'key'  => $api_key,
     'debug' => 'log'
-));
+);
+if (defined('ABLY_HOST')) {
+    $settings = array_merge($settings, array(
+        'host' => ABLY_HOST
+    ));
+}
+
+# instantiate Ably
+$app = new AblyRest($settings);
 
 $channel0 = $app->channel($channel_name);
 $messages = array();
@@ -91,7 +97,7 @@ if (!empty($_POST)) {
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script src="lib/jquery.storageapi.min.js"></script>
-<script src="lib/ably.min.js"></script>
+<script src="//cdn.ably.io/lib/ably.js"></script>
 <script type="text/javascript">
 
     (function($) {
@@ -127,9 +133,9 @@ if (!empty($_POST)) {
         var ably = new Ably.Realtime({
             key: '<?= $api_key ?>',
             tls: true,
-            log: {level:4},
-            host: '<?= ABLY_HOST ?>',
-            wsHost: '<?= ABLY_WS_HOST ?>'
+            log: {level:4}
+            <?php if (defined('ABLY_HOST')): ?>,host: '<?= ABLY_HOST ?>'<?php endif; ?>
+            <?php if (defined('ABLY_WS_HOST')): ?>,wsHost: '<?= ABLY_WS_HOST ?>'<?php endif; ?>
         });
 
         var channel = ably.channels.get('<?= $channel_name ?>');
