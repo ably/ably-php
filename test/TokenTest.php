@@ -144,7 +144,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
         $this->assertTrue( ($token_details->issued_at >= $request_time - $this->error_margin) && ($token_details->issued_at <= $request_time + $this->error_margin), 'Unexpected issued_at time' );
         $this->assertEquals( $token_details->issued_at + 60*60, $token_details->expires, 'Unexpected expires time' );
         $this->assertEquals( $this->permit_all, $token_details->capability, 'Unexpected capability' );
-        $this->assertEquals( $token_params['clientId'], $token_details->clientId, 'Unexpected clientId' );
+        $this->assertEquals( $token_params['client_id'], $token_details->clientId, 'Unexpected clientId' );
     }
 
     /**

@@ -418,14 +418,21 @@ class AblyRest {
             trigger_error('No key specified');
         }
 
+        $allowed_params = array_intersect_key($params, array_flip(explode(' ', 'id ttl capability client_id timestamp nonce mac')));
+        
+        if (isset($allowed_params['client_id'])) {
+            $allowed_params['clientId'] = $allowed_params['client_id'];
+            unset($allowed_params['client_id']);
+        }
+
         $request = array_merge(array(
             'id'         => "$app_id.$key_id",
             'ttl'        => $this->getopt( 'ttl', '' ),
             'capability' => $this->getopt( 'capability' ),
-            'clientId'  => $this->getopt( 'clientId' ),
+            'clientId'   => $this->getopt( 'clientId' ),
             'timestamp'  => $this->getopt( 'timestamp', $this->timestamp( $query_time ) ),
             'nonce'      => $this->getopt( 'nonce', $this->random() ),
-        ), $params );
+        ), $allowed_params);
 
         $signText = implode("\n", array(
             $request['id'],
