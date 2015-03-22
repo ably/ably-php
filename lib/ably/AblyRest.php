@@ -422,7 +422,7 @@ class AblyRest {
             'id'         => "$app_id.$key_id",
             'ttl'        => $this->getopt( 'ttl', '' ),
             'capability' => $this->getopt( 'capability' ),
-            'client_id'  => $this->getopt( 'clientId' ),
+            'clientId'  => $this->getopt( 'clientId' ),
             'timestamp'  => $this->getopt( 'timestamp', $this->timestamp( $query_time ) ),
             'nonce'      => $this->getopt( 'nonce', $this->random() ),
         ), $params );
@@ -431,7 +431,7 @@ class AblyRest {
             $request['id'],
             $request['ttl'],
             $request['capability'],
-            $request['client_id'],
+            $request['clientId'],
             $request['timestamp'],
             $request['nonce'],
         )) . "\n";
@@ -441,7 +441,7 @@ class AblyRest {
         if ( empty($request['mac']) ) {
             $hmac           = hash_hmac( 'sha256',$signText, $key_value,true );
             $request['mac'] = $this->getopt( 'mac', $this->safe_base64_encode($hmac) );
-            $this->log_action( 'request_token()', sprintf("\tbase64 = %s\n\tmac = %s", base64_encode($hmac), $request['mac']) );
+            $this->log_action( 'create_token()', sprintf("\tbase64 = %s\n\tmac = %s", $this->safe_base64_encode($hmac), $request['mac']) );
         }
 
         $res = $this->post( 'baseUri', "/keys/$app_id.$key_id/requestToken", null, $request );
