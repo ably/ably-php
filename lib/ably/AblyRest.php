@@ -465,7 +465,9 @@ class AblyRest {
      * Shorthand to explode the combined private key
      */
     private function explode_key( $key ) {
-        return explode( ':', $key );        
+        list( $username, $keyValue ) = explode( ':', $key );
+        list($appId, $keyId ) = explode( '.', $username );
+        return array( $appId, $keyId, $keyValue );  
     }
 
 
