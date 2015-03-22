@@ -41,9 +41,12 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
 
         # first publish some messages
         $history0 = $this->ably->channel('persisted:history0');
-        $history0->publish("history0", true);
-        $history0->publish("history1", 24);
-        $history0->publish("history2", 24.234);
+
+        # not supported
+        // $history0->publish("history0", true);
+        // $history0->publish("history1", 24);
+        // $history0->publish("history2", 24.234);
+
         $history0->publish("history3", 'This is a string message payload');
         $history0->publish("history4", unpack('H*', 'This is a byte[] message payload')[1]);
         $history0->publish("history5", json_encode(array('test' => 'This is a JSONObject message payload')));
@@ -55,7 +58,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         # get the history for this channel
         $messages = $history0->history();
         $this->assertNotNull( $messages, 'Expected non-null messages' );
-        $this->assertEquals( 7, count($messages), 'Expected 7 messages' );
+        $this->assertEquals( 4, count($messages), 'Expected 4 messages' );
 
         $actual_message_order = array();
 
@@ -63,9 +66,12 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         foreach ($messages as $message) {
             array_push($actual_message_order, $message->name);
             switch ($message->name) {
-                case 'history0' : $this->assertEquals( true, $message->data, 'Expect history0 to be Boolean(true)' ); break;
-                case 'history1' : $this->assertEquals( 24, $message->data, 'Expect history1 to be Integer(24)' ); break;
-                case 'history2' : $this->assertEquals( 24.234, $message->data, 'Expect history2 to be Float(24.234)' ); break;
+                
+                # not supported
+                // case 'history0' : $this->assertEquals( true, $message->data, 'Expect history0 to be Boolean(true)' ); break;
+                // case 'history1' : $this->assertEquals( 24, $message->data, 'Expect history1 to be Integer(24)' ); break;
+                // case 'history2' : $this->assertEquals( 24.234, $message->data, 'Expect history2 to be Float(24.234)' ); break;
+
                 case 'history3' : $this->assertEquals( 'This is a string message payload', $message->data, 'Expect history3 to be expected String' ); break;
                 case 'history4' : $this->assertEquals( 'This is a byte[] message payload', pack('H*', $message->data), 'Expect history4 to be expected byte[]' ); break;
                 case 'history5' : $this->assertEquals( '{"test":"This is a JSONObject message payload"}', $message->data, 'Expect history5 to be expected JSONObject' ); break;
@@ -75,8 +81,9 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         }
 
         # verify message order
-        $this->assertEquals( array('history6', 'history5', 'history4', 'history3', 'history2', 'history1', 'history0'), $actual_message_order, 'Expect messages in reverse order' );
+        $this->assertEquals( array('history6', 'history5', 'history4', 'history3'), $actual_message_order, 'Expect messages in reverse order' );
     }
+
 
     /**
      * Publish events and check expected order (forwards)
@@ -87,11 +94,11 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         # publish some messages
         $history1 = $this->ably->channel('persisted:history1');
         for ($i=0; $i<50; $i++) {
-            $history1->publish('history'.$i, $i);
+            $history1->publish('history'.$i, sprintf('%s',$i));
         }
 
         # wait for the history to be persisted
-        sleep(30);
+        sleep(60);
 
         # get the history for this channel
         $messages = $history1->history( array('direction' => 'forwards') );
@@ -116,11 +123,11 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         # publish some messages
         $history2 = $this->ably->channel('persisted:history2');
         for ($i=0; $i<50; $i++) {
-            $history2->publish('history'.$i, $i);
+            $history2->publish('history'.$i, sprintf('%s',$i));
         }
 
         # wait for the history to be persisted
-        sleep(30);
+        sleep(60);
 
         $messages = $history2->history( array('direction' => 'backwards') );
         $this->assertNotNull( $messages, 'Expected non-null messages' );
@@ -145,11 +152,11 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         # publish some messages
         $history3 = $this->ably->channel('persisted:history3');
         for ($i=0; $i<50; $i++) {
-            $history3->publish('history'.$i, $i);
+            $history3->publish('history'.$i, sprintf('%s',$i));
         }
 
         # wait for the history to be persisted
-        sleep(30);
+        sleep(60);
 
         $messages = $history3->history( array('direction' => 'forwards', 'limit' => 25) );
         $this->assertNotNull( $messages, 'Expected non-null messages' );
@@ -173,11 +180,11 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         # publish some messages
         $history4 = $this->ably->channel('persisted:history4');
         for ($i=0; $i<50; $i++) {
-            $history4->publish('history'.$i, $i);
+            $history4->publish('history'.$i, sprintf('%s',$i));
         }
 
         # wait for the history to be persisted
-        sleep(30);
+        sleep(60);
 
         $messages = $history4->history( array('direction' => 'backwards', 'limit' => 25) );
         $this->assertNotNull( $messages, 'Expected non-null messages' );
@@ -205,17 +212,17 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
 
         # send batches of messages with short inter-message delay
         for ($i=0; $i<20; $i++) {
-            $history5->publish('history'.$i, $i);
+            $history5->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
         }
         $interval_start = $this->timeOffset + $this->ably->system_time() + 1;
         for ($i=20; $i<40; $i++) {
-            $history5->publish('history'.$i, $i);
+            $history5->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
         }
         $interval_end = $this->timeOffset + $this->ably->system_time();
         for ($i=40; $i<60; $i++) {
-            $history5->publish('history'.$i, $i);
+            $history5->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
         }
 
@@ -253,17 +260,17 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
 
         # send batches of messages with short inter-message delay
         for ($i=0; $i<20; $i++) {
-            $history6->publish('history'.$i, $i);
+            $history6->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
         }
         $interval_start = $this->timeOffset + $this->ably->system_time() + 1;
         for ($i=20; $i<40; $i++) {
-            $history6->publish('history'.$i, $i);
+            $history6->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
         }
         $interval_end = $this->timeOffset + $this->ably->system_time();
         for ($i=40; $i<60; $i++) {
-            $history6->publish('history'.$i, $i);
+            $history6->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
         }
 
