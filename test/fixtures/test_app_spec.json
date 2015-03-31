@@ -23,5 +23,16 @@
             "id": "persisted",
             "persisted": true
         }
+    ],
+    "channels": [
+        {
+            "name": "persisted:presence_fixtures",
+            "presence": [
+                { "clientId": "client_string1",   "data": "This is a string clientData payload #1" },
+                { "clientId": "client_string2",   "data": "This is a string clientData payload #2" },
+                { "clientId": "client_string3",   "data": "This is a string clientData payload #3" },
+                { "clientId": "client_json",      "data": "{ \"test\": \"This is a JSONObject clientData payload\"}" }
+            ]
+        }
     ]
 }

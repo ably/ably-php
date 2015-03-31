@@ -28,7 +28,7 @@ class Channel {
         }
 
         public function presence_history( $params = array() ) {
-            return $this->get( '/presence/messages', $params );
+            return $this->get( '/presence/history', $params );
         }
 
         public function publish( $name, $data ) {
