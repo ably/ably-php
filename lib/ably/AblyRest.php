@@ -276,7 +276,7 @@ class AblyRest {
 
     # service time in seconds
     public function time_in_seconds() {
-        return intval($this->time())/1000;
+        return intval($this->time()/1000);
     }
 
     # system time in milliseconds
