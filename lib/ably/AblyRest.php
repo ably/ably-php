@@ -124,7 +124,8 @@ class AblyRest {
             if ( $this->token->expires > $this->timestamp() ) {
                 if ( !$force ) {
                     # using cached token
-                    $this->log_action( 'authorise()', sprintf("\tusing cached token; expires = %s\n\tfor humans token expires on %s", $this->token->expires, gmdate("r",$this->token->expires)) );
+                    $this->log_action('authorise()', sprintf("\tusing cached token; expires = %s\n\tfor humans token expires on %s",
+                        $this->token->expires, gmdate("r",$this->token->expires)) );
                     return $this;
                 }
             } else {
@@ -287,9 +288,9 @@ class AblyRest {
     /*
      * curl wrapper to do GET
      */
-    public function get( $domain, $path, $headers = array(), $params = array() ) {
+    public function get( $domain, $path, $headers = array(), $params = array(), $returnHeaders = false ) {
         $fallback = $this->getopt('authority') . $domain;
-        return $this->request( $this->getopt( $domain, $fallback ) . $path . ( !empty($params) ? '?' . $this->safe_params($params) : '' ), $headers );
+        return $this->request( $this->getopt( $domain, $fallback ) . $path . ( !empty($params) ? '?' . $this->safe_params($params) : '' ), $headers, null, $returnHeaders );
     }
 
     /*
@@ -337,9 +338,9 @@ class AblyRest {
     /*
      * curl wrapper to do POST
      */
-    public function post( $domain, $path, $headers = array(), $params = array() ) {
+    public function post( $domain, $path, $headers = array(), $params = array(), $returnHeaders = false ) {
         $fallback = $this->getopt('authority') . $domain;
-        return $this->request( $this->getopt($domain, $fallback) . $path, $headers, $params );
+        return $this->request( $this->getopt($domain, $fallback) . $path, $headers, $params, $returnHeaders );
     }
 
 
@@ -496,7 +497,8 @@ class AblyRest {
     /*
      * Build the curl request
      */
-    private function request( $url, $headers = array(), $params = array() ) {
+    private function request( $url, $headers = array(), $params = array(), $returnHeaders = false ) {
+
         $ch = curl_init($url);
         $parts = parse_url($url);
         ($headers === NULL) && $headers = array();
@@ -522,6 +524,7 @@ class AblyRest {
 
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
         curl_setopt( $ch, CURLOPT_VERBOSE, $this->getopt('debug') );
+        curl_setopt( $ch, CURLOPT_HEADER, $returnHeaders ); // return response headers
 
         if (!empty($headers)) {
             foreach($headers as $header) {
@@ -544,9 +547,19 @@ class AblyRest {
             return $raw;
         }
 
-        $this->raw[$parts['path']] = $raw;
+        $this->raw[$parts['path']] = $raw; // TODO: is this necessary? may increase memory usage significantly
 
-        $response = $this->response_format($raw);
+        $response = null;
+
+        if ($returnHeaders) {
+            $headers = substr($raw, 0, $info['header_size']);
+            $body = substr($raw, $info['header_size']);
+
+            $response = array('headers' => $headers, 'body' => $this->response_format($body));
+        } else {
+            $response = $this->response_format($raw);
+        }
+
         $this->log_action( '_request_result()', $response );
 
         return $response;

@@ -66,9 +66,11 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
 
         # verify limit / pagination
         $presenceLimit = $presenceChannel->presence_history( array( 'limit' => 2, 'direction' => 'forwards' ) );
+
+        $this->assertTrue( $presenceLimit->isFirstPage(), 'Expected the page to be first' );
         $this->assertEquals( 2, count($presenceLimit), 'Expected 2 presence entries' );
 
-        $nextPage = $presenceLimit->nextPage();
+        $nextPage = $presenceLimit->getNextPage();
         $this->assertEquals( 2, count($presenceLimit), 'Expected 2 presence entries on 2nd page' );
 
         $this->assertEquals( 2, count($nextPage), 'Expected 2 presence entries on 2nd page' );
@@ -103,20 +105,24 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
 
         # verify limit / pagination - forwards
         $historyLimit = $presenceChannel->presence_history( array( 'limit' => 2, 'direction' => 'forwards' ) );
+        
+        $this->assertTrue( $historyLimit->isFirstPage(), 'Expected the page to be first' );
         $this->assertEquals( 2, count($historyLimit), 'Expected 2 presence entries' );
 
-        $nextPage = $historyLimit->nextPage();
+        $nextPage = $historyLimit->getNextPage();
 
-        $this->assertEquals( $this->fixture->presence[3]->clientId, $historyLimit[0]->clientId, 'Expected least recent presence activity to be the first' );
-        $this->assertEquals( $this->fixture->presence[0]->clientId, $nextPage[1]->clientId, 'Expected most recent presence activity to be the last' );
+        $this->assertEquals( $this->fixture->presence[0]->clientId, $historyLimit[0]->clientId, 'Expected least recent presence activity to be the first' );
+        $this->assertEquals( $this->fixture->presence[3]->clientId, $nextPage[1]->clientId, 'Expected most recent presence activity to be the last' );
 
         # verify limit / pagination - backwards
         $historyLimit = $presenceChannel->presence_history( array( 'limit' => 2, 'direction' => 'backwards' ) );
+
+        $this->assertTrue( $historyLimit->isFirstPage(), 'Expected the page to be first' );
         $this->assertEquals( 2, count($historyLimit), 'Expected 2 presence entries' );
 
-        $nextPage = $historyLimit->nextPage();
+        $nextPage = $historyLimit->getNextPage();
 
-        $this->assertEquals( $this->fixture->presence[0]->clientId, $historyLimit[0]->clientId, 'Expected most recent presence activity to be the first' );
-        $this->assertEquals( $this->fixture->presence[3]->clientId, $nextPage[1]->clientId, 'Expected least recent presence activity to be the last' );
+        $this->assertEquals( $this->fixture->presence[3]->clientId, $historyLimit[0]->clientId, 'Expected most recent presence activity to be the first' );
+        $this->assertEquals( $this->fixture->presence[0]->clientId, $nextPage[1]->clientId, 'Expected least recent presence activity to be the last' );
     }
 }
