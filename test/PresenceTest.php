@@ -45,7 +45,7 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
         echo '=='.__FUNCTION__.'()';
 
         $presenceChannel = $this->ably->channel('persisted:presence_fixtures');
-        $presence = $presenceChannel->presence();
+        $presence = $presenceChannel->presence->get();
 
         # verify presence existence and count
         $this->assertNotNull( $presence, 'Expected non-null presence data' );
@@ -65,7 +65,7 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
         }
 
         # verify limit / pagination
-        $presenceLimit = $presenceChannel->presence_history( array( 'limit' => 2, 'direction' => 'forwards' ) );
+        $presenceLimit = $presenceChannel->presence->history( array( 'limit' => 2, 'direction' => 'forwards' ) );
 
         $this->assertTrue( $presenceLimit->isFirstPage(), 'Expected the page to be first' );
         $this->assertEquals( 2, count($presenceLimit), 'Expected 2 presence entries' );
@@ -84,7 +84,7 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
         echo '=='.__FUNCTION__.'()';
 
         $presenceChannel = $this->ably->channel('persisted:presence_fixtures');
-        $history = $presenceChannel->presence_history();
+        $history = $presenceChannel->presence->history();
 
         # verify history existence and count
         $this->assertNotNull( $history, 'Expected non-null history data' );
@@ -104,7 +104,7 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
         }
 
         # verify limit / pagination - forwards
-        $historyLimit = $presenceChannel->presence_history( array( 'limit' => 2, 'direction' => 'forwards' ) );
+        $historyLimit = $presenceChannel->presence->history( array( 'limit' => 2, 'direction' => 'forwards' ) );
         
         $this->assertTrue( $historyLimit->isFirstPage(), 'Expected the page to be first' );
         $this->assertEquals( 2, count($historyLimit), 'Expected 2 presence entries' );
@@ -115,7 +115,7 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals( $this->fixture->presence[3]->clientId, $nextPage[1]->clientId, 'Expected most recent presence activity to be the last' );
 
         # verify limit / pagination - backwards
-        $historyLimit = $presenceChannel->presence_history( array( 'limit' => 2, 'direction' => 'backwards' ) );
+        $historyLimit = $presenceChannel->presence->history( array( 'limit' => 2, 'direction' => 'backwards' ) );
 
         $this->assertTrue( $historyLimit->isFirstPage(), 'Expected the page to be first' );
         $this->assertEquals( 2, count($historyLimit), 'Expected 2 presence entries' );
