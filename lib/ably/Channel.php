@@ -3,55 +3,72 @@ require_once 'PaginatedResource.php';
 
 class Channel {
 
-    public $name;
-    public $domain;
-
+    private $name;
+    private $channelPath;
     private $ably;
 
-    /*
+    /**
      * Constructor
+     * @param AblyRest $ably Ably API instance
+     * @param string $name Channel's name
      */
     public function __construct( AblyRest $ably, $name ) {
         $this->ably = $ably;
         $this->name = urlencode($name);
-        $this->domain = "/channels/{$this->name}";
+        $this->channelPath = "/channels/{$this->name}";
     }
 
     /*
      * Public methods
      */
+
+    /**
+     * Retrieves channel's history of messages
+     * @param array $params Parameters to be sent with the request
+     * @return PaginatedResource
+     */
     public function history( $params = array() ) {
         return $this->getPaginated( '/messages', $params );
     }
 
+    /**
+     * Retrieves channel's presence data
+     * @param array $params Parameters to be sent with the request
+     * @return PaginatedResource
+     */
     public function presence( $params = array() ) {
         return $this->getPaginated( '/presence', $params );
     }
 
+    /**
+     * Retrieves channel's history of presence data
+     * @param array $params Parameters to be sent with the request
+     * @return PaginatedResource
+     */
     public function presence_history( $params = array() ) {
         return $this->getPaginated( '/presence/history', $params );
     }
 
+    /**
+     * Posts a message to this channel
+     * @param string $name event name
+     * @param string $data message data
+     */
     public function publish( $name, $data ) {
         $this->log_action( 'Channel.publish()', 'name = '. urlencode($name) );
         return $this->post( '/messages', json_encode(array( 'name' => urlencode($name), 'data' => $data, 'timestamp' => $this->ably->system_time() )) );
     }
 
-    public function stats( $params = array() ) {
-        return $this->getPaginated( '/stats', $params );
-    }
-
-
     /*
      * Private methods
      */
+
     private function get( $path, $params = array() ) {
-        // $this->ably->authorise();
-        return $this->ably->get( $this->domain, $path, $this->ably->auth_headers(), $params );
+        return $this->ably->get( $this->channelPath . $path, $this->ably->auth_headers(), $params );
     }
 
     private function getPaginated( $path, $params = array() ) {
-        return new PaginatedResource( $this->ably, $this->domain, $path, $params );
+        return new PaginatedResource( $this->ably, $this->channelPath . $path, $params );
     }
 
     private function log_action( $action, $msg ) {
@@ -59,7 +76,6 @@ class Channel {
     }
 
     private function post( $path, $params = array() ) {
-        // $this->ably->authorise();
-        return $this->ably->post( $this->domain, $path, $this->ably->auth_headers(), $params );
+        return $this->ably->post( $this->channelPath . $path, $this->ably->auth_headers(), $params );
     }
 }

@@ -98,7 +98,7 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
         
         foreach ($history as $entry) {
             $this->assertTrue(
-                array_key_exists($entry->clientId, $fixtureHistoryMap) && $fixtureHistoryMap[$entry->clientId] == $entry->data,
+                isset($fixtureHistoryMap[$entry->clientId]) && $fixtureHistoryMap[$entry->clientId] == $entry->data,
                 'Expected presence contents to match'
             );
         }

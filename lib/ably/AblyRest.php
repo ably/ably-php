@@ -196,7 +196,7 @@ class AblyRest {
      */
     public function history( $options = array() ) {
         $this->authorise();
-        $res = $this->get( 'baseUri', '/history', $this->auth_headers() );
+        $res = $this->get( '/history', $this->auth_headers() );
         return $res;
     }
 
@@ -265,13 +265,13 @@ class AblyRest {
 
     public function stats( $params = array() ) {
         $this->authorise();
-        $res = $this->get( 'baseUri', '/stats', $this->auth_headers(), $params );
+        $res = $this->get( '/stats', $this->auth_headers(), $params );
         return $res;
     }
 
     # service time in milliseconds
     public function time() {
-        $res = $this->get( 'authority', '/time' );
+        $res = $this->get( '/time' );
         return $res[0];
     }
 
@@ -288,9 +288,9 @@ class AblyRest {
     /*
      * curl wrapper to do GET
      */
-    public function get( $domain, $path, $headers = array(), $params = array(), $returnHeaders = false ) {
-        $fallback = $this->getopt('authority') . $domain;
-        return $this->request( $this->getopt( $domain, $fallback ) . $path . ( !empty($params) ? '?' . $this->safe_params($params) : '' ), $headers, null, $returnHeaders );
+    public function get( $path, $headers = array(), $params = array(), $returnHeaders = false ) {
+        $server = $this->getopt('authority');
+        return $this->request( $server . $path . ( !empty($params) ? '?' . $this->safe_params($params) : '' ), $headers, null, $returnHeaders );
     }
 
     /*
@@ -338,9 +338,9 @@ class AblyRest {
     /*
      * curl wrapper to do POST
      */
-    public function post( $domain, $path, $headers = array(), $params = array(), $returnHeaders = false ) {
-        $fallback = $this->getopt('authority') . $domain;
-        return $this->request( $this->getopt($domain, $fallback) . $path, $headers, $params, $returnHeaders );
+    public function post( $path, $headers = array(), $params = array(), $returnHeaders = false ) {
+        $server = $this->getopt('authority');
+        return $this->request( $server . $path, $headers, $params, $returnHeaders );
     }
 
 
@@ -452,7 +452,7 @@ class AblyRest {
             $this->log_action( 'create_token()', sprintf("\tbase64 = %s\n\tmac = %s", $this->safe_base64_encode($hmac), $request['mac']) );
         }
 
-        $res = $this->post( 'baseUri', "/keys/$app_id.$key_id/requestToken", null, $request );
+        $res = $this->post( "/keys/$app_id.$key_id/requestToken", null, $request );
 
         if ( empty($res->access_token) ) {
             $error = json_decode($res)->error;

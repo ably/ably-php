@@ -48,7 +48,7 @@ class ChannelPublishTest extends PHPUnit_Framework_TestCase {
         $publish0->publish("publish6", json_encode(array('This is a JSONArray message payload')));
 
         # wait for history to be persisted
-        sleep(10);
+        sleep(5);
 
         # get the history for this channel
         $messages = $publish0->history();

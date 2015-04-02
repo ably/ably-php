@@ -1,26 +1,35 @@
 <?php
+require_once 'AblyException.php';
 
+/**
+ * Provides automatic pagination for applicable requests
+ *
+ * Requests for channel history, channel presence, stats, etc. are automatically
+ * wrapped in this class. Instances of this class are created automatically by
+ * the Ably API.
+ */
 class PaginatedResource extends ArrayObject {
 
     private $ably;
-    private $domain;
     private $path;
     private $paginationHeaders = false;
 
-    /*
-     * Constructor
+    /**
+     * Constructor.
+     * @param AblyRest $ably Ably API instance
+     * @param string $path Request path
+     * @param array $params Parameters to be sent with the request
      */
-    public function __construct( AblyRest $ably, $domain, $path, $params = array() ) {
+    public function __construct( AblyRest $ably, $path, $params = array() ) {
         parent::__construct();
 
         $this->ably = $ably;
-        $this->domain = $domain;
         $this->path = $path;
 
         $withHeaders = true;
-        $response = $this->ably->get( $domain, $path, $this->ably->auth_headers(), $params, $withHeaders );
+        $response = $this->ably->get( $path, $this->ably->auth_headers(), $params, $withHeaders );
 
-        if (isset($response['body'])) {
+        if (isset($response['body']) && is_array($response['body'])) {
             $this->exchangeArray( $response['body'] );
             $this->parseHeaders( $response['headers'] );
         }
@@ -30,10 +39,17 @@ class PaginatedResource extends ArrayObject {
     /*
      * Public methods
      */
+
+    /**
+     * @return boolean whether the fetched results have multiple pages
+     */
     public function isPaginated() {
         return is_array($this->paginationHeaders) && !empty($this->paginationHeaders);
     }
 
+    /**
+     * @return boolean whether the current page is the first, always true for single-page results
+     */
     public function isFirstPage() {
         if (!$this->isPaginated() ) {
             return true;
@@ -47,6 +63,9 @@ class PaginatedResource extends ArrayObject {
         return false;
     }
 
+    /**
+     * @return boolean whether the current page is the last, always true for single-page results
+     */
     public function isLastPage() {
         if (!$this->isPaginated() || !isset($this->paginationHeaders['next']) ) {
             return true;
@@ -55,17 +74,27 @@ class PaginatedResource extends ArrayObject {
         }
     }
 
+    /**
+     * Fetches the first page of results
+     * @return PaginatedResource returns self if the current page is the first
+     */
     public function getFirstPage() {
-        if ($this->isPaginated() && !empty($this->paginationHeaders['first'])) {
-            return new PaginatedResource( $this->ably, $this->domain, $this->paginationHeaders['first'], array());
+        if ($this->isFirstPage()) {
+            return this;
+        } else if (isset($this->paginationHeaders['first'])) {
+            return new PaginatedResource( $this->ably, $this->paginationHeaders['first']);
         } else {
             return null;
         }
     }
 
+    /**
+     * Fetches the next page of results
+     * @return PaginatedResource or null if the current page is the last
+     */
     public function getNextPage() {
-        if ($this->isPaginated() && !empty($this->paginationHeaders['next'])) {
-            return new PaginatedResource( $this->ably, $this->domain, $this->paginationHeaders['next'], array());
+        if ($this->isPaginated() && isset($this->paginationHeaders['next'])) {
+            return new PaginatedResource( $this->ably, $this->paginationHeaders['next']);
         } else {
             return null;
         }
@@ -76,6 +105,9 @@ class PaginatedResource extends ArrayObject {
      * Private methods
      */
 
+    /**
+     * Parses HTTP headers for pagination links
+     */
     private function parseHeaders($headers) {
 
         $path = preg_replace('/\/[^\/]*$/', '/', $this->path);
@@ -91,7 +123,7 @@ class PaginatedResource extends ArrayObject {
             $rel =  $m[2];
 
             if (substr($link, 0, 2) != './') {
-                throw new Exception("Only relative URLs supported in pagination", 1);
+                throw new AblyException("Server error - only relative URLs are supported in pagination");
             }
 
             $this->paginationHeaders[$rel] = $path.substr($link, 2);
