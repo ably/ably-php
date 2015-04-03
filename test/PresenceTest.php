@@ -24,7 +24,7 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
             'port'      => self::$options['port'],
         ));
 
-        $spec = json_decode(file_get_contents('fixtures/test_app_spec.json'));
+        $spec = json_decode(file_get_contents(dirname(__FILE__).'/fixtures/test_app_spec.json'));
         self::$channelFixture = $spec->channels[0];
     }
 
