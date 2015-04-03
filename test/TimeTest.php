@@ -70,9 +70,8 @@ class TimeTest extends PHPUnit_Framework_TestCase {
             'host'  => 'this.host.does.not.exist',
         )));
 
+        $this->setExpectedException('AblyRequestException');
         $reportedTime = $ablyInvalidHost->time();
-
-        $this->assertNull( $reportedTime );
     }
 
 }

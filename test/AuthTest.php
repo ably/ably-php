@@ -56,10 +56,10 @@ class AuthTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
     }
 
+    protected $authinit2_cbCalled = false;
     /**
      * Init library with a token callback
      */
-    protected $authinit2_cbCalled = false;
     public function testAuthoriseWithTokenCallback() {
         echo '== testAuthoriseWithTokenCallback()';
         $options = self::$options;
@@ -70,8 +70,10 @@ class AuthTest extends PHPUnit_Framework_TestCase {
                 return "this_is_not_really_a_token_request";
             }
         )));
+        
         // make a call to trigger a token request
-        $ably->stats();
+        $ably->authorise();
+
         $this->assertTrue( $this->authinit2_cbCalled, 'Token callback not called' );
         $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
     }

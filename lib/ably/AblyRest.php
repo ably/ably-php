@@ -2,6 +2,7 @@
 
 require_once 'AuthMethod.php';
 require_once 'PresenceState.php';
+require_once 'PaginatedResource.php';
 require_once 'Channel.php';
 
 class AblyRest {
@@ -192,15 +193,6 @@ class AblyRest {
     }
 
     /*
-     * history
-     */
-    public function history( $options = array() ) {
-        $this->authorise();
-        $res = $this->get( '/history', $this->auth_headers() );
-        return $res;
-    }
-
-    /*
      * Request a New Auth Token
      */
     public function request_token( $options = array(), $params = array() ) {
@@ -263,10 +255,13 @@ class AblyRest {
         return $res;
     }
 
+    /**
+     * Gets application-level usage statistics , covering messages sent
+     * and received, API requests and connections
+     * @return PaginatedResource Statistics
+     */
     public function stats( $params = array() ) {
-        $this->authorise();
-        $res = $this->get( '/stats', $this->auth_headers(), $params );
-        return $res;
+        return new PaginatedResource ( $this, '/stats', $params );
     }
 
     # service time in milliseconds
@@ -287,10 +282,11 @@ class AblyRest {
 
     /*
      * curl wrapper to do GET
+     * @throws AblyRequestException if the request fails
      */
     public function get( $path, $headers = array(), $params = array(), $returnHeaders = false ) {
         $server = $this->getopt('authority');
-        return $this->request( $server . $path . ( !empty($params) ? '?' . $this->safe_params($params) : '' ), $headers, null, $returnHeaders );
+        return $this->request( $server . $path . ( !empty($params) ? '?' . http_build_query($params) : '' ), $headers, null, $returnHeaders );
     }
 
     /*
@@ -337,6 +333,7 @@ class AblyRest {
 
     /*
      * curl wrapper to do POST
+     * @throws AblyRequestException if the request fails
      */
     public function post( $path, $headers = array(), $params = array(), $returnHeaders = false ) {
         $server = $this->getopt('authority');
@@ -362,7 +359,7 @@ class AblyRest {
         $loaded = get_loaded_extensions();
         foreach( $modules as $module ) {
             if ( !in_array($module, $loaded) ) {
-                throw new Exception( "{$module} extension required." );
+                throw new AblyException( "{$module} extension required." );
             }
         }
     }
@@ -452,10 +449,17 @@ class AblyRest {
             $this->log_action( 'create_token()', sprintf("\tbase64 = %s\n\tmac = %s", $this->safe_base64_encode($hmac), $request['mac']) );
         }
 
-        $res = $this->post( "/keys/$app_id.$key_id/requestToken", null, $request );
+        try {
+            $res = $this->post( "/keys/$app_id.$key_id/requestToken", null, $request );
+        } catch (AblyRequestException $e) {
+            $res = $e->getResponse();
+            if (is_array($res) && isset($res['headers']) && isset($res['body'])) {
+                $res = $res['body'];
+            }
+        }
 
         if ( empty($res->access_token) ) {
-            $error = json_decode($res)->error;
+            $error = $res->error;
             if (is_string($error)) {
                 $msg = $error;
                 $code = 50000;
@@ -463,7 +467,7 @@ class AblyRest {
                 $msg = $error->message;
                 $code = $error->code;
             }
-            throw new Exception( 'create_token(): Could not get new access token. '. $msg, $code );
+            throw new AblyException( 'create_token(): Could not get new access token. '. $msg, $code );
         }
 
         return $res->access_token;
@@ -496,6 +500,7 @@ class AblyRest {
 
     /*
      * Build the curl request
+     * @throws AblyRequestException if the request fails
      */
     private function request( $url, $headers = array(), $params = array(), $returnHeaders = false ) {
 
@@ -543,10 +548,6 @@ class AblyRest {
 
         $this->log_action( '_request_info()', $info );
 
-        if ( !in_array( $info['http_code'], array(200,201) ) ) {
-            return $raw;
-        }
-
         $this->raw[$parts['path']] = $raw; // TODO: is this necessary? may increase memory usage significantly
 
         $response = null;
@@ -561,6 +562,10 @@ class AblyRest {
         }
 
         $this->log_action( '_request_result()', $response );
+
+        if ( !in_array( $info['http_code'], array(200,201) ) ) {
+            throw new AblyRequestException( 'API request failed', $info['http_code'], $response );
+        }
 
         return $response;
     }

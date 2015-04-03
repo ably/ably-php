@@ -1,7 +1,7 @@
 <?php
 require_once 'PaginatedResource.php';
 require_once 'Presence.php';
-require_once 'AblyException.php';
+require_once 'AblyExceptions.php';
 
 /**
  * Represents a channel
@@ -47,7 +47,6 @@ class Channel {
      * @param string $data Message data
      */
     public function publish( $name, $data ) {
-        $this->log_action( 'Channel.publish()', 'name = '. urlencode($name) );
         return $this->post( '/messages', json_encode(array( 'name' => urlencode($name), 'data' => $data, 'timestamp' => $this->ably->system_time() )) );
     }
 

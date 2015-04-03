@@ -11,6 +11,7 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
     protected $ably;
     protected $timeOffset;
     protected $fixture;
+    protected $presenceChannel;
 
     public static function setUpBeforeClass() {
 
@@ -36,6 +37,7 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
         $this->ably = self::$ably0;
         $this->timeOffset = $this->ably->time() - $this->ably->system_time();
         $this->fixture = self::$channelFixture;
+        $this->presenceChannel = $this->ably->channel('persisted:presence_fixtures');
     }
 
     /**
@@ -44,8 +46,7 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
     public function testComparePresenceDataWithFixture() {
         echo '=='.__FUNCTION__.'()';
 
-        $presenceChannel = $this->ably->channel('persisted:presence_fixtures');
-        $presence = $presenceChannel->presence->get();
+        $presence = $this->presenceChannel->presence->get();
 
         # verify presence existence and count
         $this->assertNotNull( $presence, 'Expected non-null presence data' );
@@ -65,7 +66,7 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
         }
 
         # verify limit / pagination
-        $presenceLimit = $presenceChannel->presence->history( array( 'limit' => 2, 'direction' => 'forwards' ) );
+        $presenceLimit = $this->presenceChannel->presence->history( array( 'limit' => 2, 'direction' => 'forwards' ) );
 
         $this->assertTrue( $presenceLimit->isFirstPage(), 'Expected the page to be first' );
         $this->assertEquals( 2, count($presenceLimit), 'Expected 2 presence entries' );
@@ -83,8 +84,7 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
     public function testComparePresenceHistoryWithFixture() {
         echo '=='.__FUNCTION__.'()';
 
-        $presenceChannel = $this->ably->channel('persisted:presence_fixtures');
-        $history = $presenceChannel->presence->history();
+        $history = $this->presenceChannel->presence->history();
 
         # verify history existence and count
         $this->assertNotNull( $history, 'Expected non-null history data' );
@@ -104,7 +104,7 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
         }
 
         # verify limit / pagination - forwards
-        $historyLimit = $presenceChannel->presence->history( array( 'limit' => 2, 'direction' => 'forwards' ) );
+        $historyLimit = $this->presenceChannel->presence->history( array( 'limit' => 2, 'direction' => 'forwards' ) );
         
         $this->assertTrue( $historyLimit->isFirstPage(), 'Expected the page to be first' );
         $this->assertEquals( 2, count($historyLimit), 'Expected 2 presence entries' );
@@ -115,7 +115,7 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals( $this->fixture->presence[3]->clientId, $nextPage[1]->clientId, 'Expected most recent presence activity to be the last' );
 
         # verify limit / pagination - backwards
-        $historyLimit = $presenceChannel->presence->history( array( 'limit' => 2, 'direction' => 'backwards' ) );
+        $historyLimit = $this->presenceChannel->presence->history( array( 'limit' => 2, 'direction' => 'backwards' ) );
 
         $this->assertTrue( $historyLimit->isFirstPage(), 'Expected the page to be first' );
         $this->assertEquals( 2, count($historyLimit), 'Expected 2 presence entries' );
@@ -124,5 +124,50 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
 
         $this->assertEquals( $this->fixture->presence[3]->clientId, $historyLimit[0]->clientId, 'Expected most recent presence activity to be the first' );
         $this->assertEquals( $this->fixture->presence[0]->clientId, $nextPage[1]->clientId, 'Expected least recent presence activity to be the last' );
+    }
+
+    /*
+     * Check whether time range queries work properly
+     */
+    public function testPresenceHistoryTimeRange() {
+        echo '=='.__FUNCTION__.'()';
+
+        # ensure some time has passed since mock presence data was sent
+        $delay = 1000; // sleep for 1000ms
+        usleep($delay * 1000); // in microseconds
+
+        $now = $this->timeOffset + $this->ably->system_time();
+
+        # test with start parameter
+        try {
+            $history = $this->presenceChannel->presence->history( array( 'start' => $now ) );
+            $this->assertEquals( 0, count($history), 'Expected 0 presence entries' );
+        } catch (AblyRequestException $e) {
+            $this->fail( 'Start parameter - ' . $e->getMessage() . ', HTTP code: ' . $e->getCode() );
+        }
+
+        # test with end parameter
+        try {
+            $history = $this->presenceChannel->presence->history( array( 'end' => $now ) );
+            $this->assertEquals( 4, count($history), 'Expected 4 presence entries' );
+        } catch (AblyRequestException $e) {
+            $this->fail( 'End parameter - ' . $e->getMessage() . ', HTTP code: ' . $e->getCode() );
+        }
+
+        # test with both start and end parameters - time range: ($now - 500ms) ... $now
+        try {
+            $history = $this->presenceChannel->presence->history( array( 'start' => $now - ($delay / 2), 'end' => $now ) );
+            $this->assertEquals( 0, count($history), 'Expected 0 presence entries' );
+        } catch (AblyRequestException $e) {
+            $this->fail( 'Start + end parameter - ' . $e->getMessage() . ', HTTP code: ' . $e->getCode() );
+        }
+
+        # test ISO 8601 date format
+        try {
+            $history = $this->presenceChannel->presence->history( array( 'end' => gmdate('c', $now / 1000) ) );
+            $this->assertEquals( 4, count($history), 'Expected 4 presence entries' );
+        } catch (AblyRequestException $e) {
+            $this->fail( 'ISO format: ' . $e->getMessage() . ', HTTP code: ' . $e->getCode() );
+        }
     }
 }

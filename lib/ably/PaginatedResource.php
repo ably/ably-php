@@ -1,5 +1,5 @@
 <?php
-require_once 'AblyException.php';
+require_once 'AblyExceptions.php';
 
 /**
  * Provides automatic pagination for applicable requests
