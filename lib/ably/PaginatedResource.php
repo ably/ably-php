@@ -4,9 +4,8 @@ require_once 'AblyExceptions.php';
 /**
  * Provides automatic pagination for applicable requests
  *
- * Requests for channel history, channel presence, stats, etc. are automatically
- * wrapped in this class. Instances of this class are created automatically by
- * the Ably API.
+ * Requests for channel history and channel presence are automatically
+ * wrapped in this class automatically.
  */
 class PaginatedResource extends ArrayObject {
 

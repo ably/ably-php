@@ -88,9 +88,10 @@ class TestOption {
     }
 
     public function clear_opts() {
-        if (!empty($this->option)) {
+        if (!empty($this->options)) {
             $ably = new AblyRest($this->options['first_private_api_key']);
             $this->request( 'DELETE', join( '/', array($this->settings['authority'],'apps', $this->options['appId']) ), $ably->auth_headers() );
+            $this->options = null;
         }
     }
 

@@ -47,7 +47,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
         $this->assertNotNull( $token_details->id, 'Expected token id' );
         $this->assertTrue( ($token_details->issued_at >= $request_time - $this->error_margin) && ($token_details->issued_at <= $request_time + $this->error_margin), 'Unexpected issued_at time' );
         $this->assertEquals( $token_details->issued_at + 60*60, $token_details->expires, 'Unexpected expires time' );
-        $this->assertEquals( $this->permit_all, $token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $this->permit_all, json_decode($token_details->capability), 'Unexpected capability' );
     }
 
     /**
@@ -61,7 +61,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
         $this->assertNotNull( $token_details->id, 'Expected token id' );
         $this->assertTrue( ($token_details->issued_at >= $request_time - $this->error_margin) && ($token_details->issued_at <= $request_time + $this->error_margin), 'Unexpected issued_at time' );
         $this->assertEquals( $token_details->issued_at + 60*60, $token_details->expires, 'Unexpected expires time' );
-        $this->assertEquals( $this->permit_all, $token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $this->permit_all, json_decode($token_details->capability), 'Unexpected capability' );
     }
 
     /**
@@ -77,7 +77,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
         $this->assertNotNull( $token_details->id, 'Expected token id' );
         $this->assertTrue( ($token_details->issued_at >= $request_time - $this->error_margin) && ($token_details->issued_at <= $request_time + $this->error_margin), 'Unexpected issued_at time' );
         $this->assertEquals( $token_details->issued_at + 60*60, $token_details->expires, 'Unexpected expires time' );
-        $this->assertEquals( $this->permit_all, $token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $this->permit_all, json_decode($token_details->capability), 'Unexpected capability' );
     }
 
     /**
@@ -108,7 +108,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
         $this->assertNotNull( $token_details->id, 'Expected token id' );
         $this->assertTrue( ($token_details->issued_at >= $request_time - $this->error_margin) && ($token_details->issued_at <= $request_time + $this->error_margin), 'Unexpected issued_at time' );
         $this->assertEquals( $token_details->issued_at + 60*60, $token_details->expires, 'Unexpected expires time' );
-        $this->assertEquals( $this->permit_all, $token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $this->permit_all, json_decode($token_details->capability), 'Unexpected capability' );
     }
 
     /**
@@ -143,7 +143,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
         $this->assertNotNull( $token_details->id, 'Expected token id' );
         $this->assertTrue( ($token_details->issued_at >= $request_time - $this->error_margin) && ($token_details->issued_at <= $request_time + $this->error_margin), 'Unexpected issued_at time' );
         $this->assertEquals( $token_details->issued_at + 60*60, $token_details->expires, 'Unexpected expires time' );
-        $this->assertEquals( $this->permit_all, $token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $this->permit_all, json_decode($token_details->capability), 'Unexpected capability' );
         $this->assertEquals( $token_params['client_id'], $token_details->clientId, 'Unexpected clientId' );
     }
 
@@ -157,7 +157,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
         $token_params = array('capability' => $capability );
         $token_details = $this->ably->request_token( null, $token_params );
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( $token_details->capability, $capability_obj, 'Unexpected capability' );
+        $this->assertEquals( $capability_obj, json_decode($token_details->capability), 'Unexpected capability' );
     }
 
     /**
@@ -175,7 +175,7 @@ class TokenTest extends PHPUnit_Framework_TestCase {
         $capability_obj = json_decode($key->capability, false);
 
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( $token_details->capability, $capability_obj, 'Unexpected capability' );
+        $this->assertEquals( $capability_obj, json_decode($token_details->capability), 'Unexpected capability' );
     }
 
 

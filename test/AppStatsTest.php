@@ -31,6 +31,8 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testPublishEventsForwards() {
+        echo '== testPublishEventsForwards()';
+
         $interval = array();
 
         # wait for the start of the next minute
@@ -69,7 +71,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->all->count );
+        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->messages->count );
     }
 
     /**
@@ -88,7 +90,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->all->count );
+        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->messages->count );
     }
 
     /**
@@ -107,7 +109,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->all->count );
+        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->messages->count );
     }
 
 
@@ -127,7 +129,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->all->count );
+        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->messages->count );
     }
 
     /**
@@ -174,7 +176,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 6, (int)$stats[0]->inbound->all->all->count );
+        $this->assertEquals ( 6, (int)$stats[0]->inbound->all->messages->count );
     }
 
     /**
@@ -194,9 +196,9 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertTrue ( count($stats) == 1 || count($stats) == 2, 'Expected 1 or two records' );
         if (count($stats) == 1) {
-            $this->assertEquals ( 11, (int)$stats[0]->inbound->all->all->count );
+            $this->assertEquals ( 11, (int)$stats[0]->inbound->all->messages->count );
         } else {
-            $this->assertEquals ( 6, (int)$stats[1]->inbound->all->all->count );
+            $this->assertEquals ( 6, (int)$stats[1]->inbound->all->messages->count );
         }
 
     }
@@ -218,9 +220,9 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertTrue ( count($stats) == 1 || count($stats) == 2, 'Expected 1 or two records' );
         if (count($stats) == 1) {
-            $this->assertEquals ( 11, (int)$stats[0]->inbound->all->all->count );
+            $this->assertEquals ( 11, (int)$stats[0]->inbound->all->messages->count );
         } else {
-            $this->assertEquals ( 6, (int)$stats[1]->inbound->all->all->count );
+            $this->assertEquals ( 6, (int)$stats[1]->inbound->all->messages->count );
         }
     }
 
@@ -242,9 +244,9 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertTrue ( count($stats) == 1 || count($stats) == 2, 'Expected 1 or two records' );
         if (count($stats) == 1) {
-            $this->assertEquals ( 11, (int)$stats[0]->inbound->all->all->count );
+            $this->assertEquals ( 11, (int)$stats[0]->inbound->all->messages->count );
         } else {
-            $this->assertEquals ( 6, (int)$stats[1]->inbound->all->all->count );
+            $this->assertEquals ( 6, (int)$stats[1]->inbound->all->messages->count );
         }
     }
 
@@ -293,7 +295,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 7, (int)$stats[0]->inbound->all->all->count );
+        $this->assertEquals ( 7, (int)$stats[0]->inbound->all->messages->count );
     }
 
     /**
@@ -312,7 +314,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 7, (int)$stats[0]->inbound->all->all->count );
+        $this->assertEquals ( 7, (int)$stats[0]->inbound->all->messages->count );
     }
 
     // TODO: Pagination tests

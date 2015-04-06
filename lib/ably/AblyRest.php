@@ -258,10 +258,10 @@ class AblyRest {
     /**
      * Gets application-level usage statistics , covering messages sent
      * and received, API requests and connections
-     * @return PaginatedResource Statistics
+     * @return array Statistics
      */
     public function stats( $params = array() ) {
-        return new PaginatedResource ( $this, '/stats', $params );
+        return $this->get( '/stats', $this->auth_headers(), $params );
     }
 
     # service time in milliseconds

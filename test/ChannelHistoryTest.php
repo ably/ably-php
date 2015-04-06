@@ -53,7 +53,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         $history0->publish("history6", json_encode(array('This is a JSONArray message payload')));
 
         # wait for history to be persisted
-        sleep(5);
+        sleep(10);
 
         # get the history for this channel
         $messages = $history0->history();
@@ -98,7 +98,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         }
 
         # wait for the history to be persisted
-        sleep(5);
+        sleep(10);
 
         # get the history for this channel
         $messages = $history1->history( array('direction' => 'forwards') );
@@ -127,7 +127,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         }
 
         # wait for the history to be persisted
-        sleep(5);
+        sleep(10);
 
         $messages = $history2->history( array('direction' => 'backwards') );
         $this->assertNotNull( $messages, 'Expected non-null messages' );
@@ -156,7 +156,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         }
 
         # wait for the history to be persisted
-        sleep(5);
+        sleep(10);
 
         $messages = $history3->history( array('direction' => 'forwards', 'limit' => 25) );
         $this->assertNotNull( $messages, 'Expected non-null messages' );
@@ -184,7 +184,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         }
 
         # wait for the history to be persisted
-        sleep(5);
+        sleep(10);
 
         $messages = $history4->history( array('direction' => 'backwards', 'limit' => 25) );
         $this->assertNotNull( $messages, 'Expected non-null messages' );
@@ -227,7 +227,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         }
 
         # wait for the history to be persisted
-        sleep(5);
+        sleep(10);
 
         # get the history for this channel
         $messages = $history5->history(array(
@@ -275,7 +275,7 @@ class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
         }
 
         # wait for the history to be persisted
-        sleep(5);
+        sleep(10);
 
         # get the history for this channel
         $messages = $history6->history(array(
