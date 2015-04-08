@@ -1,7 +1,9 @@
 <?php
-require_once 'PaginatedResource.php';
-require_once 'Presence.php';
-require_once 'AblyExceptions.php';
+require_once dirname(__FILE__) . '/models/Message.php';
+require_once dirname(__FILE__) . '/models/PaginatedResource.php';
+require_once dirname(__FILE__) . '/Presence.php';
+require_once dirname(__FILE__) . '/AblyExceptions.php';
+require_once dirname(__FILE__) . '/utils/Crypto.php';
 
 /**
  * Represents a channel
@@ -13,28 +15,42 @@ class Channel {
     private $channelPath;
     private $ably;
     private $presence;
+    private $options;
+
+    private static $defaultOptions = array(
+        'encrypted' => false,
+        'cipherParams' => null,
+    );
 
     /**
      * Constructor
      * @param AblyRest $ably Ably API instance
      * @param string $name Channel's name
+     * @param array $options Channel options
+     * @throws AblyException
      */
-    public function __construct( AblyRest $ably, $name ) {
+    public function __construct( AblyRest $ably, $name, $options = array() ) {
         $this->ably = $ably;
-        $this->name = urlencode($name);
-        $this->channelPath = "/channels/{$this->name}";
-        $this->presence = new Presence($ably, $name);
+        $this->name = $name;
+        $this->channelPath = "/channels/" . urlencode( $name );
+        $this->presence = new Presence( $ably, $name );
+
+        $this->options = array_merge( self::$defaultOptions, $options );
+
+        if ($this->options['encrypted'] && !$this->options['cipherParams']) {
+            throw new AblyException( 'Channel created as encrypted, but no cipherParams provided' );
+        }
     }
 
     /**
      * Magic getter for the $presence property
      */
-    public function __get($name) {
+    public function __get( $name ) {
         if ($name == 'presence') {
             return $this->presence;
         }
 
-        throw new AblyException('Undefined property: '.__CLASS__.'::'.$name);
+        throw new AblyException( 'Undefined property: '.__CLASS__.'::'.$name );
     }
 
     /*
@@ -47,7 +63,16 @@ class Channel {
      * @param string $data Message data
      */
     public function publish( $name, $data ) {
-        return $this->post( '/messages', json_encode(array( 'name' => urlencode($name), 'data' => $data, 'timestamp' => $this->ably->system_time() )) );
+
+        $msg = new Message();
+        $msg->name = $name;
+        $msg->data = $data;
+
+        if ($this->options['encrypted']) {
+            $msg->setCipherParams( $this->options['cipherParams'] );
+        }
+
+        return $this->post( '/messages', $msg->toJSON() );
     }
 
     /**
@@ -64,7 +89,7 @@ class Channel {
      */
 
     private function getPaginated( $path, $params = array() ) {
-        return new PaginatedResource( $this->ably, $this->channelPath . $path, $params );
+        return new PaginatedResource( $this->ably, 'Message', $this->channelPath . $path, $params );
     }
 
     private function post( $path, $params = array() ) {

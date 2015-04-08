@@ -1,7 +1,7 @@
 <?php
 
 require_once dirname(__FILE__) . '/../lib/ably.php';
-require_once 'factories/TestOption.php';
+require_once dirname(__FILE__) . '/factories/TestOption.php';
 
 class ChannelPublishTest extends PHPUnit_Framework_TestCase {
     protected static $options;
@@ -29,29 +29,22 @@ class ChannelPublishTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Publish events with data of various datatypes
+     * Actual test reused by exposed tests with various settings
      */
-    public function testPublishEventsWithVariousDataTypes() {
-        echo '==testPublishEventsWithVariousDataTypes()';
-
+    private function executePublishTestOnChannel($channel) {
         # first publish some messages
-        $publish0 = $this->ably->channel('persisted:publish0');
+        $utf = 'This is a UTF-8 string message payload. äôč ビール';
+        $binary = hex2bin('00102030405060708090a0b0c0d0e0f0ff');
+        $object = (object)array( 'test' => 'This is a JSONObject message payload' );
+        $array = (object)array( 'This is a JSONarray message payload', 'Test' );
 
-        # not supported
-        // $publish0->publish("publish0", true);
-        // $publish0->publish("publish1", 24);
-        // $publish0->publish("publish2", 24.234);
-
-        $publish0->publish("publish3", 'This is a string message payload');
-        $publish0->publish("publish4", unpack('H*', 'This is a byte[] message payload')[1]);
-        $publish0->publish("publish5", json_encode(array('test' => 'This is a JSONObject message payload')));
-        $publish0->publish("publish6", json_encode(array('This is a JSONArray message payload')));
-
-        # wait for history to be persisted
-        sleep(5);
+        $channel->publish('utf', $utf);
+        $channel->publish('binary', $binary);
+        $channel->publish('jsonobject', $object);
+        $channel->publish('jsonarray', $array);
 
         # get the history for this channel
-        $messages = $publish0->history();
+        $messages = $channel->history();
         $this->assertNotNull( $messages, 'Expected non-null messages' );
         $this->assertEquals( 4, count($messages), 'Expected 4 messages' );
 
@@ -59,23 +52,47 @@ class ChannelPublishTest extends PHPUnit_Framework_TestCase {
 
         # verify message contents
         foreach ($messages as $message) {
-            array_push($actual_message_order, $message->name);
+            $actual_message_order[] = $message->name;
+
             switch ($message->name) {
-
-                # not supported
-                // case 'publish0' : $this->assertEquals( true, $message->data,                                              'Expect publish0 to be Boolean(true)'       ); break;
-                // case 'publish1' : $this->assertEquals( 24, $message->data,                                                'Expect publish1 to be Integer(24)'         ); break;
-                // case 'publish2' : $this->assertEquals( 24.234, $message->data,                                            'Expect publish2 to be Float(24.234)'       ); break;
-
-                case 'publish3' : $this->assertEquals( 'This is a string message payload', $message->data,                'Expect publish3 to be expected String'     ); break;
-                case 'publish4' : $this->assertEquals( 'This is a byte[] message payload', pack('H*', $message->data),    'Expect publish4 to be expected byte[]'     ); break;
-                case 'publish5' : $this->assertEquals( '{"test":"This is a JSONObject message payload"}', $message->data, 'Expect publish5 to be expected JSONObject' ); break;
-                case 'publish6' : $this->assertEquals( '["This is a JSONArray message payload"]', $message->data,         'Expect publish6 to be expected JSONArray'  ); break;
+                case 'utf'       : $this->assertEquals( $utf,    $message->data, 'Expected a utf-8 string' ); break;
+                case 'binary'    : $this->assertEquals( $binary, $message->data, 'Expected binary data' ); break;
+                case 'jsonobject': $this->assertEquals( $object, $message->data, 'Expected a stdClass object' ); break;
+                case 'jsonarray' : $this->assertEquals( $array,  $message->data, 'Expected an array' ); break;
             }
         }
 
         # verify message order
-        $this->assertEquals( array('publish6', 'publish5', 'publish4', 'publish3'), $actual_message_order, 'Expect messages in reverse order' );
+        $this->assertEquals( array('jsonarray', 'jsonobject', 'binary', 'utf'), $actual_message_order, 'Expected messages in reverse order' );
+    }
+
+    /**
+     * Publish events with data of various datatypes to an unencrypted channel
+     */
+    public function testPublishMessagesVariousTypesUnencrypted() {
+        $unencrypted = $this->ably->channel( 'persisted:unencrypted' );
+
+        $this->executePublishTestOnChannel( $unencrypted );
+    }
+
+    /**
+     * Publish events with data of various datatypes to an aes-128-cbc encrypted channel
+     */
+    public function testPublishMessagesVariousTypesAES128() {
+        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
+        $encrypted1 = $this->ably->channel( 'persisted:encrypted1' );
+
+        $this->executePublishTestOnChannel( $encrypted1 );
+    }
+
+    /**
+     * Publish events with data of various datatypes to an aes-256-cbc encrypted channel
+     */
+    public function testPublishMessagesVariousTypesAES256() {
+        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-256-cbc' ));
+        $encrypted2 = $this->ably->channel( 'persisted:encrypted2' );
+
+        $this->executePublishTestOnChannel( $encrypted2 );
     }
 
 }

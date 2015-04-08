@@ -1,5 +1,5 @@
 <?php
-require_once 'AblyExceptions.php';
+require_once dirname(__FILE__) . '/../AblyExceptions.php';
 
 /**
  * Provides automatic pagination for applicable requests
@@ -11,25 +11,42 @@ class PaginatedResource extends ArrayObject {
 
     private $ably;
     private $path;
+    private $model;
     private $paginationHeaders = false;
 
     /**
      * Constructor.
      * @param AblyRest $ably Ably API instance
+     * @param mixed $model Name of a class that will populate this ArrayObject. It must implement a fromJSON() method.
      * @param string $path Request path
      * @param array $params Parameters to be sent with the request
      */
-    public function __construct( AblyRest $ably, $path, $params = array() ) {
+    public function __construct( AblyRest $ably, $model, $path, $params = array() ) {
         parent::__construct();
 
         $this->ably = $ably;
+        $this->model = $model;
         $this->path = $path;
 
         $withHeaders = true;
         $response = $this->ably->get( $path, $this->ably->auth_headers(), $params, $withHeaders );
 
         if (isset($response['body']) && is_array($response['body'])) {
-            $this->exchangeArray( $response['body'] );
+
+            $transformedArray = array();
+
+            foreach ($response['body'] as $data) {
+                
+                if (!method_exists( $model, 'fromJSON' )) {
+                    throw new AblyException( 'Invalid model class provided: '. $model, 400, 40000 );
+                }
+                
+                $instance = $model::fromJSON( $data );
+
+                $transformedArray[] = $instance;
+            }
+
+            $this->exchangeArray( $transformedArray );
             $this->parseHeaders( $response['headers'] );
         }
     }
@@ -81,7 +98,7 @@ class PaginatedResource extends ArrayObject {
         if ($this->isFirstPage()) {
             return this;
         } else if (isset($this->paginationHeaders['first'])) {
-            return new PaginatedResource( $this->ably, $this->paginationHeaders['first']);
+            return new PaginatedResource( $this->ably, $this->model, $this->paginationHeaders['first']);
         } else {
             return null;
         }
@@ -93,7 +110,7 @@ class PaginatedResource extends ArrayObject {
      */
     public function getNextPage() {
         if ($this->isPaginated() && isset($this->paginationHeaders['next'])) {
-            return new PaginatedResource( $this->ably, $this->paginationHeaders['next']);
+            return new PaginatedResource( $this->ably, $this->model, $this->paginationHeaders['next']);
         } else {
             return null;
         }

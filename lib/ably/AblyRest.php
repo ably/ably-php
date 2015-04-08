@@ -1,9 +1,8 @@
 <?php
 
-require_once 'AuthMethod.php';
-require_once 'PresenceState.php';
-require_once 'PaginatedResource.php';
-require_once 'Channel.php';
+require_once dirname(__FILE__) . '/AuthMethod.php';
+require_once dirname(__FILE__) . '/PresenceState.php';
+require_once dirname(__FILE__) . '/Channel.php';
 
 class AblyRest {
 

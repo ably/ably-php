@@ -1,0 +1,10 @@
+<phpunit>
+    <testsuites>
+        <testsuite name="ably">
+            <directory>test</directory>
+        </testsuite>
+    </testsuites>
+    <listeners>
+        <listener file="test/extensions/DebugTestListener.php" class="DebugTestListener" />
+    </listeners>
+</phpunit>

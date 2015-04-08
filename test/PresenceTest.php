@@ -1,7 +1,7 @@
 <?php
 
 require_once dirname(__FILE__) . '/../lib/ably.php';
-require_once 'factories/TestOption.php';
+require_once dirname(__FILE__) . '/factories/TestOption.php';
 
 class PresenceTest extends PHPUnit_Framework_TestCase {
 
@@ -44,8 +44,6 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
      * Compare presence data with fixture
      */
     public function testComparePresenceDataWithFixture() {
-        echo '=='.__FUNCTION__.'()';
-
         $presence = $this->presenceChannel->presence->get();
 
         # verify presence existence and count
@@ -82,8 +80,6 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
      * Compare presence history with fixture
      */
     public function testComparePresenceHistoryWithFixture() {
-        echo '=='.__FUNCTION__.'()';
-
         $history = $this->presenceChannel->presence->history();
 
         # verify history existence and count
@@ -130,8 +126,6 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
      * Check whether time range queries work properly
      */
     public function testPresenceHistoryTimeRange() {
-        echo '=='.__FUNCTION__.'()';
-
         # ensure some time has passed since mock presence data was sent
         $delay = 1000; // sleep for 1000ms
         usleep($delay * 1000); // in microseconds

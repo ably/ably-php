@@ -1,5 +1,5 @@
 <?php
-require_once 'PaginatedResource.php';
+require_once dirname(__FILE__) . '/models/PaginatedResource.php';
 
 class Presence {
 
@@ -14,8 +14,8 @@ class Presence {
      */
     public function __construct( AblyRest $ably, $name ) {
         $this->ably = $ably;
-        $this->name = urlencode($name);
-        $this->channelPath = "/channels/{$this->name}";
+        $this->name = $name;
+        $this->channelPath = "/channels/" . urlencode( $name );
     }
 
     /*
