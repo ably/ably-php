@@ -8,6 +8,8 @@ require_once dirname(__FILE__) . '/utils/Crypto.php';
 /**
  * Represents a channel
  * @property-read Presence $presence Presence object for this channel
+ * @method publish(Message $message)
+ * @method publish(string $name, string $data)
  */
 class Channel {
 
@@ -15,7 +17,7 @@ class Channel {
     private $channelPath;
     private $ably;
     private $presence;
-    private $options;
+    public $options;
 
     private static $defaultOptions = array(
         'encrypted' => false,
@@ -59,20 +61,29 @@ class Channel {
 
     /**
      * Posts a message to this channel
-     * @param string $name Event name
+     * @param mixed ... Either a Message or name and data
      * @param string $data Message data
      */
-    public function publish( $name, $data ) {
+    public function publish() {
 
-        $msg = new Message();
-        $msg->name = $name;
-        $msg->data = $data;
+        $args = func_get_args();
+        
+        if (count($args) == 1 && is_a($args[0], 'Message')) {
+            $msg = $args[0];
+        } else if (count($args) == 2) {
+            $msg = new Message();
+            $msg->name = $args[0];
+            $msg->data = $args[1];
+        } else {
+            return false;
+        }
 
         if ($this->options['encrypted']) {
             $msg->setCipherParams( $this->options['cipherParams'] );
         }
 
-        return $this->post( '/messages', $msg->toJSON() );
+        $this->post( '/messages', $msg->toJSON() );
+        return true;
     }
 
     /**
@@ -89,7 +100,8 @@ class Channel {
      */
 
     private function getPaginated( $path, $params = array() ) {
-        return new PaginatedResource( $this->ably, 'Message', $this->channelPath . $path, $params );
+        $cipherParams = $this->options['encrypted'] ? $this->options['cipherParams'] : null;
+        return new PaginatedResource( $this->ably, 'Message', $cipherParams, $this->channelPath . $path, $params );
     }
 
     private function post( $path, $params = array() ) {

@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__FILE__) . '/../AblyExceptions.php';
 require_once dirname(__FILE__) . '/../utils/Crypto.php';
 require_once dirname(__FILE__) . '/CipherParams.php';
 
@@ -29,9 +30,13 @@ class Message {
      */
     public $encoding;
     /**
-     * @var mixed Original data, as received, without any transformations, ignored when sending.
+     * @var mixed Original received data, without any transformations, ignored when sending.
      */
     public $originalData;
+    /**
+     * @var mixed Original received encoding, ignored when sending.
+     */
+    public $originalEncoding;
     
     /**
      * @var CipherParams|null Cipher parameters for encrypted messages.
@@ -68,6 +73,7 @@ class Message {
                 $type = 'base64';
                 $msg->data = base64_encode( $this->data );
             } else {
+                $type = '';
                 $msg->data = $this->data;
             }
         } else { // it's a UTF-8 string
@@ -87,13 +93,13 @@ class Message {
     }
 
     /**
-     * Creates a new message from JSON and automatically decodes data.
+     * Populates the message from JSON and automatically decodes data.
      * @param string|stdClass $json JSON string or an already decoded object.
+     * @param bool $keepOriginal When set to true, the message won't be decoded or decrypted
      * @throws AblyException
-     * @return Message
      */
-    public static function fromJSON( $json ) {
-        $msg = new Message();
+    public function fromJSON( $json, $keepOriginal = false ) {
+        $this->clearFields();
 
         if (is_object( $json )) {
             $obj = $json;
@@ -106,39 +112,58 @@ class Message {
 
         foreach ($obj as $key => $value) {
             if (property_exists( 'Message', $key )) {
-                $msg->$key = $value;
+                $this->$key = $value;
             }
         }
 
-        $msg->originalData = $msg->data;
+        if ($keepOriginal) return;
 
-        if (!empty( $msg->encoding )) {
-            $encodings = explode( '/', $msg->encoding );
+        $this->originalData = $this->data;
+        $this->originalEncoding = $this->encoding;
+
+        if (!empty( $this->encoding )) {
+            $encodings = explode( '/', $this->encoding );
 
             foreach (array_reverse( $encodings ) as $encoding) {
                 if ($encoding == 'base64') {
-                    $msg->data = base64_decode( $msg->data );
+                    $this->data = base64_decode( $this->data );
 
-                    if ($msg->data === false) {
+                    if ($this->data === false) {
                         throw new AblyException( 'Could not base64-decode message data', 400, 40000 );
                     }
                 } else if ($encoding == 'json') {
-                    $msg->data = json_decode( $msg->data );
+                    $this->data = json_decode( $this->data );
 
-                    if ($msg->data === null) {
+                    if ($this->data === null) {
                         throw new AblyException( 'Could not JSON-decode message data', 400, 40000 );
                     }
                 } else if (strpos( $encoding, 'cipher+' ) === 0) {
-                    $msg->data = Crypto::decrypt( $msg->data, $this->cipherParams );
+                    if (!$this->cipherParams) {
+                        throw new AblyEncryptionException( 'Could not decrypt message data, no cipherParams provided', 400, 40000 );
+                    }
+
+                    $this->data = Crypto::decrypt( $this->data, $this->cipherParams );
                     
-                    if ($msg->data === false) {
-                        throw new AblyException( 'Could not decrypt message data', 400, 40000 );
+                    if ($this->data === false) {
+                        throw new AblyEncryptionException( 'Could not decrypt message data', 400, 40000 );
                     }
                 }
             }
+
+            $this->encoding = null;
         }
-        
-        return $msg;
+    }
+
+    /**
+     * Sets all the public fields to null
+     */
+    protected function clearFields() {
+        $fields = get_object_vars( $this );
+        unset( $fields['cipherParams'] );
+
+        foreach ($fields as $key => $value) {
+            $this->$key = null;
+        }
     }
 
     /**

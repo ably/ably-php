@@ -21,6 +21,6 @@ class CipherParams {
     public function __construct( $key = null, $algorithm = null, $iv = null ) {
         $this->key = $key ? $key : openssl_random_pseudo_bytes( 16 );
         $this->algorithm = $algorithm ? $algorithm : 'aes-128-cbc';
-        $this->iv = $iv ? $iv : openssl_cipher_iv_length( $this->algorithm );
+        $this->iv = $iv ? $iv : openssl_random_pseudo_bytes( openssl_cipher_iv_length( $this->algorithm ) );
     }
 }

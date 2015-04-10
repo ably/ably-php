@@ -8,7 +8,6 @@ class AblyException extends Exception {
     public function __construct($message, $code = 0) {
         parent::__construct($message, $code);
     }
-    
 }
 
 
@@ -28,5 +27,12 @@ class AblyRequestException extends AblyException {
     public function getResponse() {
     	return $this->response;
     }
+}
 
+
+
+/**
+ * Exception thrown when an encryption related error occurs
+ */
+class AblyEncryptionException extends AblyException {
 }

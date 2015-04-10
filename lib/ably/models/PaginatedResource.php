@@ -4,8 +4,7 @@ require_once dirname(__FILE__) . '/../AblyExceptions.php';
 /**
  * Provides automatic pagination for applicable requests
  *
- * Requests for channel history and channel presence are automatically
- * wrapped in this class automatically.
+ * Requests for channel history and channel presence are wrapped in this class automatically.
  */
 class PaginatedResource extends ArrayObject {
 
@@ -18,10 +17,11 @@ class PaginatedResource extends ArrayObject {
      * Constructor.
      * @param AblyRest $ably Ably API instance
      * @param mixed $model Name of a class that will populate this ArrayObject. It must implement a fromJSON() method.
+     * @param CipherParams|null $cipherParams Optional cipher parameters if data should be decoded
      * @param string $path Request path
      * @param array $params Parameters to be sent with the request
      */
-    public function __construct( AblyRest $ably, $model, $path, $params = array() ) {
+    public function __construct( AblyRest $ably, $model, $cipherParams, $path, $params = array() ) {
         parent::__construct();
 
         $this->ably = $ably;
@@ -41,7 +41,15 @@ class PaginatedResource extends ArrayObject {
                     throw new AblyException( 'Invalid model class provided: '. $model, 400, 40000 );
                 }
                 
-                $instance = $model::fromJSON( $data );
+                if (!empty( $cipherParams ) && !method_exists( $model, 'setCipherParams' )) {
+                    throw new AblyException( 'Model does not support decryption: '. $model, 400, 40000 );
+                }
+                
+                $instance = new $model;
+                if (!empty( $cipherParams ) ) {
+                    $instance->setCipherParams( $cipherParams );
+                }
+                $instance->fromJSON( $data );
 
                 $transformedArray[] = $instance;
             }

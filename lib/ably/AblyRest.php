@@ -9,7 +9,6 @@ class AblyRest {
     public $token;
 
     private $settings = array();
-    private $channels = array();
     private $token_options = array();
     private $raw;
     private $client_id;
@@ -177,11 +176,8 @@ class AblyRest {
     /*
      * channel
      */
-    public function channel( $name ) {
-        if ( empty($this->channels[$name]) ) {
-            $this->channels[$name] = new Channel($this, $name);
-        }
-        return $this->channels[$name];
+    public function channel( $name, $options = array() ) {
+        return new Channel( $this, $name, $options );
     }
 
     /*
