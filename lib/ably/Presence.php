@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__FILE__) . '/models/PresenceMessage.php';
 require_once dirname(__FILE__) . '/models/PaginatedResource.php';
 
 class Presence {
@@ -28,7 +29,7 @@ class Presence {
      * @return PaginatedResource
      */
     public function get( $params = array() ) {
-        return $this->getPaginated( '/presence', $params );
+        return new PaginatedResource( $this->ably, 'PresenceMessage', null, $this->channelPath . '/presence', $params );
     }
 
     /**
@@ -37,6 +38,7 @@ class Presence {
      * @return PaginatedResource
      */
     public function history( $params = array() ) {
+        return new PaginatedResource( $this->ably, 'PresenceMessage', null, $this->channelPath . '/presence/history', $params );
         return $this->getPaginated( '/presence/history', $params );
     }
 

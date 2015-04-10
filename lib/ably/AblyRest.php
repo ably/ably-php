@@ -1,7 +1,6 @@
 <?php
 
 require_once dirname(__FILE__) . '/AuthMethod.php';
-require_once dirname(__FILE__) . '/PresenceState.php';
 require_once dirname(__FILE__) . '/Channel.php';
 
 class AblyRest {

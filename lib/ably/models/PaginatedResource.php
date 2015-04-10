@@ -11,6 +11,7 @@ class PaginatedResource extends ArrayObject {
     private $ably;
     private $path;
     private $model;
+    private $cipherParams;
     private $paginationHeaders = false;
 
     /**
@@ -26,6 +27,7 @@ class PaginatedResource extends ArrayObject {
 
         $this->ably = $ably;
         $this->model = $model;
+        $this->cipherParams = $cipherParams;
         $this->path = $path;
 
         $withHeaders = true;
@@ -106,7 +108,7 @@ class PaginatedResource extends ArrayObject {
         if ($this->isFirstPage()) {
             return this;
         } else if (isset($this->paginationHeaders['first'])) {
-            return new PaginatedResource( $this->ably, $this->model, $this->paginationHeaders['first']);
+            return new PaginatedResource( $this->ably, $this->model, $this->cipherParams, $this->paginationHeaders['first'] );
         } else {
             return null;
         }
@@ -118,7 +120,7 @@ class PaginatedResource extends ArrayObject {
      */
     public function getNextPage() {
         if ($this->isPaginated() && isset($this->paginationHeaders['next'])) {
-            return new PaginatedResource( $this->ably, $this->model, $this->paginationHeaders['next']);
+            return new PaginatedResource( $this->ably, $this->model, $this->cipherParams, $this->paginationHeaders['next'] );
         } else {
             return null;
         }
@@ -147,7 +149,7 @@ class PaginatedResource extends ArrayObject {
             $rel =  $m[2];
 
             if (substr($link, 0, 2) != './') {
-                throw new AblyException("Server error - only relative URLs are supported in pagination");
+                throw new AblyException( "Server error - only relative URLs are supported in pagination", 400, 40000 );
             }
 
             $this->paginationHeaders[$rel] = $path.substr($link, 2);

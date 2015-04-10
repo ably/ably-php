@@ -49,7 +49,6 @@ class Message {
      * If there is an $encoding specified, the data will be left untouched.
      * If not specified the encoding is inferred from the type of $data and any transformations
      * such as base64 encoding for binary data and encryption are applied.
-     * @param string|stdClass $json JSON string or an already decoded object
      */
     public function toJSON() {
         $msg = new stdClass();

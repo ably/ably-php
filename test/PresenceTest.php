@@ -57,6 +57,7 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
         }
         
         foreach ($presence as $entry) {
+            $this->assertNotNull( $entry->clientId, 'Expected non-null client ID' );
             $this->assertTrue(
                 array_key_exists($entry->clientId, $fixturePresenceMap) && $fixturePresenceMap[$entry->clientId] == $entry->data,
                 'Expected presence contents to match'
@@ -93,6 +94,7 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
         }
         
         foreach ($history as $entry) {
+            $this->assertNotNull( $entry->clientId, 'Expected non-null client ID' );
             $this->assertTrue(
                 isset($fixtureHistoryMap[$entry->clientId]) && $fixtureHistoryMap[$entry->clientId] == $entry->data,
                 'Expected presence contents to match'
