@@ -1,7 +1,7 @@
 <?php
 
 require_once dirname(__FILE__) . '/../lib/ably.php';
-require_once 'factories/TestOption.php';
+require_once dirname(__FILE__) . '/factories/TestOption.php';
 
 class AuthTest extends PHPUnit_Framework_TestCase {
 
@@ -35,7 +35,6 @@ class AuthTest extends PHPUnit_Framework_TestCase {
      * Init library with a key only
      */
     public function testAuthoriseWithKeyOnly() {
-        echo '== testAuthoriseWithKeyOnly()';
         $ably = new AblyRest(array_merge($this->defaults, array(
             'key' => self::$options['first_private_api_key'],
         )));
@@ -47,7 +46,6 @@ class AuthTest extends PHPUnit_Framework_TestCase {
      * Init library with a token only
      */
     public function testAuthoriseWithTokenOnly() {
-        echo '== testAuthoriseWithTokenOnly()';
         $options = self::$options;
         $ably = new AblyRest(array_merge($this->defaults, array(
             'appId'     => $options['appId'],
@@ -56,12 +54,11 @@ class AuthTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
     }
 
+    protected $authinit2_cbCalled = false;
     /**
      * Init library with a token callback
      */
-    protected $authinit2_cbCalled = false;
     public function testAuthoriseWithTokenCallback() {
-        echo '== testAuthoriseWithTokenCallback()';
         $options = self::$options;
         $ably = new AblyRest(array_merge($this->defaults, array(
             'appId'        => $options['appId'],
@@ -70,8 +67,10 @@ class AuthTest extends PHPUnit_Framework_TestCase {
                 return "this_is_not_really_a_token_request";
             }
         )));
+        
         // make a call to trigger a token request
-        $ably->stats();
+        $ably->authorise();
+
         $this->assertTrue( $this->authinit2_cbCalled, 'Token callback not called' );
         $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
     }
@@ -81,7 +80,6 @@ class AuthTest extends PHPUnit_Framework_TestCase {
      * Init library with a key and clientId; expect token auth to be chosen
      */
     public function testAuthoriseWithKeyAndClientId() {
-        echo '== testAuthoriseWithKeyAndClientId()';
         $options = self::$options;
         $ably = new AblyRest(array_merge($this->defaults, array(
             'key'      => $options['first_private_api_key'],
@@ -94,7 +92,6 @@ class AuthTest extends PHPUnit_Framework_TestCase {
      * Init library with a token
      */
     public function testAuthoriseWithToken() {
-        echo '== testAuthoriseWithToken()';
         $options = self::$options;
 
         $ably_for_token = new AblyRest(array_merge($this->defaults, array(

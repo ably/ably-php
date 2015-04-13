@@ -2,8 +2,8 @@
 error_reporting(E_ALL ^ E_NOTICE);
 
 # include the ably library
-require_once '../config.php';
-require_once '../lib/ably.php';
+require_once dirname(__FILE__) . '/../config.php';
+require_once dirname(__FILE__) . '/../lib/ably.php';
 
 # private api key
 $api_key = ABLY_KEY;

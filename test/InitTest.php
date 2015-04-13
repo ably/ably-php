@@ -1,7 +1,7 @@
 <?php
 
 require_once dirname(__FILE__) . '/../lib/ably.php';
-require_once 'factories/TestOption.php';
+require_once dirname(__FILE__) . '/factories/TestOption.php';
 
 class InitTest extends PHPUnit_Framework_TestCase {
 
@@ -22,7 +22,6 @@ class InitTest extends PHPUnit_Framework_TestCase {
      * Init library with a key only
      */
     public function testInitLibWithKeyOnly() {
-        echo '==testInitLibWithKeyOnly()';
         try {
             $key = self::$options['keys'][0];
             new AblyRest( $key->key_str );
@@ -35,7 +34,6 @@ class InitTest extends PHPUnit_Framework_TestCase {
      * Init library with a key in options
      */
     public function testInitLibWithKeyOption() {
-        echo '==testInitLibWithKeyOption()';
         try {
             $key = self::$options['keys'][0];
             new AblyRest( array('key' => $key->key_str) );
@@ -48,7 +46,6 @@ class InitTest extends PHPUnit_Framework_TestCase {
      * Init library with appId
      */
     public function testInitLibWithAppId() {
-        echo '==testInitLibWithAppId()';
         try {
             new AblyRest( array('appId' => self::$options['appId']) );
         } catch (Exception $e) {
@@ -60,7 +57,6 @@ class InitTest extends PHPUnit_Framework_TestCase {
      * Verify library fails to init when both appId and key are missing
      */
     public function testFailInitOnMissingAppIdAndKey() {
-        echo '==testFailInitOnMissingAppIdAndKey()';
         try {
             new AblyRest( array() );
             $this->fail('Unexpected success instantiating library');
@@ -73,7 +69,6 @@ class InitTest extends PHPUnit_Framework_TestCase {
      * Init library with specified host
      */
     public function testInitLibWithSpecifiedHost() {
-        echo '==testInitLibWithSpecifiedHost()';
         try {
             $opts = array(
                 'appId' => self::$options['appId'],
@@ -90,7 +85,6 @@ class InitTest extends PHPUnit_Framework_TestCase {
      * Init library with specified port
      */
     public function testInitLibWithSpecifiedPort() {
-        echo '==testInitLibWithSpecifiedPort()';
         try {
             $opts = array(
                 'appId' => self::$options['appId'],
@@ -107,7 +101,6 @@ class InitTest extends PHPUnit_Framework_TestCase {
      * Verify encrypted defaults to true
      */
     public function testEncryptedDefaultIsTrue() {
-        echo '==testEncryptedDefaultIsTrue()';
         try {
             $opts = array(
                 'appId' => self::$options['appId'],
@@ -123,7 +116,6 @@ class InitTest extends PHPUnit_Framework_TestCase {
      * Verify encrypted can be set to false
      */
     public function testEncryptedCanBeFalse() {
-        echo '==testEncryptedCanBeFalse()';
         try {
             $opts = array(
                 'appId' => self::$options['appId'],
@@ -141,7 +133,6 @@ class InitTest extends PHPUnit_Framework_TestCase {
      */
     protected $init8_logCalled = false;
     public function testLoggerIsCalledWithDebugTrue() {
-        echo '==testLoggerIsCalledWithDebugTrue()';
         try {
             $opts = array(
                 'appId' => self::$options['appId'],
@@ -161,7 +152,6 @@ class InitTest extends PHPUnit_Framework_TestCase {
      * Init with log handler; check not called if logLevel == NONE
      */
     public function testLoggerNotCalledWithDebugFalse() {
-        echo '==testLoggerIsCalledWithDebugFalse()';
         try {
             $opts = array(
                 'appId' => self::$options['appId'],

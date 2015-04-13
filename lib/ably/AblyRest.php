@@ -1,15 +1,13 @@
 <?php
 
-require_once 'AuthMethod.php';
-require_once 'PresenceState.php';
-require_once 'Channel.php';
+require_once dirname(__FILE__) . '/AuthMethod.php';
+require_once dirname(__FILE__) . '/Channel.php';
 
 class AblyRest {
 
     public $token;
 
     private $settings = array();
-    private $channels = array();
     private $token_options = array();
     private $raw;
     private $client_id;
@@ -124,7 +122,8 @@ class AblyRest {
             if ( $this->token->expires > $this->timestamp() ) {
                 if ( !$force ) {
                     # using cached token
-                    $this->log_action( 'authorise()', sprintf("\tusing cached token; expires = %s\n\tfor humans token expires on %s", $this->token->expires, gmdate("r",$this->token->expires)) );
+                    $this->log_action('authorise()', sprintf("\tusing cached token; expires = %s\n\tfor humans token expires on %s",
+                        $this->token->expires, gmdate("r",$this->token->expires)) );
                     return $this;
                 }
             } else {
@@ -176,11 +175,8 @@ class AblyRest {
     /*
      * channel
      */
-    public function channel( $name ) {
-        if ( empty($this->channels[$name]) ) {
-            $this->channels[$name] = new Channel($this, $name);
-        }
-        return $this->channels[$name];
+    public function channel( $name, $options = array() ) {
+        return new Channel( $this, $name, $options );
     }
 
     /*
@@ -188,15 +184,6 @@ class AblyRest {
      */
     public function get_setting($key) {
         return $this->getopt($key);
-    }
-
-    /*
-     * history
-     */
-    public function history( $options = array() ) {
-        $this->authorise();
-        $res = $this->get( 'baseUri', '/history', $this->auth_headers() );
-        return $res;
     }
 
     /*
@@ -262,21 +249,24 @@ class AblyRest {
         return $res;
     }
 
+    /**
+     * Gets application-level usage statistics , covering messages sent
+     * and received, API requests and connections
+     * @return array Statistics
+     */
     public function stats( $params = array() ) {
-        $this->authorise();
-        $res = $this->get( 'baseUri', '/stats', $this->auth_headers(), $params );
-        return $res;
+        return $this->get( '/stats', $this->auth_headers(), $params );
     }
 
     # service time in milliseconds
     public function time() {
-        $res = $this->get( 'authority', '/time' );
+        $res = $this->get( '/time' );
         return $res[0];
     }
 
     # service time in seconds
     public function time_in_seconds() {
-        return intval($this->time())/1000;
+        return intval($this->time()/1000);
     }
 
     # system time in milliseconds
@@ -286,10 +276,11 @@ class AblyRest {
 
     /*
      * curl wrapper to do GET
+     * @throws AblyRequestException if the request fails
      */
-    public function get( $domain, $path, $headers = array(), $params = array() ) {
-        $fallback = $this->getopt('authority') . $domain;
-        return $this->request( $this->getopt( $domain, $fallback ) . $path . ( !empty($params) ? '?' . $this->safe_params($params) : '' ), $headers );
+    public function get( $path, $headers = array(), $params = array(), $returnHeaders = false ) {
+        $server = $this->getopt('authority');
+        return $this->request( $server . $path . ( !empty($params) ? '?' . http_build_query($params) : '' ), $headers, null, $returnHeaders );
     }
 
     /*
@@ -336,10 +327,11 @@ class AblyRest {
 
     /*
      * curl wrapper to do POST
+     * @throws AblyRequestException if the request fails
      */
-    public function post( $domain, $path, $headers = array(), $params = array() ) {
-        $fallback = $this->getopt('authority') . $domain;
-        return $this->request( $this->getopt($domain, $fallback) . $path, $headers, $params );
+    public function post( $path, $headers = array(), $params = array(), $returnHeaders = false ) {
+        $server = $this->getopt('authority');
+        return $this->request( $server . $path, $headers, $params, $returnHeaders );
     }
 
 
@@ -361,7 +353,7 @@ class AblyRest {
         $loaded = get_loaded_extensions();
         foreach( $modules as $module ) {
             if ( !in_array($module, $loaded) ) {
-                throw new Exception( "{$module} extension required." );
+                throw new AblyException( "{$module} extension required." );
             }
         }
     }
@@ -451,10 +443,17 @@ class AblyRest {
             $this->log_action( 'create_token()', sprintf("\tbase64 = %s\n\tmac = %s", $this->safe_base64_encode($hmac), $request['mac']) );
         }
 
-        $res = $this->post( 'baseUri', "/keys/$app_id.$key_id/requestToken", null, $request );
+        try {
+            $res = $this->post( "/keys/$app_id.$key_id/requestToken", null, $request );
+        } catch (AblyRequestException $e) {
+            $res = $e->getResponse();
+            if (is_array($res) && isset($res['headers']) && isset($res['body'])) {
+                $res = $res['body'];
+            }
+        }
 
         if ( empty($res->access_token) ) {
-            $error = json_decode($res)->error;
+            $error = $res->error;
             if (is_string($error)) {
                 $msg = $error;
                 $code = 50000;
@@ -462,7 +461,7 @@ class AblyRest {
                 $msg = $error->message;
                 $code = $error->code;
             }
-            throw new Exception( 'create_token(): Could not get new access token. '. $msg, $code );
+            throw new AblyException( 'create_token(): Could not get new access token. '. $msg, $code );
         }
 
         return $res->access_token;
@@ -495,8 +494,10 @@ class AblyRest {
 
     /*
      * Build the curl request
+     * @throws AblyRequestException if the request fails
      */
-    private function request( $url, $headers = array(), $params = array() ) {
+    private function request( $url, $headers = array(), $params = array(), $returnHeaders = false ) {
+
         $ch = curl_init($url);
         $parts = parse_url($url);
         ($headers === NULL) && $headers = array();
@@ -522,6 +523,7 @@ class AblyRest {
 
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
         curl_setopt( $ch, CURLOPT_VERBOSE, $this->getopt('debug') );
+        curl_setopt( $ch, CURLOPT_HEADER, $returnHeaders ); // return response headers
 
         if (!empty($headers)) {
             foreach($headers as $header) {
@@ -540,14 +542,24 @@ class AblyRest {
 
         $this->log_action( '_request_info()', $info );
 
-        if ( !in_array( $info['http_code'], array(200,201) ) ) {
-            return $raw;
+        $this->raw[$parts['path']] = $raw; // TODO: is this necessary? may increase memory usage significantly
+
+        $response = null;
+
+        if ($returnHeaders) {
+            $headers = substr($raw, 0, $info['header_size']);
+            $body = substr($raw, $info['header_size']);
+
+            $response = array('headers' => $headers, 'body' => $this->response_format($body));
+        } else {
+            $response = $this->response_format($raw);
         }
 
-        $this->raw[$parts['path']] = $raw;
-
-        $response = $this->response_format($raw);
         $this->log_action( '_request_result()', $response );
+
+        if ( !in_array( $info['http_code'], array(200,201) ) ) {
+            throw new AblyRequestException( 'API request failed', $info['http_code'], $response );
+        }
 
         return $response;
     }

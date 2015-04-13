@@ -1,7 +1,7 @@
 <?php
 
 require_once dirname(__FILE__) . '/../lib/ably.php';
-require_once 'factories/TestOption.php';
+require_once dirname(__FILE__) . '/factories/TestOption.php';
 
 class AppStatsTest extends PHPUnit_Framework_TestCase {
 
@@ -59,8 +59,6 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
      * @depends testPublishEventsForwards
      */
     public function testMinuteLevelStatsExistForwards(array $interval) {
-        echo '== testMinuteLevelStatsExistForwards()';
-
         $stats = $this->ably->stats(array(
             'direction' => 'forwards',
             'start'     => $interval[0],
@@ -69,7 +67,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->all->count );
+        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->messages->count );
     }
 
     /**
@@ -77,8 +75,6 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
      * @depends testPublishEventsForwards
      */
     public function testHourLevelStatsExistForwards(array $interval) {
-        echo '== testMinuteLevelStatsExistForwards()';
-
         $stats = $this->ably->stats(array(
             'direction' => 'forwards',
             'start'     => $interval[0],
@@ -88,7 +84,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->all->count );
+        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->messages->count );
     }
 
     /**
@@ -96,8 +92,6 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
      * @depends testPublishEventsForwards
      */
     public function testDayLevelStatsExistForwards(array $interval) {
-        echo '== testDayLevelStatsExistForwards()';
-
         $stats = $this->ably->stats(array(
             'direction' => 'forwards',
             'start'     => $interval[0],
@@ -107,7 +101,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->all->count );
+        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->messages->count );
     }
 
 
@@ -116,8 +110,6 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
      * @depends testPublishEventsForwards
      */
     public function testMonthLevelStatsExistForwards(array $interval) {
-        echo '== testMonthLevelStatsExistForwards()';
-
         $stats = $this->ably->stats(array(
             'direction' => 'forwards',
             'start'     => $interval[0],
@@ -127,15 +119,13 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->all->count );
+        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->messages->count );
     }
 
     /**
      * Publish events (backwards)
      */
     public function testPublishEventsBackwards() {
-        echo '==testPublishEventsBackwards()';
-
         $interval = array();
 
         # wait for the start of the next minute
@@ -164,8 +154,6 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
      * @depends testPublishEventsBackwards
      */
     public function testMinuteLevelStatsExistBackwards(array $interval) {
-        echo '== testMinuteLevelStatsExistBackwards()';
-
         $stats = $this->ably->stats(array(
             'direction' => 'backwards',
             'start'     => $interval[0],
@@ -174,7 +162,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 6, (int)$stats[0]->inbound->all->all->count );
+        $this->assertEquals ( 6, (int)$stats[0]->inbound->all->messages->count );
     }
 
     /**
@@ -182,8 +170,6 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
      * @depends testPublishEventsBackwards
      */
     public function testHourLevelStatsExistBackwards(array $interval) {
-        echo '== testHourLevelStatsExistBackwards()';
-
         $stats = $this->ably->stats(array(
             'direction' => 'backwards',
             'start'     => $interval[0],
@@ -194,9 +180,9 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertTrue ( count($stats) == 1 || count($stats) == 2, 'Expected 1 or two records' );
         if (count($stats) == 1) {
-            $this->assertEquals ( 11, (int)$stats[0]->inbound->all->all->count );
+            $this->assertEquals ( 11, (int)$stats[0]->inbound->all->messages->count );
         } else {
-            $this->assertEquals ( 6, (int)$stats[1]->inbound->all->all->count );
+            $this->assertEquals ( 6, (int)$stats[1]->inbound->all->messages->count );
         }
 
     }
@@ -206,8 +192,6 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
      * @depends testPublishEventsBackwards
      */
     public function testDayLevelStatsExistBackwards(array $interval) {
-        echo '== testDayLevelStatsExistBackwards()';
-
         $stats = $this->ably->stats(array(
             'direction' => 'backwards',
             'start'     => $interval[0],
@@ -218,9 +202,9 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertTrue ( count($stats) == 1 || count($stats) == 2, 'Expected 1 or two records' );
         if (count($stats) == 1) {
-            $this->assertEquals ( 11, (int)$stats[0]->inbound->all->all->count );
+            $this->assertEquals ( 11, (int)$stats[0]->inbound->all->messages->count );
         } else {
-            $this->assertEquals ( 6, (int)$stats[1]->inbound->all->all->count );
+            $this->assertEquals ( 6, (int)$stats[1]->inbound->all->messages->count );
         }
     }
 
@@ -230,8 +214,6 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
      * @depends testPublishEventsBackwards
      */
     public function testMonthLevelStatsExistBackwards(array $interval) {
-        echo '== testMonthLevelStatsExistBackwards()';
-
         $stats = $this->ably->stats(array(
             'direction' => 'backwards',
             'start'     => $interval[0],
@@ -242,9 +224,9 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertTrue ( count($stats) == 1 || count($stats) == 2, 'Expected 1 or two records' );
         if (count($stats) == 1) {
-            $this->assertEquals ( 11, (int)$stats[0]->inbound->all->all->count );
+            $this->assertEquals ( 11, (int)$stats[0]->inbound->all->messages->count );
         } else {
-            $this->assertEquals ( 6, (int)$stats[1]->inbound->all->all->count );
+            $this->assertEquals ( 6, (int)$stats[1]->inbound->all->messages->count );
         }
     }
 
@@ -252,8 +234,6 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
      * Publish events with limit query
      */
     public function testPublishEventsLimit() {
-        echo '==testPublishEventsLimit()';
-
         $interval = array();
 
         # wait for the start of the next minute
@@ -282,8 +262,6 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
      * @depends testPublishEventsLimit
      */
     public function testLimitParamBackwards(array $interval) {
-        echo '== testLimitParamBackwards()';
-
         $stats = $this->ably->stats(array(
             'direction' => 'backwards',
             'start'     => $interval[0],
@@ -293,7 +271,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 7, (int)$stats[0]->inbound->all->all->count );
+        $this->assertEquals ( 7, (int)$stats[0]->inbound->all->messages->count );
     }
 
     /**
@@ -301,8 +279,6 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
      * @depends testPublishEventsLimit
      */
     public function testLimitParamForwards(array $interval) {
-        echo '== testLimitParamForwards()';
-
         $stats = $this->ably->stats(array(
             'direction' => 'forwards',
             'start'     => $interval[0],
@@ -312,7 +288,7 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 7, (int)$stats[0]->inbound->all->all->count );
+        $this->assertEquals ( 7, (int)$stats[0]->inbound->all->messages->count );
     }
 
     // TODO: Pagination tests

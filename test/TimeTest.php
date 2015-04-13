@@ -1,7 +1,7 @@
 <?php
 
 require_once dirname(__FILE__) . '/../lib/ably.php';
-require_once 'factories/TestOption.php';
+require_once dirname(__FILE__) . '/factories/TestOption.php';
 
 class TimeTest extends PHPUnit_Framework_TestCase {
 
@@ -35,7 +35,6 @@ class TimeTest extends PHPUnit_Framework_TestCase {
      * Verify accuracy of time (to within 2 seconds of actual time)
      */
     public function testAccuracyWithTwoSecondVariation() {
-        echo '== testAccuracyWithTwoSecondVariation()';
         $ably = new AblyRest(array_merge($this->defaults, array(
             'key' => self::$options['first_private_api_key'],
         )));
@@ -50,7 +49,6 @@ class TimeTest extends PHPUnit_Framework_TestCase {
      * Verify time can be obtained without any valid key or token
      */
     public function testTimeWithoutValidKeyToken() {
-        echo '== testTimeWithoutValidKeyToken()';
         $ablyNoAuth = new AblyRest(array_merge( $this->defaults, array(
             'appId' => 'fakeAppId',
         )));
@@ -64,15 +62,13 @@ class TimeTest extends PHPUnit_Framework_TestCase {
      * Verify time fails without valid host
      */
     public function testTimeFailsWithInvalidHost() {
-        echo '== testTimeFailsWithInvalidHost()';
         $ablyInvalidHost = new AblyRest(array_merge( $this->defaults, array(
             'key' => self::$options['first_private_api_key'],
             'host'  => 'this.host.does.not.exist',
         )));
 
+        $this->setExpectedException('AblyRequestException');
         $reportedTime = $ablyInvalidHost->time();
-
-        $this->assertNull( $reportedTime );
     }
 
 }

@@ -1,12 +1,6 @@
 <?php
 
-set_include_path(join(PATH_SEPARATOR, array(
-    get_include_path(),
-    dirname(dirname(dirname(__FILE__))) . '/lib',
-    dirname(dirname(__FILE__)) . '/fixtures'
-)));
-
-require_once 'ably.php';
+require_once dirname(__FILE__) . '/../../lib/ably.php';
 
 class TestOption {
 
@@ -51,7 +45,7 @@ class TestOption {
     public function get_opts() {
         if (empty($this->options)) {
 
-            $app_spec_text = file_get_contents( self::$spec_file, 1 );
+            $app_spec_text = file_get_contents( dirname(__FILE__) . '/../fixtures/' . self::$spec_file, 1 );
 
             if ($app_spec_text === false) {
                 trigger_error( 'unable to read spec file' );
@@ -88,9 +82,10 @@ class TestOption {
     }
 
     public function clear_opts() {
-        if (!empty($this->option)) {
+        if (!empty($this->options)) {
             $ably = new AblyRest($this->options['first_private_api_key']);
             $this->request( 'DELETE', join( '/', array($this->settings['authority'],'apps', $this->options['appId']) ), $ably->auth_headers() );
+            $this->options = null;
         }
     }
 

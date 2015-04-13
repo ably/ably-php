@@ -1,7 +1,7 @@
 <?php
 
 require_once dirname(__FILE__) . '/../lib/ably.php';
-require_once 'factories/TestOption.php';
+require_once dirname(__FILE__) . '/factories/TestOption.php';
 
 class CapabilityTest extends PHPUnit_Framework_TestCase {
 
@@ -41,7 +41,7 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, null);
         $this->assertNotNull($token_details->id, 'Expected token id');
-        $this->assertEquals($key->capability, json_encode($token_details->capability), 'Unexpected capability');
+        $this->assertEquals($key->capability, $token_details->capability, 'Unexpected capability');
     }
 
     /**
@@ -58,14 +58,13 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, $token_params);
         $this->assertNotNull($token_details->id, 'Expected token id');
-        $this->assertEquals($key->capability, json_encode($token_details->capability), 'Unexpected capability');
+        $this->assertEquals($key->capability, $token_details->capability, 'Unexpected capability');
     }
 
     /**
      * Empty ops intersection
      */
     public function testEmptyOpsIntersection() {
-        echo '==testEmptyOpsIntersection()';
         $key = self::$options['keys'][1];
         $auth_options = array(
             'keyId' => $key->key_id,
@@ -87,7 +86,6 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
      * Empty paths intersection
      */
     public function testEmptyPathIntersection() {
-        echo '==testEmptyPathIntersection()';
         $key = self::$options['keys'][1];
         $auth_options = array(
             'keyId' => $key->key_id,
@@ -109,7 +107,6 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
      * Non-empty ops intersection
      */
     public function testNonEmptyOpsIntersection() {
-        echo '==testNonEmptyOpsIntersection()';
         $key = self::$options['keys'][4];
         $auth_options = array(
             'keyId' => $key->key_id,
@@ -122,14 +119,13 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, $token_params);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( $expected_capability, (array)$token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $expected_capability, (array)json_decode($token_details->capability), 'Unexpected capability' );
     }
 
     /**
      * Non-empty paths intersection
      */
     public function testNonEmptyPathsIntersection() {
-        echo '==testNonEmptyPathsIntersection()';
         $key = self::$options['keys'][4];
         $auth_options = array(
             'keyId' => $key->key_id,
@@ -147,14 +143,13 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, $token_params);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( $expected_capability, (array)$token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $expected_capability, (array)json_decode($token_details->capability), 'Unexpected capability' );
     }
 
     /**
      * Wildcard ops intersection
      */
     public function testWildcardOpsIntersection0() {
-        echo '==testWildcardOpsIntersection0()';
         $key = self::$options['keys'][4];
         $auth_options = array(
             'keyId' => $key->key_id,
@@ -167,11 +162,10 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, $token_params);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( $expected_capability, (array)$token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $expected_capability, (array)json_decode($token_details->capability), 'Unexpected capability' );
     }
 
     public function testWildcardOpsIntersection1() {
-        echo '==testWildcardOpsIntersection1()';
         $key = self::$options['keys'][4];
         $auth_options = array(
             'keyId' => $key->key_id,
@@ -184,14 +178,13 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, $token_params);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( $expected_capability, (array)$token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $expected_capability, (array)json_decode($token_details->capability), 'Unexpected capability' );
     }
 
     /**
      * Wildcard resources intersection
      */
     public function testWildcardResourcesIntersection0() {
-        echo '==testWildcardResourcesIntersection0()';
         $key = self::$options['keys'][2];
         $auth_options = array(
             'keyId' => $key->key_id,
@@ -203,11 +196,10 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, $token_params);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( $requested_capability, (array)$token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $requested_capability, (array)json_decode($token_details->capability), 'Unexpected capability' );
     }
 
     public function testWildcardResourcesIntersection1() {
-        echo '==testWildcardResourcesIntersection1()';
         $key = self::$options['keys'][2];
         $auth_options = array(
             'keyId' => $key->key_id,
@@ -219,11 +211,10 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, $token_params);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( $requested_capability, (array)$token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $requested_capability, (array)json_decode($token_details->capability), 'Unexpected capability' );
     }
 
     public function testWildcardResourcesIntersection2() {
-        echo '==testWildcardResourcesIntersection2()';
         $key = self::$options['keys'][2];
         $auth_options = array(
             'keyId' => $key->key_id,
@@ -235,14 +226,13 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
         );
         $token_details = $this->ably->request_token($auth_options, $token_params);
         $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( $requested_capability, (array)$token_details->capability, 'Unexpected capability' );
+        $this->assertEquals( $requested_capability, (array)json_decode($token_details->capability), 'Unexpected capability' );
     }
 
     /**
      * Invalid capabilities
      */
     public function testInvalidCapabilities0() {
-        echo '==testInvalidCapabilities0()';
         $invalid_capability = array( 'channel0' => array('publish_') );
         $token_params = array(
             'capability' => $invalid_capability,
@@ -256,7 +246,6 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testInvalidCapabilities1() {
-        echo '==testInvalidCapabilities1()';
         $invalid_capability = array( 'channel0' => array('*', 'publish') );
         $token_params = array(
             'capability' => $invalid_capability,
@@ -270,7 +259,6 @@ class CapabilityTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testInvalidCapabilities2() {
-        echo '==testInvalidCapabilities2()';
         $invalid_capability = array( 'channel0' => array(0) );
         $token_params = array(
             'capability' => $invalid_capability,
