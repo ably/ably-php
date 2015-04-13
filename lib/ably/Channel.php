@@ -35,7 +35,7 @@ class Channel {
         $this->ably = $ably;
         $this->name = $name;
         $this->channelPath = "/channels/" . urlencode( $name );
-        $this->presence = new Presence( $ably, $name );
+        $this->presence = new Presence( $ably, $this );
 
         $this->options = array_merge( self::$defaultOptions, $options );
 
@@ -54,10 +54,6 @@ class Channel {
 
         throw new AblyException( 'Undefined property: '.__CLASS__.'::'.$name );
     }
-
-    /*
-     * Public methods
-     */
 
     /**
      * Posts a message to this channel
@@ -92,16 +88,28 @@ class Channel {
      * @return PaginatedResource
      */
     public function history( $params = array() ) {
-        return $this->getPaginated( '/messages', $params );
+        return new PaginatedResource( $this->ably, 'Message', $this->getCipherParams(), $this->getPath() . '/messages', $params );
     }
 
-    /*
-     * Private methods
+    /**
+     * @return string Channel's name
      */
+    public function getName() {
+        return $this->name;
+    }
 
-    private function getPaginated( $path, $params = array() ) {
-        $cipherParams = $this->options['encrypted'] ? $this->options['cipherParams'] : null;
-        return new PaginatedResource( $this->ably, 'Message', $cipherParams, $this->channelPath . $path, $params );
+    /**
+     * @return string Channel portion of the request URI
+     */
+    public function getPath() {
+        return $this->channelPath;
+    }
+
+    /**
+     * @return CipherParams|null Cipher params if the channel is encrypted
+     */
+    public function getCipherParams() {
+        return $this->options['encrypted'] ? $this->options['cipherParams'] : null;
     }
 
     private function post( $path, $params = array() ) {

@@ -166,4 +166,35 @@ class PresenceTest extends PHPUnit_Framework_TestCase {
             $this->fail( 'ISO format: ' . $e->getMessage() . ', HTTP code: ' . $e->getCode() );
         }
     }
+
+    /**
+     * Compare presence data with fixture
+     */
+    public function testComparePresenceDataWithFixtureEncrypted() {
+        $fixture = json_decode( file_get_contents( dirname(__FILE__) . '/fixtures/crypto-data-128.json' ) );
+
+        $options = array(
+            'encrypted' => true,
+            'cipherParams' => new CipherParams( base64_decode($fixture->key), 'aes-128-cbc' )
+        );
+
+        $channel = $this->ably->channel('persisted:presence_fixtures_ecrypted', $options);
+        $presence = $channel->presence->get();
+
+        $sampleData = array(
+            'client_enc1' => $fixture->items[0]->encoded->data,
+            'client_enc2' => base64_decode( $fixture->items[1]->encoded->data ),
+            'client_enc3' => json_decode( $fixture->items[2]->encoded->data ),
+            'client_enc4' => json_decode( $fixture->items[3]->encoded->data ),
+        );
+
+        # verify presence existence and count
+        $this->assertNotNull( $presence, 'Expected non-null presence data' );
+        $this->assertEquals( 4, count($presence), 'Expected 4 presence entries' );
+
+        # verify presence contents
+        foreach ($presence as $pmsg) {
+            $this->assertEquals( $sampleData[$pmsg->clientId], $pmsg->data, 'Expected decrypted and sample data to match' );
+        }
+    }
 }

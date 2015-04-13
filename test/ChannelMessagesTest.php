@@ -29,7 +29,9 @@ class ChannelMessagesTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Actual test reused by exposed tests with various settings
+     * Partial test reused by actual exposed tests.
+     * Publishes messages to a provided channel, checks for encryption, retrieves history,
+     * compares decoded payloads with original messages
      */
     private function executePublishTestOnChannel(Channel $channel) {
        

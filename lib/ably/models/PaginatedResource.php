@@ -1,5 +1,6 @@
 <?php
 require_once dirname(__FILE__) . '/../AblyExceptions.php';
+require_once dirname(__FILE__) . '/BaseMessage.php';
 
 /**
  * Provides automatic pagination for applicable requests
@@ -39,15 +40,11 @@ class PaginatedResource extends ArrayObject {
 
             foreach ($response['body'] as $data) {
                 
-                if (!method_exists( $model, 'fromJSON' )) {
+                $instance = new $model;
+
+                if (!($instance instanceof BaseMessage)) {
                     throw new AblyException( 'Invalid model class provided: '. $model, 400, 40000 );
                 }
-                
-                if (!empty( $cipherParams ) && !method_exists( $model, 'setCipherParams' )) {
-                    throw new AblyException( 'Model does not support decryption: '. $model, 400, 40000 );
-                }
-                
-                $instance = new $model;
                 if (!empty( $cipherParams ) ) {
                     $instance->setCipherParams( $cipherParams );
                 }

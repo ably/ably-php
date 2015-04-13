@@ -4,24 +4,18 @@ require_once dirname(__FILE__) . '/models/PaginatedResource.php';
 
 class Presence {
 
-    private $name;
-    private $channelPath;
     private $ably;
+    private $channel;
 
     /**
      * Constructor
      * @param AblyRest $ably Ably API instance
-     * @param string $name Channel's name
+     * @param Channel $channel Associated channel
      */
-    public function __construct( AblyRest $ably, $name ) {
+    public function __construct( AblyRest $ably, Channel $channel ) {
         $this->ably = $ably;
-        $this->name = $name;
-        $this->channelPath = "/channels/" . urlencode( $name );
+        $this->channel = $channel;
     }
-
-    /*
-     * Public methods
-     */
 
     /**
      * Retrieves channel's presence data
@@ -29,7 +23,7 @@ class Presence {
      * @return PaginatedResource
      */
     public function get( $params = array() ) {
-        return new PaginatedResource( $this->ably, 'PresenceMessage', null, $this->channelPath . '/presence', $params );
+        return new PaginatedResource( $this->ably, 'PresenceMessage', $this->channel->getCipherParams(), $this->channel->getPath() . '/presence', $params );
     }
 
     /**
@@ -38,15 +32,6 @@ class Presence {
      * @return PaginatedResource
      */
     public function history( $params = array() ) {
-        return new PaginatedResource( $this->ably, 'PresenceMessage', null, $this->channelPath . '/presence/history', $params );
-        return $this->getPaginated( '/presence/history', $params );
-    }
-
-    /*
-     * Private methods
-     */
-
-    private function getPaginated( $path, $params = array() ) {
-        return new PaginatedResource( $this->ably, $this->channelPath . $path, $params );
+        return new PaginatedResource( $this->ably, 'PresenceMessage', $this->channel->getCipherParams(), $this->channel->getPath() . '/presence/history', $params );
     }
 }
