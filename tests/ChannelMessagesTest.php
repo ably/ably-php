@@ -5,7 +5,7 @@ use Ably\Channel;
 use Ably\Models\CipherParams;
 use Ably\Models\Message;
 
-require_once dirname(__FILE__) . '/factories/TestOption.php';
+require_once __DIR__ . '/factories/TestOption.php';
 
 class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     protected static $options;

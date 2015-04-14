@@ -4,7 +4,7 @@ use Ably\AblyRest;
 use Ably\Exceptions\AblyRequestException;
 use Ably\Models\CipherParams;
 
-require_once dirname(__FILE__) . '/factories/TestOption.php';
+require_once __DIR__ . '/factories/TestOption.php';
 
 class PresenceTest extends \PHPUnit_Framework_TestCase {
 
@@ -27,7 +27,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
             'port'      => self::$options['port'],
         ));
 
-        $spec = json_decode(file_get_contents(dirname(__FILE__).'/fixtures/test_app_spec.json'));
+        $spec = json_decode(file_get_contents(__DIR__.'/fixtures/test_app_spec.json'));
         self::$channelFixture = $spec->channels[0];
     }
 
@@ -174,7 +174,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
      * Compare presence data with fixture
      */
     public function testComparePresenceDataWithFixtureEncrypted() {
-        $fixture = json_decode( file_get_contents( dirname(__FILE__) . '/fixtures/crypto-data-128.json' ) );
+        $fixture = json_decode( file_get_contents( __DIR__ . '/fixtures/crypto-data-128.json' ) );
 
         $options = array(
             'encrypted' => true,

@@ -49,7 +49,7 @@ class TestOption {
     public function get_opts() {
         if (empty($this->options)) {
 
-            $app_spec_text = file_get_contents( dirname(__FILE__) . '/../fixtures/' . self::$spec_file, 1 );
+            $app_spec_text = file_get_contents( __DIR__ . '/../fixtures/' . self::$spec_file, 1 );
 
             if ($app_spec_text === false) {
                 trigger_error( 'unable to read spec file' );

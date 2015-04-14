@@ -3,7 +3,7 @@ namespace tests;
 use Ably\AblyRest;
 use \Exception;
 
-require_once dirname(__FILE__) . '/factories/TestOption.php';
+require_once __DIR__ . '/factories/TestOption.php';
 
 class TokenTest extends \PHPUnit_Framework_TestCase {
 

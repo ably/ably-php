@@ -2,7 +2,7 @@
 namespace tests;
 use Ably\AblyRest;
 
-require_once dirname(__FILE__) . '/factories/TestOption.php';
+require_once __DIR__ . '/factories/TestOption.php';
 
 class TimeTest extends \PHPUnit_Framework_TestCase {
 

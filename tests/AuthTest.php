@@ -4,7 +4,7 @@ use Ably\AblyRest;
 use Ably\AuthMethod;
 use \Exception;
 
-require_once dirname(__FILE__) . '/factories/TestOption.php';
+require_once __DIR__ . '/factories/TestOption.php';
 
 class AuthTest extends \PHPUnit_Framework_TestCase {
 
