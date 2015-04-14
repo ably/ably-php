@@ -1,5 +1,7 @@
 <?php
-require_once dirname(__FILE__) . '/../models/CipherParams.php';
+namespace Ably\Utils;
+
+use Ably\Models\CipherParams;
 
 /**
 * Provides static methods for encryption/decryption

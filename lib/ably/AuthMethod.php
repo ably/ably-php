@@ -1,4 +1,5 @@
 <?php
+namespace Ably;
 
 final class AuthMethod {
     const BASIC = 0;

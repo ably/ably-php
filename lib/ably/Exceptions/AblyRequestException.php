@@ -1,22 +1,12 @@
 <?php
-
-/**
- * Generic exception for Ably classes
- */
-class AblyException extends Exception {
-    
-    public function __construct($message, $code = 0) {
-        parent::__construct($message, $code);
-    }
-}
-
+namespace Ably\Exceptions;
 
 /**
  * Exception thrown when a request to Ably API fails (HTTP response other than 200 or 201)
  */
 class AblyRequestException extends AblyException {
 
-	private $response;
+    private $response;
     
     public function __construct($message, $code, $response) {
         parent::__construct($message, $code);
@@ -27,12 +17,4 @@ class AblyRequestException extends AblyException {
     public function getResponse() {
     	return $this->response;
     }
-}
-
-
-
-/**
- * Exception thrown when an encryption related error occurs
- */
-class AblyEncryptionException extends AblyException {
 }

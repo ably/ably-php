@@ -1,9 +1,9 @@
 <?php
-require_once dirname(__FILE__) . '/models/Message.php';
-require_once dirname(__FILE__) . '/models/PaginatedResource.php';
-require_once dirname(__FILE__) . '/Presence.php';
-require_once dirname(__FILE__) . '/AblyExceptions.php';
-require_once dirname(__FILE__) . '/utils/Crypto.php';
+namespace Ably;
+
+use Ably\Models\PaginatedResource;
+use Ably\Models\Message;
+use Ably\Exceptions\AblyException;
 
 /**
  * Represents a channel
@@ -64,7 +64,7 @@ class Channel {
 
         $args = func_get_args();
         
-        if (count($args) == 1 && is_a($args[0], 'Message')) {
+        if (count($args) == 1 && is_a($args[0], 'Ably\Models\Message')) {
             $msg = $args[0];
         } else if (count($args) == 2) {
             $msg = new Message();
@@ -88,7 +88,7 @@ class Channel {
      * @return PaginatedResource
      */
     public function history( $params = array() ) {
-        return new PaginatedResource( $this->ably, 'Message', $this->getCipherParams(), $this->getPath() . '/messages', $params );
+        return new PaginatedResource( $this->ably, 'Ably\Models\Message', $this->getCipherParams(), $this->getPath() . '/messages', $params );
     }
 
     /**

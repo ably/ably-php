@@ -1,6 +1,10 @@
 <?php
+namespace tests;
+use Ably\AblyRest;
+use \stdClass;
 
-require_once dirname(__FILE__) . '/../../lib/ably.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
+
 
 class TestOption {
 

@@ -1,9 +1,13 @@
 <?php
+namespace tests;
+use Ably\AblyRest;
+use Ably\Channel;
+use Ably\Models\CipherParams;
+use Ably\Models\Message;
 
-require_once dirname(__FILE__) . '/../lib/ably.php';
 require_once dirname(__FILE__) . '/factories/TestOption.php';
 
-class ChannelMessagesTest extends PHPUnit_Framework_TestCase {
+class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     protected static $options;
     protected static $ably0;
     protected $ably;
@@ -126,7 +130,7 @@ class ChannelMessagesTest extends PHPUnit_Framework_TestCase {
     /**
      * Encryption mismatch - publish message over encrypted channel, retrieve history over unencrypted channel
      *
-     * @expectedException AblyEncryptionException
+     * @expectedException Ably\Exceptions\AblyEncryptionException
      */
     public function testEncryptedMessageUnencryptedHistory() {
         $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
@@ -159,7 +163,7 @@ class ChannelMessagesTest extends PHPUnit_Framework_TestCase {
     /**
      * Encryption key mismatch - publish message with key1, retrieve history with key2
      *
-     * @expectedException AblyEncryptionException
+     * @expectedException Ably\Exceptions\AblyEncryptionException
      */
     public function testEncryptionKeyMismatch() {
         $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));

@@ -1,7 +1,8 @@
 <?php
+namespace Ably;
 
-require_once dirname(__FILE__) . '/AuthMethod.php';
-require_once dirname(__FILE__) . '/Channel.php';
+use Ably\Exceptions\AblyException;
+use Ably\Exceptions\AblyRequestException;
 
 class AblyRest {
 
@@ -28,7 +29,7 @@ class AblyRest {
     public function __construct( $options = array() ) {
 
         # check dependencies
-        $this->check_dependencies( array('curl', 'json') );
+        $this->check_dependencies( array('curl', 'json', 'openssl') );
 
         # convert to options if a single key provided
         is_string($options) && $options = array('key' => $options );

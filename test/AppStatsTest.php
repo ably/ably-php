@@ -1,9 +1,10 @@
 <?php
+namespace tests;
+use Ably\AblyRest;
 
-require_once dirname(__FILE__) . '/../lib/ably.php';
 require_once dirname(__FILE__) . '/factories/TestOption.php';
 
-class AppStatsTest extends PHPUnit_Framework_TestCase {
+class AppStatsTest extends \PHPUnit_Framework_TestCase {
 
     protected static $options;
     protected static $ably0;
@@ -290,7 +291,4 @@ class AppStatsTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
         $this->assertEquals ( 7, (int)$stats[0]->inbound->all->messages->count );
     }
-
-    // TODO: Pagination tests
-
 }

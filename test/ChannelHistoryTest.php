@@ -1,9 +1,13 @@
 <?php
+namespace tests;
+use Ably\AblyRest;
+use Ably\Channel;
+use Ably\Models\CipherParams;
+use Ably\Models\Message;
 
-require_once dirname(__FILE__) . '/../lib/ably.php';
 require_once dirname(__FILE__) . '/factories/TestOption.php';
 
-class ChannelHistoryTest extends PHPUnit_Framework_TestCase {
+class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
 
     protected static $options;
     protected static $ably0;

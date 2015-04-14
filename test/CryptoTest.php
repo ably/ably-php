@@ -1,9 +1,12 @@
 <?php
+namespace tests;
+use Ably\Models\CipherParams;
+use Ably\Models\Message;
+use Ably\Models\PresenceMessage;
 
-require_once dirname(__FILE__) . '/../lib/ably.php';
 require_once dirname(__FILE__) . '/factories/TestOption.php';
 
-class CryptoTest extends PHPUnit_Framework_TestCase {
+class CryptoTest extends \PHPUnit_Framework_TestCase {
 
     /**
      * Tests if example messages match actual messages after encryption/decryption and vice versa:

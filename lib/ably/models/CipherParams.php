@@ -1,4 +1,5 @@
 <?php
+namespace Ably\Models;
 
 /**
  * Cipher parameters.

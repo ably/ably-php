@@ -1,7 +1,9 @@
 <?php
-require_once dirname(__FILE__) . '/../AblyExceptions.php';
-require_once dirname(__FILE__) . '/../utils/Crypto.php';
-require_once dirname(__FILE__) . '/CipherParams.php';
+namespace Ably\Models;
+
+use Ably\Exceptions\AblyException;
+use Ably\Exceptions\AblyEncryptionException;
+use Ably\Utils\Crypto;
 
 /**
  * Base class for messages sent over channels.
@@ -72,8 +74,9 @@ abstract class BaseMessage {
             }
         }
 
+        $class = get_class( $this );
         foreach ($obj as $key => $value) {
-            if (property_exists( 'Message', $key )) {
+            if (property_exists( $class, $key )) {
                 $this->$key = $value;
             }
         }
@@ -87,7 +90,7 @@ abstract class BaseMessage {
      * Returns an encoded message as a stdClass ready for stringifying
      */
     protected function encode() {
-        $msg = new stdClass();
+        $msg = new \stdClass();
 
         if ($this->encoding) {
             $msg->encoding = $this->encoding;

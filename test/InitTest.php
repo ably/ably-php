@@ -1,9 +1,11 @@
 <?php
+namespace tests;
+use Ably\AblyRest;
+use \Exception;
 
-require_once dirname(__FILE__) . '/../lib/ably.php';
 require_once dirname(__FILE__) . '/factories/TestOption.php';
 
-class InitTest extends PHPUnit_Framework_TestCase {
+class InitTest extends \PHPUnit_Framework_TestCase {
 
     protected static $options;
     protected $ably;

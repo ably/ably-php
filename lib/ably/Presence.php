@@ -1,6 +1,7 @@
 <?php
-require_once dirname(__FILE__) . '/models/PresenceMessage.php';
-require_once dirname(__FILE__) . '/models/PaginatedResource.php';
+namespace Ably;
+
+use Ably\Models\PaginatedResource;
 
 class Presence {
 
@@ -23,7 +24,7 @@ class Presence {
      * @return PaginatedResource
      */
     public function get( $params = array() ) {
-        return new PaginatedResource( $this->ably, 'PresenceMessage', $this->channel->getCipherParams(), $this->channel->getPath() . '/presence', $params );
+        return new PaginatedResource( $this->ably, 'Ably\Models\PresenceMessage', $this->channel->getCipherParams(), $this->channel->getPath() . '/presence', $params );
     }
 
     /**
@@ -32,6 +33,6 @@ class Presence {
      * @return PaginatedResource
      */
     public function history( $params = array() ) {
-        return new PaginatedResource( $this->ably, 'PresenceMessage', $this->channel->getCipherParams(), $this->channel->getPath() . '/presence/history', $params );
+        return new PaginatedResource( $this->ably, 'Ably\Models\PresenceMessage', $this->channel->getCipherParams(), $this->channel->getPath() . '/presence/history', $params );
     }
 }

@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__FILE__) . '/BaseMessage.php';
+namespace Ably\Models;
 
 class Message extends BaseMessage {
 

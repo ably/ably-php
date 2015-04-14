@@ -1,9 +1,10 @@
 <?php
+namespace tests;
+use Ably\AblyRest;
 
-require_once dirname(__FILE__) . '/../lib/ably.php';
 require_once dirname(__FILE__) . '/factories/TestOption.php';
 
-class TimeTest extends PHPUnit_Framework_TestCase {
+class TimeTest extends \PHPUnit_Framework_TestCase {
 
     protected static $options;
     protected $defaults;
@@ -67,7 +68,7 @@ class TimeTest extends PHPUnit_Framework_TestCase {
             'host'  => 'this.host.does.not.exist',
         )));
 
-        $this->setExpectedException('AblyRequestException');
+        $this->setExpectedException('Ably\Exceptions\AblyRequestException');
         $reportedTime = $ablyInvalidHost->time();
     }
 

@@ -1,13 +1,14 @@
 <?php
-require_once dirname(__FILE__) . '/../AblyExceptions.php';
-require_once dirname(__FILE__) . '/BaseMessage.php';
+namespace Ably\Models;
+
+use Ably\Exceptions\AblyException;
 
 /**
  * Provides automatic pagination for applicable requests
  *
  * Requests for channel history and channel presence are wrapped in this class automatically.
  */
-class PaginatedResource extends ArrayObject {
+class PaginatedResource extends \ArrayObject {
 
     private $ably;
     private $path;
@@ -23,7 +24,7 @@ class PaginatedResource extends ArrayObject {
      * @param string $path Request path
      * @param array $params Parameters to be sent with the request
      */
-    public function __construct( AblyRest $ably, $model, $cipherParams, $path, $params = array() ) {
+    public function __construct( \Ably\AblyRest $ably, $model, $cipherParams, $path, $params = array() ) {
         parent::__construct();
 
         $this->ably = $ably;
