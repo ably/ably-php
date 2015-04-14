@@ -1,10 +1,10 @@
 <phpunit>
     <testsuites>
         <testsuite name="ably">
-            <directory>test</directory>
+            <directory>tests</directory>
         </testsuite>
     </testsuites>
     <listeners>
-        <listener file="test/extensions/DebugTestListener.php" class="DebugTestListener" />
+        <listener file="tests/extensions/DebugTestListener.php" class="DebugTestListener" />
     </listeners>
 </phpunit>

@@ -15,6 +15,6 @@ class AblyRequestException extends AblyException {
     }
 
     public function getResponse() {
-    	return $this->response;
+        return $this->response;
     }
 }
