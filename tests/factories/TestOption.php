@@ -58,6 +58,11 @@ class TestOption {
             $raw = $this->request( 'POST', join('/', array($this->settings['authority'], 'apps') ) , array(), $app_spec_text );
             $response = json_decode($raw);
 
+            if ($response === null) {
+                echo 'Could not connect to API.';
+                exit(1);
+            }
+
             $keys = $response->keys;
             $app_id = $response->appId;
             $key_objs = array();
