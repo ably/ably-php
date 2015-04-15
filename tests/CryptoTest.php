@@ -11,7 +11,7 @@ class CryptoTest extends \PHPUnit_Framework_TestCase {
     /**
      * Tests if example messages match actual messages after encryption/decryption and vice versa:
      * decrypt(encrypted_example) == unencrypted_example
-     * encrypt(unencrypted_example) == ecrypted_example
+     * encrypt(unencrypted_example) == encrypted_example
      *
      * @dataProvider filenameProvider
      */
@@ -41,7 +41,7 @@ class CryptoTest extends \PHPUnit_Framework_TestCase {
     /**
      * Tests if example presence messages match actual presence messages after encryption/decryption and vice versa:
      * decrypt(encrypted_example) == unencrypted_example
-     * encrypt(unencrypted_example) == ecrypted_example
+     * encrypt(unencrypted_example) == encrypted_example
      *
      * @dataProvider filenameProvider
      */

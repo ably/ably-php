@@ -181,7 +181,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
             'cipherParams' => new CipherParams( base64_decode($fixture->key), 'aes-128-cbc' )
         );
 
-        $channel = $this->ably->channel('persisted:presence_fixtures_ecrypted', $options);
+        $channel = $this->ably->channel('persisted:presence_fixtures_encrypted', $options);
         $presence = $channel->presence->get();
 
         $sampleData = array(
