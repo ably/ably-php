@@ -158,7 +158,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      * Token generation with specified key
      */
     public function testTokenGenerationWithSpecifiedKey() {
-        $key = self::$options['keys'][1];
+        $key = self::$options['keys'][2];
 
         $auth_options = array(
             'keyId' => $key->key_id,

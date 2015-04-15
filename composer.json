@@ -18,5 +18,8 @@
         "psr-4": {
             "Ably\\": "src/"
         }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
     }
 }

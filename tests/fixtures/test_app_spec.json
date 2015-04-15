@@ -2,6 +2,9 @@
     "keys": [
         {},
         {
+            "capability": "{ \"cansubscribe:*\":[\"subscribe\"], \"canpublish:*\":[\"publish\"], \"canpublish:andpresence\":[\"presence\",\"publish\"] }"
+        },
+        {
             "capability": "{\"testchannel\":[\"publish\"]}"
         },
         {

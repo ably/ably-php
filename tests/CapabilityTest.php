@@ -36,7 +36,7 @@ class CapabilityTest extends \PHPUnit_Framework_TestCase {
      * Blanket intersection with specified key
      */
     public function testBlanketIntersectionWithSpecifiedKey() {
-        $key = self::$options['keys'][1];
+        $key = self::$options['keys'][2];
         $auth_options = array(
             'keyId' => $key->key_id,
             'keyValue' => $key->key_value,
@@ -50,7 +50,7 @@ class CapabilityTest extends \PHPUnit_Framework_TestCase {
      * Equal intersection with specified key
      */
     public function testEqualIntersectionWithSpecifiedKey() {
-        $key = self::$options['keys'][1];
+        $key = self::$options['keys'][2];
         $auth_options = array(
             'keyId' => $key->key_id,
             'keyValue' => $key->key_value,
@@ -67,7 +67,7 @@ class CapabilityTest extends \PHPUnit_Framework_TestCase {
      * Empty ops intersection
      */
     public function testEmptyOpsIntersection() {
-        $key = self::$options['keys'][1];
+        $key = self::$options['keys'][2];
         $auth_options = array(
             'keyId' => $key->key_id,
             'keyValue' => $key->key_value,
@@ -88,7 +88,7 @@ class CapabilityTest extends \PHPUnit_Framework_TestCase {
      * Empty paths intersection
      */
     public function testEmptyPathIntersection() {
-        $key = self::$options['keys'][1];
+        $key = self::$options['keys'][2];
         $auth_options = array(
             'keyId' => $key->key_id,
             'keyValue' => $key->key_value,
@@ -109,7 +109,7 @@ class CapabilityTest extends \PHPUnit_Framework_TestCase {
      * Non-empty ops intersection
      */
     public function testNonEmptyOpsIntersection() {
-        $key = self::$options['keys'][4];
+        $key = self::$options['keys'][5];
         $auth_options = array(
             'keyId' => $key->key_id,
             'keyValue' => $key->key_value,
@@ -128,7 +128,7 @@ class CapabilityTest extends \PHPUnit_Framework_TestCase {
      * Non-empty paths intersection
      */
     public function testNonEmptyPathsIntersection() {
-        $key = self::$options['keys'][4];
+        $key = self::$options['keys'][5];
         $auth_options = array(
             'keyId' => $key->key_id,
             'keyValue' => $key->key_value,
@@ -152,7 +152,7 @@ class CapabilityTest extends \PHPUnit_Framework_TestCase {
      * Wildcard ops intersection
      */
     public function testWildcardOpsIntersection0() {
-        $key = self::$options['keys'][4];
+        $key = self::$options['keys'][5];
         $auth_options = array(
             'keyId' => $key->key_id,
             'keyValue' => $key->key_value,
@@ -168,7 +168,7 @@ class CapabilityTest extends \PHPUnit_Framework_TestCase {
     }
 
     public function testWildcardOpsIntersection1() {
-        $key = self::$options['keys'][4];
+        $key = self::$options['keys'][5];
         $auth_options = array(
             'keyId' => $key->key_id,
             'keyValue' => $key->key_value,
@@ -187,7 +187,7 @@ class CapabilityTest extends \PHPUnit_Framework_TestCase {
      * Wildcard resources intersection
      */
     public function testWildcardResourcesIntersection0() {
-        $key = self::$options['keys'][2];
+        $key = self::$options['keys'][3];
         $auth_options = array(
             'keyId' => $key->key_id,
             'keyValue' => $key->key_value,
@@ -202,7 +202,7 @@ class CapabilityTest extends \PHPUnit_Framework_TestCase {
     }
 
     public function testWildcardResourcesIntersection1() {
-        $key = self::$options['keys'][2];
+        $key = self::$options['keys'][3];
         $auth_options = array(
             'keyId' => $key->key_id,
             'keyValue' => $key->key_value,
@@ -217,7 +217,7 @@ class CapabilityTest extends \PHPUnit_Framework_TestCase {
     }
 
     public function testWildcardResourcesIntersection2() {
-        $key = self::$options['keys'][2];
+        $key = self::$options['keys'][3];
         $auth_options = array(
             'keyId' => $key->key_id,
             'keyValue' => $key->key_value,

@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 class TestOption {
 
-    private static $spec_file = 'test_app_spec.json';
+    private static $spec_file = 'test-app-setup.json';
     private $settings = array();
     private $options;
 
@@ -49,14 +49,14 @@ class TestOption {
     public function get_opts() {
         if (empty($this->options)) {
 
-            $app_spec_text = file_get_contents( __DIR__ . '/../fixtures/' . self::$spec_file, 1 );
+            $spec = json_decode ( file_get_contents( __DIR__ . '/../fixtures/' . self::$spec_file, 1 ) );
 
-            if ($app_spec_text === false) {
+            if (!$spec) {
                 trigger_error( 'unable to read spec file' );
             }
 
-            $raw = $this->request( 'POST', join('/', array($this->settings['authority'], 'apps') ) , array(), $app_spec_text );
-            $response = json_decode($raw);
+            $raw = $this->request( 'POST', join('/', array($this->settings['authority'], 'apps') ) , array(), json_encode( $spec->post_apps ) );
+            $response = json_decode( $raw );
 
             if ($response === null) {
                 echo 'Could not connect to API.';
