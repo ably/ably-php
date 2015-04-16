@@ -77,12 +77,12 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         # get the history for this channel
         $messages = $channel->history();
         $this->assertNotNull( $messages, 'Expected non-null messages' );
-        $this->assertEquals( 4, count($messages), 'Expected 4 messages' );
+        $this->assertEquals( 4, count($messages->items), 'Expected 4 messages' );
 
         $actual_message_order = array();
 
         # verify message contents
-        foreach ($messages as $message) {
+        foreach ($messages->items as $message) {
             $actual_message_order[] = $message->name;
             
             # payload must exactly match the one that was sent and must be decrypted automatically
@@ -156,8 +156,8 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         $messages = $unencrypted->history();
         $this->assertNotNull( $messages, 'Expected non-null messages' );
-        $this->assertEquals( 1, count($messages), 'Expected 1 message' );
-        $this->assertEquals( $messages[0]->originalData, $messages[0]->data, 'Expected to have message data untouched' );
+        $this->assertEquals( 1, count($messages->items), 'Expected 1 message' );
+        $this->assertEquals( $messages->items[0]->originalData, $messages->items[0]->data, 'Expected to have message data untouched' );
     }
 
     /**

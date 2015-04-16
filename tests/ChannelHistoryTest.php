@@ -51,12 +51,12 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         # get the history for this channel
         $messages = $history1->history( array('direction' => 'forwards') );
         $this->assertNotNull( $messages, 'Expected non-null messages' );
-        $this->assertEquals( 50, count($messages), 'Expected 50 messages' );
+        $this->assertEquals( 50, count($messages->items), 'Expected 50 messages' );
 
         # verify message order
         $actual_message_history = array();
         for ($i=0; $i<50; $i++) {
-            array_push( $actual_message_history, $messages[$i]->data);
+            array_push( $actual_message_history, $messages->items[$i]->data);
         }
         $expected_message_history = range(0, 49);
         $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in forward order');
@@ -74,12 +74,12 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
 
         $messages = $history2->history( array('direction' => 'backwards') );
         $this->assertNotNull( $messages, 'Expected non-null messages' );
-        $this->assertEquals( 50, count($messages), 'Expected 50 messages' );
+        $this->assertEquals( 50, count($messages->items), 'Expected 50 messages' );
 
         # verify message order
         $actual_message_history = array();
         for ($i=0; $i<50; $i++) {
-            array_push( $actual_message_history, $messages[$i]->data);
+            array_push( $actual_message_history, $messages->items[$i]->data);
         }
         $expected_message_history = range(49, 0, -1);
         $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in backward order');
@@ -98,12 +98,12 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
 
         $messages = $history3->history( array('direction' => 'forwards', 'limit' => 25) );
         $this->assertNotNull( $messages, 'Expected non-null messages' );
-        $this->assertEquals( 25, count($messages), 'Expected 25 messages' );
+        $this->assertEquals( 25, count($messages->items), 'Expected 25 messages' );
 
         # verify message order
         $actual_message_history = array();
         for ($i=0; $i<25; $i++) {
-            array_push( $actual_message_history, $messages[$i]->data);
+            array_push( $actual_message_history, $messages->items[$i]->data);
         }
         $expected_message_history = range(0, 24);
         $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in forward order');
@@ -121,12 +121,12 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
 
         $messages = $history4->history( array('direction' => 'backwards', 'limit' => 25) );
         $this->assertNotNull( $messages, 'Expected non-null messages' );
-        $this->assertEquals( 25, count($messages), 'Expected 25 messages' );
+        $this->assertEquals( 25, count($messages->items), 'Expected 25 messages' );
 
         # verify message order
         $actual_message_history = array();
         for ($i=0; $i<25; $i++) {
-            array_push( $actual_message_history, $messages[$i]->data);
+            array_push( $actual_message_history, $messages->items[$i]->data);
         }
         $expected_message_history = range(49, 25, -1);
         $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in backward order');
@@ -164,12 +164,12 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
             'end'       => $interval_end,
         ));
         $this->assertNotNull( $messages, 'Expect non-null messages' );
-        $this->assertEquals( 20, count($messages), 'Expected 20 messages' );
+        $this->assertEquals( 20, count($messages->items), 'Expected 20 messages' );
 
         # verify message order
         $actual_message_history = array();
         for ($i=20; $i<40; $i++) {
-            array_push( $actual_message_history, $messages[$i-20]->data);
+            array_push( $actual_message_history, $messages->items[$i-20]->data);
         }
         $expected_message_history = range(20, 39);
         $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in forward order');
@@ -208,12 +208,12 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         ));
 
         $this->assertNotNull( $messages, 'Expect non-null messages' );
-        $this->assertEquals( 20, count($messages), 'Expected 20 messages' );
+        $this->assertEquals( 20, count($messages->items), 'Expected 20 messages' );
 
         # verify message order
         $actual_message_history = array();
         for ($i=20; $i<40; $i++) {
-            array_push( $actual_message_history, $messages[$i-20]->data);
+            array_push( $actual_message_history, $messages->items[$i-20]->data);
         }
         $expected_message_history = range(39, 20, -1);
         $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in backward order' );
