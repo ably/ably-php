@@ -49,10 +49,12 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
      * Init library with a token callback
      */
     public function testAuthoriseWithTokenCallback() {
+        $callbackCalled = false;
+
         $ably = new AblyRest( array_merge( self::$defaultOptions, array(
             'appId'        => self::$testApp->getAppId(),
-            'authCallback' => function( $params ) {
-                $this->authinit2_cbCalled = true;
+            'authCallback' => function( $params ) use( &$callbackCalled ) {
+                $callbackCalled = true;
                 return "this_is_not_really_a_token_request";
             }
         ) ) );
@@ -60,7 +62,7 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         // make a call to trigger a token request
         $ably->authorise();
 
-        $this->assertTrue( $this->authinit2_cbCalled, 'Token callback not called' );
+        $this->assertTrue( $callbackCalled, 'Token callback not called' );
         $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
     }
 
