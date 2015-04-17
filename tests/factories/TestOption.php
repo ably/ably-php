@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 class TestOption {
 
-    private static $spec_file = __DIR__ . '/../../ably-common/test-resources/test-app-setup.json';
+    private static $spec_file = '/../../ably-common/test-resources/test-app-setup.json';
     private $settings = array();
     private $options;
     private $spec;
@@ -50,7 +50,7 @@ class TestOption {
     public function get_opts() {
         if (empty($this->options)) {
 
-            $this->spec = json_decode ( file_get_contents( self::$spec_file, 1 ) );
+            $this->spec = json_decode ( file_get_contents( __DIR__ . self::$spec_file, 1 ) );
 
             if (!$this->spec) {
                 trigger_error( 'unable to read spec file' );
