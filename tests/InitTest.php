@@ -3,21 +3,18 @@ namespace tests;
 use Ably\AblyRest;
 use \Exception;
 
-require_once __DIR__ . '/factories/TestOption.php';
+require_once __DIR__ . '/factories/TestApp.php';
 
 class InitTest extends \PHPUnit_Framework_TestCase {
 
-    protected static $options;
-    protected $ably;
+    protected static $testApp;
 
     public static function setUpBeforeClass() {
-
-        self::$options = TestOption::get_instance()->get_opts();
-
+        self::$testApp = new TestApp();
     }
 
     public static function tearDownAfterClass() {
-        TestOption::get_instance()->clear_opts();
+      self::$testApp->release();
     }
 
     /**
@@ -25,8 +22,8 @@ class InitTest extends \PHPUnit_Framework_TestCase {
      */
     public function testInitLibWithKeyOnly() {
         try {
-            $key = self::$options['keys'][0];
-            new AblyRest( $key->key_str );
+            $key = self::$testApp->getAppKeyDefault();
+            new AblyRest( $key->string );
         } catch (Exception $e) {
             $this->fail('Unexpected exception instantiating library');
         }
@@ -37,8 +34,8 @@ class InitTest extends \PHPUnit_Framework_TestCase {
      */
     public function testInitLibWithKeyOption() {
         try {
-            $key = self::$options['keys'][0];
-            new AblyRest( array('key' => $key->key_str) );
+            $key = self::$testApp->getAppKeyDefault();
+            new AblyRest( array('key' => $key->string) );
         } catch (Exception $e) {
             $this->fail('Unexpected exception instantiating library');
         }
@@ -49,7 +46,8 @@ class InitTest extends \PHPUnit_Framework_TestCase {
      */
     public function testInitLibWithAppId() {
         try {
-            new AblyRest( array('appId' => self::$options['appId']) );
+            $key = self::$testApp->getAppKeyDefault();
+            new AblyRest( array('appId' => self::$testApp->getAppId() ) );
         } catch (Exception $e) {
             $this->fail('Unexpected exception instantiating library');
         }
@@ -73,7 +71,7 @@ class InitTest extends \PHPUnit_Framework_TestCase {
     public function testInitLibWithSpecifiedHost() {
         try {
             $opts = array(
-                'appId' => self::$options['appId'],
+                'appId' => self::$testApp->getAppId(),
                 'host'  => 'some.other.host',
             );
             $ably = new AblyRest( $opts );
@@ -89,7 +87,7 @@ class InitTest extends \PHPUnit_Framework_TestCase {
     public function testInitLibWithSpecifiedPort() {
         try {
             $opts = array(
-                'appId' => self::$options['appId'],
+                'appId' => self::$testApp->getAppId(),
                 'port'  => 9999,
             );
             $ably = new AblyRest( $opts );
@@ -105,7 +103,7 @@ class InitTest extends \PHPUnit_Framework_TestCase {
     public function testEncryptedDefaultIsTrue() {
         try {
             $opts = array(
-                'appId' => self::$options['appId'],
+                'appId' => self::$testApp->getAppId(),
             );
             $ably = new AblyRest( $opts );
             $this->assertEquals( 'https', $ably->get_setting('scheme'), 'Unexpected scheme mismatch' );
@@ -120,7 +118,7 @@ class InitTest extends \PHPUnit_Framework_TestCase {
     public function testEncryptedCanBeFalse() {
         try {
             $opts = array(
-                'appId' => self::$options['appId'],
+                'appId' => self::$testApp->getAppId(),
                 'encrypted' => false,
             );
             $ably = new AblyRest( $opts );
@@ -137,7 +135,7 @@ class InitTest extends \PHPUnit_Framework_TestCase {
     public function testLoggerIsCalledWithDebugTrue() {
         try {
             $opts = array(
-                'appId' => self::$options['appId'],
+                'appId' => self::$testApp->getAppId(),
                 'debug' => function( $output ) {
                     $this->init8_logCalled = true;
                     return $output;
@@ -156,7 +154,7 @@ class InitTest extends \PHPUnit_Framework_TestCase {
     public function testLoggerNotCalledWithDebugFalse() {
         try {
             $opts = array(
-                'appId' => self::$options['appId'],
+                'appId' => self::$testApp->getAppId(),
                 'debug' => false,
             );
             $ably = new AblyRest( $opts );

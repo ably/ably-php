@@ -4,32 +4,30 @@ use Ably\AblyRest;
 use Ably\Exceptions\AblyRequestException;
 use Ably\Models\CipherParams;
 
-require_once __DIR__ . '/factories/TestOption.php';
+require_once __DIR__ . '/factories/TestApp.php';
 
 class PresenceTest extends \PHPUnit_Framework_TestCase {
 
-    protected static $options;
+    protected static $testApp;
+    protected static $defaultOptions;
     protected static $ably;
+
     protected static $presenceFixture;
     protected static $channel;
-    protected static $timeOffset;
 
     public static function setUpBeforeClass() {
 
-        self::$options = TestOption::get_instance()->get_opts();
-        self::$ably = new AblyRest(array(
-            'debug'     => false,
-            'encrypted' => self::$options['encrypted'],
-            'host'      => self::$options['host'],
-            'key'       => self::$options['first_private_api_key'],
-            'port'      => self::$options['port'],
-        ));
+        self::$testApp = new TestApp();
+        self::$defaultOptions = self::$testApp->getOptions();
+        self::$ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+        ) ) );
 
-        $spec = TestOption::get_instance()->getSpec();
-        self::$presenceFixture = $spec->post_apps->channels[0]->presence;
+        $fixture = self::$testApp->getFixture();
+        self::$presenceFixture = $fixture->post_apps->channels[0]->presence;
 
-        $key = base64_decode( $spec->cipher->key );
-        $algorithm = $spec->cipher->algorithm . '-' . $spec->cipher->keylength . '-' . $spec->cipher->mode;
+        $key = base64_decode( $fixture->cipher->key );
+        $algorithm = $fixture->cipher->algorithm . '-' . $fixture->cipher->keylength . '-' . $fixture->cipher->mode;
 
         $options = array(
             'encrypted' => true,
@@ -37,11 +35,10 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         );
 
         self::$channel = self::$ably->channel('persisted:presence_fixtures', $options);
-        self::$timeOffset = self::$ably->time() - self::$ably->system_time();
     }
 
     public static function tearDownAfterClass() {
-        TestOption::get_instance()->clear_opts();
+        self::$testApp->release();
     }
 
     /**
@@ -104,25 +101,25 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         }
 
         # verify limit / pagination - forwards
-        $historyLimit = self::$channel->presence->history( array( 'limit' => 3, 'direction' => 'forwards' ) );
+        $firstPage = self::$channel->presence->history( array( 'limit' => 3, 'direction' => 'forwards' ) );
         
-        $this->assertTrue( $historyLimit->isFirst(), 'Expected the page to be first' );
-        $this->assertEquals( 3, count($historyLimit->items), 'Expected 3 presence entries' );
+        $this->assertTrue( $firstPage->isFirst(), 'Expected the page to be first' );
+        $this->assertEquals( 3, count($firstPage->items), 'Expected 3 presence entries' );
 
-        $nextPage = $historyLimit->getNext();
+        $nextPage = $firstPage->getNext();
 
-        $this->assertEquals( self::$presenceFixture[0]->clientId, $historyLimit->items[0]->clientId, 'Expected least recent presence activity to be the first' );
+        $this->assertEquals( self::$presenceFixture[0]->clientId, $firstPage->items[0]->clientId, 'Expected least recent presence activity to be the first' );
         $this->assertEquals( self::$presenceFixture[5]->clientId, $nextPage->items[2]->clientId, 'Expected most recent presence activity to be the last' );
 
         # verify limit / pagination - backwards
-        $historyLimit = self::$channel->presence->history( array( 'limit' => 3, 'direction' => 'backwards' ) );
+        $firstPage = self::$channel->presence->history( array( 'limit' => 3, 'direction' => 'backwards' ) );
 
-        $this->assertTrue( $historyLimit->isFirst(), 'Expected the page to be first' );
-        $this->assertEquals( 3, count($historyLimit->items), 'Expected 3 presence entries' );
+        $this->assertTrue( $firstPage->isFirst(), 'Expected the page to be first' );
+        $this->assertEquals( 3, count($firstPage->items), 'Expected 3 presence entries' );
 
-        $nextPage = $historyLimit->getNext();
+        $nextPage = $firstPage->getNext();
 
-        $this->assertEquals( self::$presenceFixture[5]->clientId, $historyLimit->items[0]->clientId, 'Expected most recent presence activity to be the first' );
+        $this->assertEquals( self::$presenceFixture[5]->clientId, $firstPage->items[0]->clientId, 'Expected most recent presence activity to be the first' );
         $this->assertEquals( self::$presenceFixture[0]->clientId, $nextPage->items[2]->clientId, 'Expected least recent presence activity to be the last' );
     }
 
@@ -134,7 +131,8 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         $delay = 1000; // sleep for 1000ms
         usleep($delay * 1000); // in microseconds
 
-        $now = self::$timeOffset + self::$ably->system_time();
+        $timeOffset = self::$ably->time() - self::$ably->system_time();
+        $now = $timeOffset + self::$ably->system_time();
 
         # test with start parameter
         try {

@@ -4,7 +4,7 @@ use Ably\Models\CipherParams;
 use Ably\Models\Message;
 use Ably\Models\PresenceMessage;
 
-require_once __DIR__ . '/factories/TestOption.php';
+require_once __DIR__ . '/factories/TestApp.php';
 
 class CryptoTest extends \PHPUnit_Framework_TestCase {
 

@@ -2,52 +2,47 @@
 namespace tests;
 use Ably\AblyRest;
 
-require_once __DIR__ . '/factories/TestOption.php';
+require_once __DIR__ . '/factories/TestApp.php';
 
 class AppStatsTest extends \PHPUnit_Framework_TestCase {
 
-    protected static $options;
-    protected static $ably0;
-    protected $ably;
-    protected $time_offset;
+    protected static $testApp;
+    protected static $defaultOptions;
+    protected static $ably;
+
+    protected static $timeOffset;
 
     public static function setUpBeforeClass() {
-        self::$options = TestOption::get_instance()->get_opts();
-        self::$ably0 = new AblyRest(array(
-            'debug'     => false,
-            'encrypted' => self::$options['encrypted'],
-            'host'      => self::$options['host'],
-            'key'       => self::$options['first_private_api_key'],
-            'port'      => self::$options['port'],
-        ));
+        self::$testApp = new TestApp();
+        self::$defaultOptions = self::$testApp->getOptions();
+        self::$ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+        ) ) );
+
+        self::$timeOffset = self::$ably->time() - self::$ably->system_time();
     }
 
     public static function tearDownAfterClass() {
-        TestOption::get_instance()->clear_opts();
-    }
-
-    protected function setUp() {
-        $this->ably = self::$ably0;
-        $this->time_offset = $this->ably->time() - $this->ably->system_time();
+        self::$testApp->release();
     }
 
     public function testPublishEventsForwards() {
         $interval = array();
 
         # wait for the start of the next minute
-        $t = $this->time_offset + $this->ably->system_time();
+        $t = self::$timeOffset + self::$ably->system_time();
         $interval[0] = ceil(($t + 1000)/60000)*60000;
         $wait = ceil(($interval[0] - $t)/1000);
         sleep($wait);
 
         # publish some messages
-        $stats0 = $this->ably->channel('appstats_0');
+        $stats0 = self::$ably->channel('appstats_0');
         for ($i=0; $i < 5; $i++) {
             $stats0->publish( 'stats'.$i, $i );
         }
 
         # wait for the stats to be persisted
-        $interval[1] = $this->time_offset + $this->ably->system_time();
+        $interval[1] = self::$timeOffset + self::$ably->system_time();
         sleep( 10 );
 
         $this->assertTrue(true);
@@ -60,7 +55,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * @depends testPublishEventsForwards
      */
     public function testMinuteLevelStatsExistForwards(array $interval) {
-        $stats = $this->ably->stats(array(
+        $stats = self::$ably->stats(array(
             'direction' => 'forwards',
             'start'     => $interval[0],
             'end'       => $interval[1],
@@ -76,7 +71,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * @depends testPublishEventsForwards
      */
     public function testHourLevelStatsExistForwards(array $interval) {
-        $stats = $this->ably->stats(array(
+        $stats = self::$ably->stats(array(
             'direction' => 'forwards',
             'start'     => $interval[0],
             'end'       => $interval[1],
@@ -93,7 +88,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * @depends testPublishEventsForwards
      */
     public function testDayLevelStatsExistForwards(array $interval) {
-        $stats = $this->ably->stats(array(
+        $stats = self::$ably->stats(array(
             'direction' => 'forwards',
             'start'     => $interval[0],
             'end'       => $interval[1],
@@ -111,7 +106,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * @depends testPublishEventsForwards
      */
     public function testMonthLevelStatsExistForwards(array $interval) {
-        $stats = $this->ably->stats(array(
+        $stats = self::$ably->stats(array(
             'direction' => 'forwards',
             'start'     => $interval[0],
             'end'       => $interval[1],
@@ -130,19 +125,19 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         $interval = array();
 
         # wait for the start of the next minute
-        $t = $this->time_offset + $this->ably->system_time();
+        $t = self::$timeOffset + self::$ably->system_time();
         $interval[0] = ceil(($t + 1000)/60000)*60000;
         $wait = ceil(($interval[0] - $t)/1000);
         sleep($wait);
 
         # publish some messages
-        $stats0 = $this->ably->channel('appstats_1');
+        $stats0 = self::$ably->channel('appstats_1');
         for ($i=0; $i < 6; $i++) {
             $stats0->publish( 'stats'.$i, $i );
         }
 
         # wait for the stats to be persisted
-        $interval[1] = $this->time_offset + $this->ably->system_time();
+        $interval[1] = self::$timeOffset + self::$ably->system_time();
         sleep( 10 );
 
         $this->assertTrue(true);
@@ -155,7 +150,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * @depends testPublishEventsBackwards
      */
     public function testMinuteLevelStatsExistBackwards(array $interval) {
-        $stats = $this->ably->stats(array(
+        $stats = self::$ably->stats(array(
             'direction' => 'backwards',
             'start'     => $interval[0],
             'end'       => $interval[1],
@@ -171,7 +166,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * @depends testPublishEventsBackwards
      */
     public function testHourLevelStatsExistBackwards(array $interval) {
-        $stats = $this->ably->stats(array(
+        $stats = self::$ably->stats(array(
             'direction' => 'backwards',
             'start'     => $interval[0],
             'end'       => $interval[1],
@@ -193,7 +188,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * @depends testPublishEventsBackwards
      */
     public function testDayLevelStatsExistBackwards(array $interval) {
-        $stats = $this->ably->stats(array(
+        $stats = self::$ably->stats(array(
             'direction' => 'backwards',
             'start'     => $interval[0],
             'end'       => $interval[1],
@@ -215,7 +210,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * @depends testPublishEventsBackwards
      */
     public function testMonthLevelStatsExistBackwards(array $interval) {
-        $stats = $this->ably->stats(array(
+        $stats = self::$ably->stats(array(
             'direction' => 'backwards',
             'start'     => $interval[0],
             'end'       => $interval[1],
@@ -238,19 +233,19 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         $interval = array();
 
         # wait for the start of the next minute
-        $t = $this->time_offset + $this->ably->system_time();
+        $t = self::$timeOffset + self::$ably->system_time();
         $interval[0] = ceil(($t + 1000)/60000)*60000;
         $wait = ceil(($interval[0] - $t)/1000);
         sleep($wait);
 
         # publish some messages
-        $stats0 = $this->ably->channel('appstats_2');
+        $stats0 = self::$ably->channel('appstats_2');
         for ($i=0; $i < 7; $i++) {
             $stats0->publish( 'stats'.$i, $i );
         }
 
         # wait for the stats to be persisted
-        $interval[1] = $this->time_offset + $this->ably->system_time();
+        $interval[1] = self::$timeOffset + self::$ably->system_time();
         sleep( 10 );
 
         $this->assertTrue(true);
@@ -263,7 +258,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * @depends testPublishEventsLimit
      */
     public function testLimitParamBackwards(array $interval) {
-        $stats = $this->ably->stats(array(
+        $stats = self::$ably->stats(array(
             'direction' => 'backwards',
             'start'     => $interval[0],
             'end'       => $interval[1],
@@ -280,7 +275,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * @depends testPublishEventsLimit
      */
     public function testLimitParamForwards(array $interval) {
-        $stats = $this->ably->stats(array(
+        $stats = self::$ably->stats(array(
             'direction' => 'forwards',
             'start'     => $interval[0],
             'end'       => $interval[1],
