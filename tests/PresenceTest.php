@@ -25,11 +25,11 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
             'port'      => self::$options['port'],
         ));
 
-        $fixture = json_decode( file_get_contents( __DIR__ . '/fixtures/test-app-setup.json' ) );
-        self::$presenceFixture = $fixture->post_apps->channels[0]->presence;
+        $spec = TestOption::get_instance()->getSpec();
+        self::$presenceFixture = $spec->post_apps->channels[0]->presence;
 
-        $key = base64_decode( $fixture->cipher->key );
-        $algorithm = $fixture->cipher->algorithm . '-' . $fixture->cipher->keylength . '-' . $fixture->cipher->mode;
+        $key = base64_decode( $spec->cipher->key );
+        $algorithm = $spec->cipher->algorithm . '-' . $spec->cipher->keylength . '-' . $spec->cipher->mode;
 
         $options = array(
             'encrypted' => true,

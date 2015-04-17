@@ -8,9 +8,10 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 class TestOption {
 
-    private static $spec_file = 'test-app-setup.json';
+    private static $spec_file = __DIR__ . '/../../ably-common/test-resources/test-app-setup.json';
     private $settings = array();
     private $options;
+    private $spec;
 
     /**
      * singleton pattern
@@ -49,13 +50,13 @@ class TestOption {
     public function get_opts() {
         if (empty($this->options)) {
 
-            $spec = json_decode ( file_get_contents( __DIR__ . '/../fixtures/' . self::$spec_file, 1 ) );
+            $this->spec = json_decode ( file_get_contents( self::$spec_file, 1 ) );
 
-            if (!$spec) {
+            if (!$this->spec) {
                 trigger_error( 'unable to read spec file' );
             }
 
-            $raw = $this->request( 'POST', join('/', array($this->settings['authority'], 'apps') ) , array(), json_encode( $spec->post_apps ) );
+            $raw = $this->request( 'POST', join('/', array($this->settings['authority'], 'apps') ) , array(), json_encode( $this->spec->post_apps ) );
             $response = json_decode( $raw );
 
             if ($response === null) {
@@ -96,6 +97,10 @@ class TestOption {
             $this->request( 'DELETE', join( '/', array($this->settings['authority'],'apps', $this->options['appId']) ), $ably->auth_headers() );
             $this->options = null;
         }
+    }
+
+    public function getSpec() {
+        return $this->spec;
     }
 
     /*
