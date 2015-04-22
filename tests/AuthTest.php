@@ -1,8 +1,9 @@
 <?php
 namespace tests;
 use Ably\AblyRest;
-use Ably\AuthMethod;
-use \Exception;
+use Ably\Models\TokenDetails;
+use Ably\Models\TokenRequest;
+use Ably\Exceptions\AblyRequestException;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -28,7 +29,7 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
             'key' => self::$testApp->getAppKeyDefault()->string,
         ) ) );
 
-        $this->assertEquals( AuthMethod::BASIC, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
+        $this->assertTrue( $ably->auth->isUsingBasicAuth(), 'Unexpected Auth method mismatch.' );
     }
 
 
@@ -37,14 +38,13 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
      */
     public function testAuthoriseWithTokenOnly() {
         $ably = new AblyRest( array_merge( self::$defaultOptions, array(
-            'appId'     => self::$testApp->getAppId(),
-            'authToken' => "this_is_not_really_a_token",
+            'appId' => self::$testApp->getAppId(),
+            'tokenDetails' => new TokenDetails( "this_is_not_really_a_token" ),
         ) ) );
 
-        $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
+        $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Unexpected Auth method mismatch.' );
     }
 
-    protected $authinit2_cbCalled = false;
     /**
      * Init library with a token callback
      */
@@ -53,17 +53,22 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
 
         $ably = new AblyRest( array_merge( self::$defaultOptions, array(
             'appId'        => self::$testApp->getAppId(),
-            'authCallback' => function( $params ) use( &$callbackCalled ) {
+            'authCallback' => function( $tokenParams ) use( &$callbackCalled ) {
                 $callbackCalled = true;
-                return "this_is_not_really_a_token_request";
+                return new TokenRequest( array( "fake" => "this_is_not_really_a_token_request" ) );
             }
         ) ) );
         
-        // make a call to trigger a token request
-        $ably->authorise();
+        // make a call to trigger a token request, catch request exception
+        try {
+            $ably->auth->authorise();
+            $this->fail( 'Expected fake token to be rejected' );
+        } catch (AblyRequestException $e) {
+            //$this->assertEquals( 404, $e->getCode(), 'Expected error code 404' );
+        }
 
         $this->assertTrue( $callbackCalled, 'Token callback not called' );
-        $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
+        $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Unexpected Auth method mismatch.' );
     }
 
 
@@ -76,7 +81,7 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
             'clientId' => 'testClientId',
         ) ) );
 
-        $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
+        $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Unexpected Auth method mismatch.' );
     }
 
     /**
@@ -86,15 +91,15 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         $ably_for_token = new AblyRest( array_merge( self::$defaultOptions, array(
             'key' => self::$testApp->getAppKeyDefault()->string,
         ) ) );
-        $token_details = $ably_for_token->request_token();
+        $tokenDetails = $ably_for_token->auth->requestToken();
 
-        $this->assertNotNull($token_details->id, 'Expected token id' );
+        $this->assertNotNull($tokenDetails->token, 'Expected token id' );
 
         $ably = new AblyRest( array_merge( self::$defaultOptions, array(
-            'appId'     => self::$testApp->getAppId(),
-            'authToken' => $token_details->id,
+            //'key'     => self::$testApp->getAppId(),
+            'tokenDetails' => $tokenDetails,
         ) ) );
 
-        $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
+        $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Unexpected Auth method mismatch.' );
     }
 }

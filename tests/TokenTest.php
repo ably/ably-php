@@ -12,6 +12,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
     protected static $ably;
 
     protected static $errorMarginSeconds = 10;
+    protected static $errorMarginMillis = 10000;
     protected static $capabilityAll;
     protected static $tokenParams = array();
 
@@ -33,15 +34,15 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      * Base requestToken case with null params
      */
     public function testBaseRequestTokenWithNullParams() {
-        $request_time = self::$ably->time_in_seconds();
+        $request_time = self::$ably->time();
         $token_details = self::$ably->request_token(null, null);
-        $this->assertNotNull( $token_details->id, 'Expected token id' );
+        $this->assertNotNull( $token_details->token, 'Expected token id' );
         $this->assertTrue(
-            ($token_details->issued_at >= $request_time - self::$errorMarginSeconds)
-            && ($token_details->issued_at <= $request_time + self::$errorMarginSeconds),
+            ($token_details->issued_at >= $request_time - self::$errorMarginMillis)
+            && ($token_details->issued_at <= $request_time + self::$errorMarginMillis),
             'Unexpected issued_at time'
         );
-        $this->assertEquals( $token_details->issued_at + 60*60, $token_details->expires, 'Unexpected expires time' );
+        $this->assertEquals( $token_details->issued_at + 60*60*1000, $token_details->expires, 'Unexpected expires time' );
         $this->assertEquals( self::$capabilityAll, json_decode($token_details->capability), 'Unexpected capability' );
     }
 
@@ -49,12 +50,16 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      * Base requestToken case with non-null but empty params
      */
     public function testBaseRequestTokenWithNonNullButEmptyParams() {
-        $request_time = self::$ably->time_in_seconds();
+        $request_time = self::$ably->time();
         $params = self::$tokenParams;
         $token_details = self::$ably->request_token(null, $params);
-        $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertTrue( ($token_details->issued_at >= $request_time - self::$errorMarginSeconds) && ($token_details->issued_at <= $request_time + self::$errorMarginSeconds), 'Unexpected issued_at time' );
-        $this->assertEquals( $token_details->issued_at + 60*60, $token_details->expires, 'Unexpected expires time' );
+        $this->assertNotNull( $token_details->token, 'Expected token id' );
+        $this->assertTrue(
+            ($token_details->issued_at >= $request_time - self::$errorMarginMillis)
+            && ($token_details->issued_at <= $request_time + self::$errorMarginMillis),
+            'Unexpected issued_at time'
+        );
+        $this->assertEquals( $token_details->issued_at + 60*60*1000, $token_details->expires, 'Unexpected expires time' );
         $this->assertEquals( self::$capabilityAll, json_decode($token_details->capability), 'Unexpected capability' );
     }
 
@@ -62,14 +67,18 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      * requestToken with explicit timestamp
      */
     public function testRequestTokenWithExplicitTimestamp() {
-        $request_time = self::$ably->time_in_seconds();
+        $request_time = self::$ably->time();
         $params = array_merge(self::$tokenParams, array(
             'timestamp' => $request_time
         ));
         $token_details = self::$ably->request_token(null, $params);
-        $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertTrue( ($token_details->issued_at >= $request_time - self::$errorMarginSeconds) && ($token_details->issued_at <= $request_time + self::$errorMarginSeconds), 'Unexpected issued_at time' );
-        $this->assertEquals( $token_details->issued_at + 60*60, $token_details->expires, 'Unexpected expires time' );
+        $this->assertNotNull( $token_details->token, 'Expected token id' );
+        $this->assertTrue(
+            ($token_details->issued_at >= $request_time - self::$errorMarginMillis)
+            && ($token_details->issued_at <= $request_time + self::$errorMarginMillis),
+            'Unexpected issued_at time'
+        );
+        $this->assertEquals( $token_details->issued_at + 60*60*1000, $token_details->expires, 'Unexpected expires time' );
         $this->assertEquals( self::$capabilityAll, json_decode($token_details->capability), 'Unexpected capability' );
     }
 
@@ -77,9 +86,9 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      * requestToken with explicit, invalid timestamp
      */
     public function testRequestTokenWithExplicitInvalidTimestamp() {
-        $request_time = self::$ably->time_in_seconds();
+        $request_time = self::$ably->time();
         $params = array_merge(self::$tokenParams, array(
-            'timestamp' => $request_time - 30 * 60
+            'timestamp' => $request_time - 30 * 60 * 1000
         ));
         try {
             self::$ably->request_token(null, $params);
@@ -93,12 +102,16 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      * requestToken with system timestamp
      */
     public function testRequestWithSystemTimestamp() {
-        $request_time = time();
+        $request_time = time() * 1000;
         $auth_options = array('query' => true);
         $token_details = self::$ably->request_token($auth_options, null);
-        $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertTrue( ($token_details->issued_at >= $request_time - self::$errorMarginSeconds) && ($token_details->issued_at <= $request_time + self::$errorMarginSeconds), 'Unexpected issued_at time' );
-        $this->assertEquals( $token_details->issued_at + 60*60, $token_details->expires, 'Unexpected expires time' );
+        $this->assertNotNull( $token_details->token, 'Expected token id' );
+        $this->assertTrue(
+            ($token_details->issued_at >= $request_time - self::$errorMarginMillis)
+            && ($token_details->issued_at <= $request_time + self::$errorMarginMillis),
+            'Unexpected issued_at time'
+        );
+        $this->assertEquals( $token_details->issued_at + 60*60*1000, $token_details->expires, 'Unexpected expires time' );
         $this->assertEquals( self::$capabilityAll, json_decode($token_details->capability), 'Unexpected capability' );
     }
 
@@ -106,13 +119,13 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      * requestToken with duplicate nonce
      */
     public function testRequestTokenWithDuplicateNonce() {
-        $request_time = self::$ably->time_in_seconds();
+        $request_time = self::$ably->time();
         $token_params = array(
             'timestamp' => $request_time,
             'nonce' => "1234567890123456",
         );
         $token_details = self::$ably->request_token( null, $token_params );
-        $this->assertNotNull( $token_details->id, 'Expected token id' );
+        $this->assertNotNull( $token_details->token, 'Expected token id' );
         try {
             self::$ably->request_token( null, $token_params );
         } catch (Exception $e) {
@@ -124,14 +137,18 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      * Base requestToken case with non-null but empty params
      */
     public function testBaseRequestTokenCaseWithNonNullButEmptyParams() {
-        $request_time = self::$ably->time_in_seconds();
+        $request_time = self::$ably->time();
         $token_params = array(
             'client_id' => 'test client id',
         );
         $token_details = self::$ably->request_token( null, $token_params );
-        $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertTrue( ($token_details->issued_at >= $request_time - self::$errorMarginSeconds) && ($token_details->issued_at <= $request_time + self::$errorMarginSeconds), 'Unexpected issued_at time' );
-        $this->assertEquals( $token_details->issued_at + 60*60, $token_details->expires, 'Unexpected expires time' );
+        $this->assertNotNull( $token_details->token, 'Expected token id' );
+        $this->assertTrue(
+            ($token_details->issued_at >= $request_time - self::$errorMarginMillis)
+            && ($token_details->issued_at <= $request_time + self::$errorMarginMillis),
+            'Unexpected issued_at time'
+        );
+        $this->assertEquals( $token_details->issued_at + 60*60*1000, $token_details->expires, 'Unexpected expires time' );
         $this->assertEquals( self::$capabilityAll, json_decode($token_details->capability), 'Unexpected capability' );
         $this->assertEquals( $token_params['client_id'], $token_details->clientId, 'Unexpected clientId' );
     }
@@ -141,11 +158,10 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      */
     public function testTokenGenerationWithCapabilityKey() {
         $capability = array( 'onlythischannel' => array('subscribe') );
-        $capability_obj = json_decode(json_encode($capability), false);
         $token_params = array('capability' => $capability );
         $token_details = self::$ably->request_token( null, $token_params );
-        $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( $capability_obj, json_decode($token_details->capability), 'Unexpected capability' );
+        $this->assertNotNull( $token_details->token, 'Expected token id' );
+        $this->assertEquals( $capability_obj, (array) json_decode($token_details->capability), 'Unexpected capability' );
     }
 
     /**
@@ -161,7 +177,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         $token_details = self::$ably->request_token($auth_options, null);
         $capability_obj = json_decode($key->capability, false);
 
-        $this->assertNotNull( $token_details->id, 'Expected token id' );
+        $this->assertNotNull( $token_details->token, 'Expected token id' );
         $this->assertEquals( $capability_obj, json_decode($token_details->capability), 'Unexpected capability' );
     }
 
@@ -183,17 +199,17 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      * Token generation with specified ttl
      */
     public function testTokenGenerationWithSpecifiedTTL() {
-        $token_params = array( 'ttl' => 100 );
+        $token_params = array( 'ttl' => 60 * 1000 );
         $token_details = self::$ably->request_token(null, $token_params);
-        $this->assertNotNull( $token_details->id, 'Expected token id' );
-        $this->assertEquals( $token_details->issued_at + 100, $token_details->expires, 'Unexpected expires time' );
+        $this->assertNotNull( $token_details->token, 'Expected token id' );
+        $this->assertEquals( $token_details->issued_at + 60 * 1000, $token_details->expires, 'Unexpected expires time' );
     }
 
     /**
      * Token generation with excessive ttl
      */
     public function testTokenGenerationWithExcessiveTTL() {
-        $token_params = array( 'ttl' => 365*24*60*60 );
+        $token_params = array( 'ttl' => 365*24*60*60*1000 );
         try {
             self::$ably->request_token(null, $token_params);
             $this->fail('Expected token request rejection');
@@ -206,7 +222,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      * Token generation with invalid ttl
      */
     public function testTokenGenerationWithInvalidTTL() {
-        $token_params = array( 'ttl' => -1 );
+        $token_params = array( 'ttl' => -1 * 1000 );
         try {
             self::$ably->request_token(null, $token_params);
             $this->fail('Expected token request rejection');

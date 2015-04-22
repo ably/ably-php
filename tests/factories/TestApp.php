@@ -18,35 +18,27 @@ class TestApp {
     private $appId;
     private $appKeys = array();
     private $server;
+    private $debugRequests = false;
 
     public function __construct() {
 
-        $settings = array( 'host' => getenv("WEBSOCKET_ADDRESS"), 'debug' => false );
+        $settings = array();
 
-        if (empty($settings['host'])) {
-            //$settings['host'] = "staging-rest.ably.io";
-            $settings['host'] = "sandbox-rest.ably.io";
-            //$settings['host'] = "rest.ably.io";
-            $settings['encrypted'] = true;
-        } else {
-            $settings['encrypted'] = $settings['host'] != "localhost";
-            $settings['port'] = $settings['encrypted'] ? 8081 : 8080;
-        }
+        $settings['tls'] = true;
+        $settings['host'] = "staging-rest.ably.io";
+        //$settings['host'] = "sandbox-rest.ably.io";
+        //$settings['host'] = "rest.ably.io";
 
-        if (!isset( $settings['port'] ) ) {
-            $settings['port'] = $settings['encrypted'] ?  443 : 80;
-        }
+        $this->options = $settings;
 
-        $scheme = 'http' . ($settings['encrypted'] ? 's' : '');
-
-        $this->server = $scheme .'://'. $settings['host'] .':'. $settings['port'];
-
-        $this->init( $settings );
+        $scheme = 'http' . ($settings['tls'] ? 's' : '');
+        $this->server = $scheme .'://'. $settings['host'];
+        $this->init();
 
         return $this;
     }
 
-    private function init( $settings ) {
+    private function init() {
 
         $this->fixture = json_decode ( file_get_contents( __DIR__ . self::$fixtureFile, 1 ) );
 
@@ -75,14 +67,12 @@ class TestApp {
 
             $this->appKeys[] = $obj;
         }
-
-        $this->options = $settings;
     }
 
     public function release() {
         if (!empty($this->options)) {
             $ably = new AblyRest( $this->getAppKeyDefault()->string );
-            $this->request( 'DELETE', $this->server . '/apps/' . $this->appId, $ably->auth_headers() );
+            $this->request( 'DELETE', $this->server . '/apps/' . $this->appId );
             $this->options = null;
         }
     }
@@ -138,12 +128,14 @@ class TestApp {
         $curl_cmd .= $url;
 
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-        $this->options['debug'] && curl_setopt( $ch, CURLOPT_VERBOSE, 1 );
+        if ($this->debugRequests) {
+            curl_setopt( $ch, CURLOPT_VERBOSE, 1 );
+        } 
 
         $raw = curl_exec($ch);
         curl_close ($ch);
 
-        if ($this->options['debug']) {
+        if ($this->debugRequests) {
             var_dump($curl_cmd);
             var_dump($raw);
         }

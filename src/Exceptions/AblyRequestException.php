@@ -6,10 +6,10 @@ namespace Ably\Exceptions;
  */
 class AblyRequestException extends AblyException {
 
-    private $response;
+    protected $response;
     
-    public function __construct($message, $code, $response) {
-        parent::__construct($message, $code);
+    public function __construct($message, $code, $ablyCode, $response = '') {
+        parent::__construct($message, $code, $ablyCode);
 
         $this->response = $response;
     }

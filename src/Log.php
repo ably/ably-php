@@ -1,0 +1,114 @@
+<?php
+namespace Ably;
+
+class Log {
+    const NONE    = 0;
+    const ERROR   = 1;
+    const WARNING = 2;
+    const DEBUG   = 3;
+    const VERBOSE = 4;
+
+    protected static $logLevel;
+    protected static $logCallback;
+
+    private function __construct() {
+        self::$loglevel = Log::WARNING;
+    }
+
+    public function __destruct() {
+    }
+
+    public static function setLogLevel($logLevel) {
+        self::$logLevel = $logLevel;
+    }
+
+    /**
+     * Sets a custom logging function that will be called in place of self::log()
+     * @param function|null $function Custom function or leave empty to revert to default
+     */
+    public static function setLogCallback($function = null) {
+        self::$logFunction = $function;
+        if ($function) {
+            $this->v('Set custom logging callback function');
+        } else {
+            $this->v('Restored default logging function');
+        }
+    }
+
+    /**
+     * Log verbose level information.
+     * @param mixed ... Any number of variables or messages to log
+     */
+    public static function v(/*...*/) {
+        self::log(Log::VERBOSE, func_get_args());
+    }
+
+    /**
+     * Log debug level information.
+     * @param mixed ... Any number of variables or messages to log
+     */
+    public static function d(/*...*/) {
+        self::log(Log::DEBUG, func_get_args());
+    }
+
+    /**
+     * Log info level information.
+     * @param mixed ... Any number of variables or messages to log
+     */
+    public static function i(/*...*/) {
+        self::log(Log::INFO, func_get_args());
+    }
+
+    /**
+     * Log warning level information.
+     * @param mixed ... Any number of variables or messages to log
+     */
+    public static function w(/*...*/) {
+        self::log(Log::WARNING, func_get_args());
+    }
+
+    /**
+     * Log error level information.
+     * @param mixed ... Any number of variables or messages to log
+     */
+    public static function e(/*...*/) {
+        self::log(Log::ERROR, func_get_args());
+    }
+
+    /**
+     * Logs provided message if log level matches requested level.
+     * Calls either built-in function or a custom callback if provided
+     * @param integer $level Log level
+     * @param array $args arguments to dump
+     */
+    public static function log( $level, $args ) {
+        if (self::$logLevel >= $level) {
+            return self::$logCallback ? self::$logCallback( $level, $args ) : self::defaultLogCallback( $level, $args );
+        }
+    }
+
+    /**
+     * The default logging function
+     */
+    private static function defaultLogCallback( $level, $args ) {
+        $last = count($args) - 1;
+
+        echo date( "Y-m-d H:i:s\t" );
+
+        foreach ($args as $i => $arg) {
+            if (is_string($arg)) {
+                echo $arg . ($i == $last ? "\n" : "\t");
+            }
+            else if (is_bool($arg)) {
+                echo ($arg ? 'true' : 'false') . ($i == $last ? "\n" : "\t");
+            }
+            else if (is_scalar($arg)) {
+                echo $arg . ($i == $last ? "\n" : "\t");
+            }
+            else {
+                print_r( $arg );
+                echo "\n";
+            }
+        }
+    }
+}
