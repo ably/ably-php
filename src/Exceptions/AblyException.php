@@ -15,4 +15,8 @@ class AblyException extends Exception {
 
         $this->ablyCode = $ablyCode;
     }
+
+    public function getAblyCode() {
+    	return $this->ablyCode;
+    }
 }

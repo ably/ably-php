@@ -33,8 +33,7 @@ class Http {
 
     /**
      * Wrapper to do a GET request
-     * @throws AblyRequestException if the request fails
-     * @return array with 'headers' and 'body' fields, body is automatically decoded
+     * @see Http::request()
      */
     public function get( $url, $headers = array(), $params = array() ) {
         return $this->request( 'GET', $url, $headers, $params );
@@ -42,8 +41,7 @@ class Http {
 
     /**
      * Wrapper to do a POST request
-     * @throws AblyRequestException if the request fails
-     * @return array with 'headers' and 'body' fields, body is automatically decoded
+     * @see Http::request()
      */
     public function post( $url, $headers = array(), $params = array() ) {
         return $this->request( 'POST', $url, $headers, $params );
@@ -51,8 +49,7 @@ class Http {
 
     /**
      * Wrapper to do a PUT request
-     * @throws AblyRequestException if the request fails
-     * @return array with 'headers' and 'body' fields, body is automatically decoded
+     * @see Http::request()
      */
     public function put( $url, $headers = array(), $params = array() ) {
         return $this->request( 'PUT', $url, $headers, $params );
@@ -60,8 +57,7 @@ class Http {
 
     /**
      * Wrapper to do a DELETE request
-     * @throws AblyRequestException if the request fails
-     * @return array with 'headers' and 'body' fields, body is automatically decoded
+     * @see Http::request()
      */
     public function delete( $url, $headers = array(), $params = array() ) {
         return $this->request( 'DELETE', $url, $headers, $params );
@@ -79,7 +75,7 @@ class Http {
      */
     public function request( $method, $url, $headers = array(), $params = array() ) {
 
-        $curl_cmd = 'curl ';
+        $curlCmd = 'curl ';
         $ch = curl_init($url);
 
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->timeout); 
@@ -95,29 +91,29 @@ class Http {
                 } else if ($method == 'POST') {
                     curl_setopt( $ch, CURLOPT_POST, true );
                     curl_setopt( $ch, CURLOPT_POSTFIELDS, $paramsQuery );
-                    $curl_cmd .= '-X POST ';
-                    $curl_cmd .= '--data "'. str_replace( '"', '\"', $paramsQuery ) .'" ';
+                    $curlCmd .= '-X POST ';
+                    $curlCmd .= '--data "'. str_replace( '"', '\"', $paramsQuery ) .'" ';
                 } else {
                     curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, $method );
                     curl_setopt( $ch, CURLOPT_POSTFIELDS, $paramsQuery );
-                    $curl_cmd .= '-X ' . $method . ' ';
-                    $curl_cmd .= '--data "'. str_replace( '"', '\"', $paramsQuery ) .'" ';
+                    $curlCmd .= '-X ' . $method . ' ';
+                    $curlCmd .= '--data "'. str_replace( '"', '\"', $paramsQuery ) .'" ';
                 }
             } else if (is_string( $params )) { // json or msgpack
                 if ($method == 'GET') {
                 } else if ($method == 'POST') {
                     curl_setopt( $ch, CURLOPT_POST, true );
-                    $curl_cmd .= '-X POST ';
+                    $curlCmd .= '-X POST ';
                 } else {
                     curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, $method );
-                    $curl_cmd .= '-X ' . $method . ' ';
+                    $curlCmd .= '-X ' . $method . ' ';
                 }
 
                 curl_setopt( $ch, CURLOPT_POSTFIELDS, $params );
 
                 if ($this->postDataFormat == 'json') {
                     array_push( $headers, 'Accept: application/json', 'Content-Type: application/json' );
-                    $curl_cmd .= '--data "'.str_replace( '"', '\"', $params ).'" ';
+                    $curlCmd .= '--data "'.str_replace( '"', '\"', $params ).'" ';
                 }
             } else {
                 throw new AblyRequestException('Unknown $params format', 400, 40000);
@@ -128,17 +124,19 @@ class Http {
             curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
 
             foreach($headers as $header) {
-                $curl_cmd .= '-H "' . str_replace( '"', '\"', $header ).'" ';
+                $curlCmd .= '-H "' . str_replace( '"', '\"', $header ).'" ';
             }
         }
 
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-        //curl_setopt( $ch, CURLOPT_VERBOSE, $this->getopt('debug') );
+        if ( Log::getLogLevel() >= Log::VERBOSE ) {
+            curl_setopt( $ch, CURLOPT_VERBOSE, true );
+        }
         curl_setopt( $ch, CURLOPT_HEADER, true ); // return response headers
 
-        $curl_cmd .= $url;
+        $curlCmd .= $url;
 
-        Log::d( 'cURL request:', $curl_cmd );
+        Log::d( 'cURL request:', $curlCmd );
 
         $raw = curl_exec($ch);
         $info = curl_getinfo($ch);
@@ -149,7 +147,7 @@ class Http {
 
         curl_close ($ch);
 
-        if ($err == 28) { // code for timeout, the constant name is inconsistent - either CURLE_OPERATION_TIMEDOUT or CURLE_OPERATION_TIMEOUTED 
+        if ( $err == 28 ) { // code for timeout, the constant name is inconsistent - could be either CURLE_OPERATION_TIMEDOUT or CURLE_OPERATION_TIMEOUTED 
             throw new AblyRequestTimeoutException( 'cURL request timed out', 500, 50003 );
         }
 
@@ -164,9 +162,10 @@ class Http {
         Log::d( 'cURL request response:', $info['http_code'], $response );
 
         if ( !in_array( $info['http_code'], array(200,201) ) ) {
-            $ablyCode = $decodedBody && isset($decodedBody->error->code) ? $decodedBody->error->code : null;
+            $ablyCode = empty( $decodedBody->error->code ) ? null : $decodedBody->error->code;
+            $errorMessage = empty( $decodedBody->error->message ) ? 'cURL request failed' : $decodedBody->error->message;
 
-            throw new AblyRequestException( 'cURL request failed', $info['http_code'], $ablyCode, $response );
+            throw new AblyRequestException( $errorMessage, $info['http_code'], $ablyCode, $response );
         }
 
         return $response;

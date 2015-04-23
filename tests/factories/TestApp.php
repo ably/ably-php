@@ -1,6 +1,7 @@
 <?php
 namespace tests;
 use Ably\AblyRest;
+use Ably\Log;
 use \stdClass;
 
 require_once __DIR__ . '/../../vendor/autoload.php';
@@ -12,7 +13,6 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 class TestApp {
 
     private static $fixtureFile = '/../../ably-common/test-resources/test-app-setup.json';
-    private $settings = array();
     private $options;
     private $fixture;
     private $appId;
@@ -28,6 +28,7 @@ class TestApp {
         $settings['host'] = "staging-rest.ably.io";
         //$settings['host'] = "sandbox-rest.ably.io";
         //$settings['host'] = "rest.ably.io";
+        //$settings['logLevel'] = Log::DEBUG;
 
         $this->options = $settings;
 
@@ -62,6 +63,7 @@ class TestApp {
             $obj->appId = $this->appId;
             $obj->id = $key->id;
             $obj->value = $key->value;
+            $obj->name = $this->appId . '.' . $key->id;
             $obj->string = $this->appId . '.' . $key->id . ':' . $key->value;
             $obj->capability = $key->capability;
 

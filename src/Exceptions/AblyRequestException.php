@@ -8,10 +8,10 @@ class AblyRequestException extends AblyException {
 
     protected $response;
     
-    public function __construct($message, $code, $ablyCode, $response = '') {
-        parent::__construct($message, $code, $ablyCode);
+    public function __construct( $message, $code, $ablyCode, $response = null ) {
+        parent::__construct( $message, $code, $ablyCode );
 
-        $this->response = $response;
+        $this->response = $response ? : array( 'headers' => '', 'body' => '' );
     }
 
     public function getResponse() {

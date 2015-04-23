@@ -2,18 +2,13 @@
 namespace Ably\Models;
 
 use Ably\Log;
+use Ably\Models\TokenDetails;
 
 /**
  * Client library options
  */
 class AuthOptions extends BaseOptions {
 
-    /**
-     * @var string|null The application id. This option is only required if the application id cannot be inferred either from a key or token option.
-     * If given, it is the application id as indicated on the application dashboard.
-     */
-    public $appId;
-    
     /**
      * @var string|null A client id, used for identifying this client for presence purposes.
      * The clientId can be any string. This option is primarily intended to be used in situations where the library is instanced with a key;
@@ -26,9 +21,15 @@ class AuthOptions extends BaseOptions {
      * Use this option if you wish to use Basic authentication, or wish to be able to issue tokens without needing to defer to a separate entity to sign token requests.
      */
     public $key;
+
+    /**
+     * @var string|null Token string that should be used for authentificating all requests
+     */
+    public $token;
     
     /**
      * @var \Ably\Models\TokenDetails|null Token that should be used for authentificating all requests
+     * If $token is provided $tokenDetails get populated automatically
      */
     public $tokenDetails;
 
@@ -60,4 +61,12 @@ class AuthOptions extends BaseOptions {
      * @var array|null HTTP method to use with authUrl, defaults to GET
      */
     public $authMethod = 'GET';
+
+    public function __construct( $options = array() ) {
+        parent::__construct( $options );
+        
+        if ( empty( $this->tokenDetails ) && !empty( $this->token ) ) {
+            $this->tokenDetails = new TokenDetails( $this->token );
+        }
+    }
 }

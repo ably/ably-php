@@ -16,7 +16,7 @@ use Ably\Exceptions\AblyException;
 class Auth {
     private $authOptions;
     private $basicAuth;
-    private $token;
+    private $tokenDetails;
     private $ably;
 
     public function __construct(AblyRest $ably, ClientOptions $options) {
@@ -55,20 +55,21 @@ class Auth {
      * In the event that a new token request is made, the specified options are used.
      */
     public function authorise( $options = array(), $force = false ) {
-        if ( !empty($this->token) ) {
-            if ( $this->token->expires > $this->ably->timestamp() ) {
+        if ( !empty( $this->tokenDetails ) ) {
+            if ( $this->tokenDetails->expires > $this->ably->timestamp() ) {
                 if ( !$force ) {
                     // using cached token
-                    Log::d( 'Auth::authorise: using cached token, expires on ' . date( 'Y-m-d H:i:s', $this->token->expires ) );
+                    Log::d( 'Auth::authorise: using cached token, expires on ' . date( 'Y-m-d H:i:s', $this->tokenDetails->expires ) );
                     return $this;
                 }
             } else {
                 // deleting expired token
-                unset($this->token);
+                unset( $this->tokenDetails );
             }
         }
         Log::d( 'Auth::authorise: requesting new token' );
-        $this->token = $this->requestToken( $options );
+        $this->tokenDetails = $this->requestToken( $options );
+        $this->authOptions->tokenDetails = $this->tokenDetails;
 
         return $this;
     }
@@ -80,9 +81,9 @@ class Auth {
         $header = array();
         if ( $this->isUsingBasicAuth() ) {
             $header = array( "authorization: Basic {$this->authOptions->key}" );
-        } else if ( !empty($this->token) ) {
+        } else if ( !empty( $this->tokenDetails ) ) {
             $this->authorise();
-            $header = array( "authorization: Bearer {$this->token->id}" );
+            $header = array( "authorization: Bearer {$this->tokenDetails->token}" );
         }
         return $header;
     }
@@ -91,7 +92,7 @@ class Auth {
      * @return \Ably\Models\TokenDetails Token currently in use
     */
     public function getToken() {
-        return $this->token;
+        return $this->tokenDetails;
     }
 
     /**
@@ -104,7 +105,7 @@ class Auth {
     public function requestToken( $authOptions = array(), $tokenParams = array() ) {
 
         // merge provided auth options with defaults
-        $authOptions = new ClientOptions( array_merge( $this->authOptions->toArray(), $authOptions ) );
+        $authOptions = new AuthOptions( array_merge( $this->authOptions->toArray(), $authOptions ) );
         $tokenParams = new TokenParams( $tokenParams );
 
         if ( empty( $tokenParams->clientId ) ) {
@@ -134,18 +135,20 @@ class Auth {
             $data = $this->ably->http->request(
                 $authOptions->authMethod,
                 $authOptions->authUrl,
-                $authOptions->authHeaders,
-                array_merge( empty($authOptions->authParams) ? array() : $authOptions->authParams, $tokenParams )
+                $authOptions->authHeaders ? : array(),
+                array_merge( $authOptions->authParams ? : array(), $tokenParams->toArray() )
             );
+            
+            $data = $data['body'];
 
             if ( !is_object( $data ) ) {
                 Log::e( 'Auth::requestToken:', 'Invalid response from authURL, expecting JSON' );
                 throw new AblyException( 'Invalid response from authURL', 400, 40000 );
             }
 
-            if ( !empty( $data->issued_at ) ) { // assuming it's a token
-                return new Token( $data );
-            } else if ( !empty( $data->hmac ) ) { // assuming it's a signed token request
+            if ( !empty( $data->issued ) ) { // assuming it's a token
+                return new TokenDetails( $data );
+            } else if ( !empty( $data->mac ) ) { // assuming it's a signed token request
                 $signedTokenRequest = new TokenRequest( $data );
             } else {
                 Log::e( 'Auth::requestToken:', 'Invalid response from authURL, expecting JSON representation of signed TokenRequest or a Token' );
@@ -156,17 +159,26 @@ class Auth {
             $signedTokenRequest = $this->createTokenRequest( $authOptions, $tokenParams );
         } else {
             Log::e( 'Auth::requestToken:', 'Unable to request a Token, options must include valid authentication parameters' );
-            throw new AblyException( 'Unable to request a Token', 400, 40000 );
+            throw new AblyException( 'Invalid auth parameters', 400, 40000 );
         }
 
         // do the request
 
-        $keyParts = explode( ':', $authOptions->key );
-        $keyName = $keyParts[0];
-        $res = $this->ably->post( "/keys/{$keyName}/requestToken", array(), json_encode( $signedTokenRequest->toArray() ), false, true );
+        $keyName = $signedTokenRequest->keyName;
 
-        if ( empty( $res->token ) ) {
+        if ( empty( $keyName ) ) {
+            throw new AblyException( 'No keyName specified in the TokenRequest', 400, 40000 );
+        }
+        
+        $res = $this->ably->post(
+            "/keys/{$keyName}/requestToken",
+            $headers = array(),
+            $params = json_encode( $signedTokenRequest->toArray() ),
+            $returnHeaders = false,
+            $authHeaders = false
+        );
 
+        if ( empty( $res->token ) ) { // just in case.. an AblyRequestException should be thrown on the previous step with a 4XX error code on failure
             throw new AblyException( 'Failed to get a token', 401, 40100 );
         }
 
@@ -205,9 +217,9 @@ class Auth {
             $tokenRequest->timestamp = $this->ably->systemTime();
         }
         
-        /*if ( empty( $tokenRequest->clientId ) ) {
+        if ( empty( $tokenRequest->clientId ) ) {
             $tokenRequest->clientId = $authOptions->clientId;
-        }*/
+        }
 
         if ( empty( $tokenRequest->nonce ) ) {
             $tokenRequest->nonce = md5( microtime( true ) . mt_rand() );
