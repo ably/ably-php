@@ -109,13 +109,17 @@ class AblyRest {
      * @throws AblyRequestException if the request fails
      */
     public function request( $method, $path, $headers = array(), $params = array(), $returnHeaders = false, $auth = true ) {
-        $server = ($this->options->tls ? 'https://' : 'http://') . (is_array( $this->options->host ) ? $this->options->host[0] : $this->options->host);
-        
         if ( $auth ) { // inject auth headers
             $headers = array_merge( $this->auth->getAuthHeaders(), $headers );
         }
 
-        // TODO handle fallback
+        if ( is_array( $this->options->host ) ) {
+            $res = $this->requestWithFallback( $method, $path, $headers, $params );
+        } else {
+            $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->host;
+            $res = $this->http->request( $method, $server . $path, $headers, $params );
+        }
+
         // TODO handle token expiry:
         /*
         you know if the reason for failure was token expiry if:
@@ -123,10 +127,49 @@ class AblyRest {
         - the error code is `40140`
         */
 
-        $res = $this->http->request( $method, $server . $path, $headers, $params );
         if (!$returnHeaders) {
             $res = $res['body'];
         }
         return $res;
+    }
+
+    /**
+     * Does a HTTP request backed up by fallback servers
+     */
+    protected function requestWithFallback( $method, $path, $headers = array(), $params = array(), $attempt = 0 ) {
+
+        if ( $attempt >= count( $this->options->host ) ) {
+            throw new AblyRequestException( 'Could not connect to server or any of the fallback servers', 500, 50003 );
+        }
+
+        if ( $attempt > 0 ) {
+            Log::d( 'Connection failed, attempting with fallback server #' . $attempt );
+        }
+
+        $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->host[$attempt];
+
+        try {
+            $res = $this->http->request( $method, $server . $path, $headers, $params );
+
+            // successful reuest
+
+            if ($attempt > 0) { // reorder servers, so that the working one is first and not working one(s) last
+                Log::d( 'Switching server to: ' . $this->options->host[$attempt] );
+                $this->options->host = $this->rotateArray( $this->options->host, $attempt );
+            }
+
+            return $res;
+        }
+        catch (AblyRequestException $e) {
+            if ( $e->getAblyCode() == 50003 ) {
+                return $this->requestWithFallback( $method, $path, $headers, $params, $attempt + 1);
+            }
+
+            throw $e; // other error code than timeout, rethrow exception
+        }
+    }
+
+    private function rotateArray( $array, $offset ) {
+        return array_merge( array_slice( $array, $offset, NULL, true ), array_slice( $array, 0, $offset, true ) );
     }
 }

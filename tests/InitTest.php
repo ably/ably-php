@@ -3,7 +3,8 @@ namespace tests;
 use Ably\AblyRest;
 use Ably\Http;
 use Ably\Log;
-use \Exception;
+use Ably\Exceptions\AblyRequestException;
+use Ably\Models\ClientOptions;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -13,7 +14,7 @@ class InitTest extends \PHPUnit_Framework_TestCase {
      * Init library with a key only
      */
     public function testInitLibWithKeyOnly() {
-        $key = "fake.key:veryFake";
+        $key = 'fake.key:veryFake';
         new AblyRest( $key );
     }
 
@@ -21,7 +22,7 @@ class InitTest extends \PHPUnit_Framework_TestCase {
      * Init library with a key in options
      */
     public function testInitLibWithKeyOption() {
-        $key = "fake.key:veryFake";
+        $key = 'fake.key:veryFake';
         new AblyRest( array('key' => $key ) );
     }
 
@@ -30,6 +31,7 @@ class InitTest extends \PHPUnit_Framework_TestCase {
      */
     public function testInitLibWithSpecifiedHost() {
         $opts = array(
+            'key' => 'fake.key:veryFake',
             'host'  => 'some.other.host',
             'httpClass' => 'tests\HttpMockInitTest',
         );
@@ -43,6 +45,7 @@ class InitTest extends \PHPUnit_Framework_TestCase {
      */
     public function testEncryptedDefaultIsTrue() {
         $opts = array(
+            'key' => 'fake.key:veryFake',
             'httpClass' => 'tests\HttpMockInitTest',
         );
         $ably = new AblyRest( $opts );
@@ -55,6 +58,7 @@ class InitTest extends \PHPUnit_Framework_TestCase {
      */
     public function testEncryptedCanBeFalse() {
         $opts = array(
+            'key' => 'fake.key:veryFake',
             'httpClass' => 'tests\HttpMockInitTest',
             'tls' => false,
         );
@@ -63,12 +67,83 @@ class InitTest extends \PHPUnit_Framework_TestCase {
         $this->assertRegExp( '/^http:\/\//', $ably->http->lastUrl, 'Unexpected scheme mismatch' );
     }
 
+
+    /**
+     * Verify if fallback hosts are working
+     */
+    public function testFallbackHosts() {
+        $defaultOpts = new ClientOptions();
+
+        $opts = array(
+            'key' => 'fake.key:veryFake',
+            'httpClass' => 'tests\HttpMockInitTestTimeout',
+        );
+        $ably = new AblyRest( $opts );
+        try {
+            $ably->time(); // make a request
+            $this->fail('Expected the request to fail');
+        } catch(AblyRequestException $e) {
+            sort( $ably->http->failedHosts );
+            sort( $defaultOpts->host );
+            $this->assertEquals( $defaultOpts->host, $ably->http->failedHosts, 'Expected to have tried all defined fallback hosts' );
+        }
+    }
+
+    /**
+     * Verify if fallback hosts are working - first 3 fail, 4th works
+     */
+    public function testFallbackHostsFailFirst3() {
+        $opts = array(
+            'key' => 'fake.key:veryFake',
+            'httpClass' => 'tests\HttpMockInitTestTimeout',
+        );
+        $ably = new AblyRest( $opts );
+        $ably->http->failAttempts = 3;
+        $data = $ably->time(); // make a request
+        
+        $this->assertEquals( 999999, $data, 'Expected to receive test data' );
+        $this->assertEquals( 3, count( $ably->http->failedHosts ), 'Expected 3 hosts to fail' );
+    }
+
+    /**
+     * Verify if fallback host cycling is working - every host works at 1st attempt, fails at 2nd attempt
+     */
+    public function testFallbackHostsCycling() {
+        $defaultOpts = new ClientOptions();
+        $fallbackHosts = count( $defaultOpts->host );
+
+        $opts = array(
+            'key' => 'fake.key:veryFake',
+            'httpClass' => 'tests\HttpMockInitTestTimeout',
+        );
+        $ably = new AblyRest( $opts );
+
+        // try every host twice
+        for ($i = 0; $i < $fallbackHosts * 2; $i++) {
+            // host should work
+            $ably->http->failAttempts = 0;
+            $ably->time();
+
+            // host should fail, host list should cycle
+            $ably->http->failAttempts = 1;
+            $ably->time();
+        }
+
+        // compare if the first half of attempts is in the same order as the second one
+        $firstCycle = array_slice( $ably->http->failedHosts, 0, $fallbackHosts );
+        $secondCycle = array_slice( $ably->http->failedHosts, $fallbackHosts );
+
+        $this->assertEquals( $fallbackHosts * 2, count( $ably->http->failedHosts ), 'Expected ' . ($fallbackHosts * 2) . ' host failures' );
+        $this->assertEquals( $firstCycle, $secondCycle, 'Expected fallback hosts to cycle' );
+    }
+
     /**
      * Init with log handler; check if called
      */
     public function testLogHandler() {
         $called = false;
         $opts = array(
+            'key' => 'fake.key:veryFake',
             'logLevel' => Log::VERBOSE,
             'logHandler' => function( $level, $args ) use ( &$called ) {
                 $called = true;
@@ -85,6 +160,7 @@ class InitTest extends \PHPUnit_Framework_TestCase {
     public function testLoggerNotCalledWithDebugFalse() {
         $called = false;
         $opts = array(
+            'key' => 'fake.key:veryFake',
             'logLevel' => Log::NONE,
             'logHandler' => function( $level, $args ) use ( &$called ) {
                 $called = true;
@@ -107,6 +183,29 @@ class HttpMockInitTest extends Http {
         return array(
             'headers' => '',
             'body' => array( round( microtime( true ) * 1000 ), 0 )
+        );
+    }
+}
+
+
+class HttpMockInitTestTimeout extends Http {
+    public $failedHosts = array();
+    public $failAttempts = 100; // number of attempts to time out before starting to return data
+    
+    public function request($method, $url, $headers = array(), $params = array()) {
+
+        if ($this->failAttempts > 0) {
+            preg_match('/\/\/([a-z0-9\.\-]+)\//', $url, $m);
+            $this->failedHosts[] = $m[1];
+            
+            $this->failAttempts--;
+
+            throw new AblyRequestException( 'Fake time out', 500, 50003 );
+        }
+
+        return array(
+            'headers' => '',
+            'body' => array( 999999, 0 )
         );
     }
 }
