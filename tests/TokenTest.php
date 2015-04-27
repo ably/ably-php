@@ -180,4 +180,85 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
             $this->assertEquals( 40003, $e->getAblyCode(), 'Unexpected error code' );
         }
     }
+
+    /**
+     * Automatic token renewal on expiration (known time)
+     */
+    public function testTokenRenewalKnownExpiration() {
+
+        $keyName = self::$testApp->getAppKeyDefault()->name;
+        $ablyKeyAuth = self::$ably;
+
+        $options = array_merge( self::$defaultOptions, array(
+            'authCallback' => function( $tokenParams ) use( &$ablyKeyAuth ) {
+                $capability = array( 'testchannel' => array('publish') );
+                $tokenParams = array(
+                    'ttl' => 2 * 1000, // 2 seconds
+                    'capability' => $capability,
+                );
+                return $ablyKeyAuth->auth->requestToken( array(), $tokenParams );
+            }
+        ) );
+
+        unset( $options['key'] );
+
+        $ablyTokenAuth = new AblyRest( $options );
+        $ablyTokenAuth->auth->authorise();
+        $tokenBefore = $ablyTokenAuth->auth->getTokenDetails()->token;
+
+        $channel = $ablyTokenAuth->channel( 'testchannel' );
+
+        // do an authorised request
+        $channel->publish( 'test', 'test' );
+        $tokenReq1 = $ablyTokenAuth->auth->getTokenDetails()->token;
+
+        sleep(2);
+
+        $channel->publish( 'test', 'test' );
+        $tokenReq2 = $ablyTokenAuth->auth->getTokenDetails()->token;
+
+        $this->assertEquals( $tokenBefore, $tokenReq1, 'Expected token not to change before expiration' );
+        $this->assertFalse( $tokenReq1 == $tokenReq2, 'Expected token to change after expiration' );
+    }
+
+    /**
+     * Automatic token renewal on expiration (unknown time)
+     */
+    public function testTokenRenewalUnknownExpiration() {
+
+        $keyName = self::$testApp->getAppKeyDefault()->name;
+        $ablyKeyAuth = self::$ably;
+
+        $options = array_merge( self::$defaultOptions, array(
+            'authCallback' => function( $tokenParams ) use( &$ablyKeyAuth ) {
+                $capability = array( 'testchannel' => array('publish') );
+                $tokenParams = array(
+                    'ttl' => 2 * 1000, // 2 seconds
+                    'capability' => $capability,
+                );
+                $tokenDetails = $ablyKeyAuth->auth->requestToken( array(), $tokenParams );
+                return $tokenDetails->token;
+            }
+        ) );
+
+        unset( $options['key'] );
+
+        $ablyTokenAuth = new AblyRest( $options );
+        $ablyTokenAuth->auth->authorise();
+        $tokenBefore = $ablyTokenAuth->auth->getTokenDetails()->token;
+
+        $channel = $ablyTokenAuth->channel( 'testchannel' );
+
+        // do an authorised request
+        $channel->publish( 'test', 'test' );
+        $tokenReq1 = $ablyTokenAuth->auth->getTokenDetails()->token;
+
+        sleep(2);
+
+        $channel->publish( 'test', 'test' );
+        $tokenReq2 = $ablyTokenAuth->auth->getTokenDetails()->token;
+
+        $this->assertEquals( $tokenBefore, $tokenReq1, 'Expected token not to change before expiration' );
+        $this->assertFalse( $tokenReq1 == $tokenReq2, 'Expected token to change after expiration' );
+    }
 }

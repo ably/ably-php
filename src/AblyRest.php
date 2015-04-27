@@ -110,22 +110,38 @@ class AblyRest {
      */
     public function request( $method, $path, $headers = array(), $params = array(), $returnHeaders = false, $auth = true ) {
         if ( $auth ) { // inject auth headers
-            $headers = array_merge( $this->auth->getAuthHeaders(), $headers );
-        }
-
-        if ( is_array( $this->options->host ) ) {
-            $res = $this->requestWithFallback( $method, $path, $headers, $params );
+            $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $headers );
         } else {
-            $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->host;
-            $res = $this->http->request( $method, $server . $path, $headers, $params );
+            $mergedHeaders = $headers;
         }
 
-        // TODO handle token expiry:
-        /*
-        you know if the reason for failure was token expiry if:
-        - the `WWW-Authenticate` header contains `"stale=true"`; and
-        - the error code is `40140`
-        */
+        try {
+            if ( is_array( $this->options->host ) ) {
+                $res = $this->requestWithFallback( $method, $path, $mergedHeaders, $params );
+            } else {
+                $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->host;
+                $res = $this->http->request( $method, $server . $path, $mergedHeaders, $params );
+            }
+        } catch (AblyRequestException $e) {
+            // check if the exception was caused by an expired token = authorised request + using token auth + specific error message 
+            $res = $e->getResponse();
+            
+            $causedByExpiredToken = $auth
+                && !$this->auth->isUsingBasicAuth()
+                && $e->getAblyCode() == 40140
+                && preg_match( '/Www-authenticate:.*stale *= *"?true"?/i', $res['headers'] );
+
+            if ( $causedByExpiredToken ) { // renew the token
+                $this->auth->authorise( array(), true );
+                
+                // merge headers now and use auth = false to prevent potential endless recursion
+                $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $headers );
+
+                return $this->request( $method, $path, $mergedHeaders, $params, $returnHeaders, $auth = false );
+            } else {
+                throw $e;
+            }
+        }
 
         if (!$returnHeaders) {
             $res = $res['body'];

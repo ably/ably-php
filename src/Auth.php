@@ -55,16 +55,15 @@ class Auth {
      * In the event that a new token request is made, the specified options are used.
      */
     public function authorise( $options = array(), $force = false ) {
-        if ( !empty( $this->tokenDetails ) ) {
-            if ( $this->tokenDetails->expires > $this->ably->timestamp() ) {
-                if ( !$force ) {
-                    // using cached token
-                    Log::d( 'Auth::authorise: using cached token, expires on ' . date( 'Y-m-d H:i:s', $this->tokenDetails->expires ) );
-                    return $this;
-                }
-            } else {
-                // deleting expired token
-                unset( $this->tokenDetails );
+        if ( !$force && !empty( $this->tokenDetails ) ) {
+            if ( empty( $this->tokenDetails->expires ) ) {
+                // using cached token
+                Log::d( 'Auth::authorise: using cached token, unknown expiration time' );
+                return $this;
+            } else if ( $this->tokenDetails->expires > $this->ably->time() ) {
+                // using cached token
+                Log::d( 'Auth::authorise: using cached token, expires on ' . date( 'Y-m-d H:i:s', $this->tokenDetails->expires / 1000 ) );
+                return $this;
             }
         }
         Log::d( 'Auth::authorise: requesting new token' );
@@ -76,14 +75,15 @@ class Auth {
 
     /**
      * Get HTTP headers with authentication data
+     * Automatically attempts to authorise token requests
      */
     public function getAuthHeaders() {
         $header = array();
         if ( $this->isUsingBasicAuth() ) {
-            $header = array( "authorization: Basic " . base64_encode( $this->authOptions->key ) );
+            $header = array( 'authorization: Basic ' . base64_encode( $this->authOptions->key ) );
         } else if ( !empty( $this->tokenDetails ) ) {
             $this->authorise();
-            $header = array( "authorization: Bearer {$this->tokenDetails->token}" );
+            $header = array( 'authorization: Bearer '. base64_encode( $this->tokenDetails->token ) );
         }
         return $header;
     }
@@ -91,7 +91,7 @@ class Auth {
     /**
      * @return \Ably\Models\TokenDetails Token currently in use
     */
-    public function getToken() {
+    public function getTokenDetails() {
         return $this->tokenDetails;
     }
 
@@ -120,13 +120,15 @@ class Auth {
             $callback = $authOptions->authCallback;
             $data = $callback($tokenParams);
 
-            // returned data can be either a signed TokenRequest or a Token
+            // returned data can be either a signed TokenRequest or TokenDetails or just a token string
             if ( is_a( $data, '\Ably\Models\TokenRequest' ) ) {
                 $signedTokenRequest = $data;
-            } else if ( is_a( $data, '\Ably\Models\Token' ) ) {
+            } else if ( is_a( $data, '\Ably\Models\TokenDetails' ) ) {
                 return $data;
+            } else if ( is_string( $data ) ) {
+                return new TokenDetails( $data );
             } else {
-                Log::e( 'Auth::requestToken:', 'Invalid response from authCallback, expecting signed TokenRequest or a Token' );
+                Log::e( 'Auth::requestToken:', 'Invalid response from authCallback, expecting signed TokenRequest or TokenDetails or a token string' );
                 throw new AblyException( 'Invalid response from authCallback', 400, 40000 );
             }
         } elseif ( !empty( $authOptions->authUrl ) ) {

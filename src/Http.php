@@ -159,7 +159,7 @@ class Http {
 
         $response = array( 'headers' => $headers, 'body' => $decodedBody ? $decodedBody : $body );
 
-        Log::d( 'cURL request response:', $info['http_code'], $response );
+        Log::v( 'cURL request response:', $info['http_code'], $response );
 
         if ( !in_array( $info['http_code'], array(200,201) ) ) {
             $ablyCode = empty( $decodedBody->error->code ) ? null : $decodedBody->error->code;
