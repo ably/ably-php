@@ -101,7 +101,7 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( $headers, $ably->http->headers, 'Expected authHeaders to match' );
         $this->assertEquals( $params, $ably->http->params, 'Expected authParams to match' );
         $this->assertEquals( $method, $ably->http->method, 'Expected authMethod to match' );
-        $this->assertEquals( 'mock_token_authurl', $ably->auth->getToken()->token, 'Expected mock token to be used' );
+        $this->assertEquals( 'mock_token_authurl', $ably->auth->getTokenDetails()->token, 'Expected mock token to be used' );
         $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
     }
 
