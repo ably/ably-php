@@ -19,7 +19,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
             'key' => self::$testApp->getAppKeyDefault()->string,
         ) ) );
 
-        self::$timeOffset = self::$ably->time() - self::$ably->system_time();
+        self::$timeOffset = self::$ably->time() - self::$ably->systemTime();
     }
 
     public static function tearDownAfterClass() {
@@ -30,22 +30,22 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         $interval = array();
 
         # wait for the start of the next minute
-        $t = self::$timeOffset + self::$ably->system_time();
+        $t = self::$timeOffset + self::$ably->systemTime();
         $interval[0] = ceil(($t + 1000)/60000)*60000;
         $wait = ceil(($interval[0] - $t)/1000);
         sleep($wait);
 
         # publish some messages
-        $stats0 = self::$ably->channel('appstats_0');
+        $stats0 = self::$ably->channel( 'appstats_0' );
         for ($i=0; $i < 5; $i++) {
-            $stats0->publish( 'stats'.$i, $i );
+            $stats0->publish( 'stats' . $i, $i );
         }
 
         # wait for the stats to be persisted
-        $interval[1] = self::$timeOffset + self::$ably->system_time();
+        $interval[1] = self::$timeOffset + self::$ably->systemTime();
         sleep( 10 );
 
-        $this->assertTrue(true);
+        $this->assertTrue( true );
 
         return $interval;
     }
@@ -125,7 +125,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         $interval = array();
 
         # wait for the start of the next minute
-        $t = self::$timeOffset + self::$ably->system_time();
+        $t = self::$timeOffset + self::$ably->systemTime();
         $interval[0] = ceil(($t + 1000)/60000)*60000;
         $wait = ceil(($interval[0] - $t)/1000);
         sleep($wait);
@@ -137,10 +137,10 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         }
 
         # wait for the stats to be persisted
-        $interval[1] = self::$timeOffset + self::$ably->system_time();
+        $interval[1] = self::$timeOffset + self::$ably->systemTime();
         sleep( 10 );
 
-        $this->assertTrue(true);
+        $this->assertTrue( true );
 
         return $interval;
     }
@@ -233,7 +233,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         $interval = array();
 
         # wait for the start of the next minute
-        $t = self::$timeOffset + self::$ably->system_time();
+        $t = self::$timeOffset + self::$ably->systemTime();
         $interval[0] = ceil(($t + 1000)/60000)*60000;
         $wait = ceil(($interval[0] - $t)/1000);
         sleep($wait);
@@ -245,10 +245,10 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         }
 
         # wait for the stats to be persisted
-        $interval[1] = self::$timeOffset + self::$ably->system_time();
+        $interval[1] = self::$timeOffset + self::$ably->systemTime();
         sleep( 10 );
 
-        $this->assertTrue(true);
+        $this->assertTrue( true );
 
         return $interval;
     }

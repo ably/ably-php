@@ -37,15 +37,16 @@ class AblyRest {
         }
 
         $this->options = new ClientOptions( $options );
-        $httpClass = $this->options->httpClass;
-        $this->http = new $httpClass( $this->options->hostTimeout );
-        $this->auth = new Auth( $this, $this->options );
-        
+
         Log::setLogLevel( $this->options->logLevel );
         if ( !empty( $this->options->logHandler ) ) {
             Log::setLogCallback( $this->options->logHandler );
         }
 
+        $httpClass = $this->options->httpClass;
+        $this->http = new $httpClass( $this->options->hostTimeout );
+        $this->auth = new Auth( $this, $this->options );
+        
         return $this;
     }
 
@@ -62,7 +63,7 @@ class AblyRest {
      * @return array Statistics
      */
     public function stats( $params = array() ) {
-        return $this->get( '/stats', $this->auth_headers(), $params );
+        return $this->get( '/stats', $headers = array(), $params );
     }
 
     /**

@@ -38,11 +38,11 @@ class Log {
      * @param function|null $function Custom function or leave empty to revert to default
      */
     public static function setLogCallback( $function = null ) {
-        self::$logFunction = $function;
+        self::$logCallback = $function;
         if ( $function ) {
-            $this->v( 'Set custom logging callback function' );
+            self::v( 'Set custom logging callback function' );
         } else {
-            $this->v( 'Restored default logging function' );
+            self::v( 'Restored default logging function' );
         }
     }
 
@@ -94,7 +94,8 @@ class Log {
      */
     public static function log( $level, $args ) {
         if ( self::$logLevel >= $level ) {
-            return self::$logCallback ? self::$logCallback( $level, $args ) : self::defaultLogCallback( $level, $args );
+            $function = self::$logCallback;
+            return $function ? $function( $level, $args ) : self::defaultLogCallback( $level, $args );
         }
     }
 

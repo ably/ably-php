@@ -131,8 +131,8 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         $delay = 1000; // sleep for 1000ms
         usleep($delay * 1000); // in microseconds
 
-        $timeOffset = self::$ably->time() - self::$ably->system_time();
-        $now = $timeOffset + self::$ably->system_time();
+        $timeOffset = self::$ably->time() - self::$ably->systemTime();
+        $now = $timeOffset + self::$ably->systemTime();
 
         # test with start parameter
         try {

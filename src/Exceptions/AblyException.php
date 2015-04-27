@@ -10,7 +10,7 @@ class AblyException extends Exception {
 
 	protected $ablyCode;
     
-    public function __construct($message, $code = 0, $ablyCode = 0) {
+    public function __construct($message, $code = 400, $ablyCode = 40000) {
         parent::__construct($message, $code);
 
         $this->ablyCode = $ablyCode;

@@ -1,167 +1,112 @@
 <?php
 namespace tests;
 use Ably\AblyRest;
+use Ably\Http;
+use Ably\Log;
 use \Exception;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
 class InitTest extends \PHPUnit_Framework_TestCase {
 
-    protected static $testApp;
-
-    public static function setUpBeforeClass() {
-        self::$testApp = new TestApp();
-    }
-
-    public static function tearDownAfterClass() {
-      self::$testApp->release();
-    }
-
     /**
      * Init library with a key only
      */
     public function testInitLibWithKeyOnly() {
-        try {
-            $key = self::$testApp->getAppKeyDefault();
-            new AblyRest( $key->string );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
-        }
+        $key = "fake.key:veryFake";
+        new AblyRest( $key );
     }
 
     /**
      * Init library with a key in options
      */
     public function testInitLibWithKeyOption() {
-        try {
-            $key = self::$testApp->getAppKeyDefault();
-            new AblyRest( array('key' => $key->string) );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
-        }
-    }
-
-    /**
-     * Init library with appId
-     */
-    public function testInitLibWithAppId() {
-        try {
-            $key = self::$testApp->getAppKeyDefault();
-            new AblyRest( array('appId' => self::$testApp->getAppId() ) );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
-        }
-    }
-
-    /**
-     * Verify library fails to init when both appId and key are missing
-     */
-    public function testFailInitOnMissingAppIdAndKey() {
-        try {
-            new AblyRest( array() );
-            $this->fail('Unexpected success instantiating library');
-        } catch (Exception $e) {
-            # do nothing
-        }
+        $key = "fake.key:veryFake";
+        new AblyRest( array('key' => $key ) );
     }
 
     /**
      * Init library with specified host
      */
     public function testInitLibWithSpecifiedHost() {
-        try {
-            $opts = array(
-                'appId' => self::$testApp->getAppId(),
-                'host'  => 'some.other.host',
-            );
-            $ably = new AblyRest( $opts );
-            $this->assertEquals( $opts['host'], $ably->get_setting('host'), 'Unexpected host mismatch' );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
-        }
-    }
-
-    /**
-     * Init library with specified port
-     */
-    public function testInitLibWithSpecifiedPort() {
-        try {
-            $opts = array(
-                'appId' => self::$testApp->getAppId(),
-                'port'  => 9999,
-            );
-            $ably = new AblyRest( $opts );
-            $this->assertEquals( $opts['port'], $ably->get_setting('port'), 'Unexpected port mismatch' );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
-        }
+        $opts = array(
+            'host'  => 'some.other.host',
+            'httpClass' => 'tests\HttpMockInitTest',
+        );
+        $ably = new AblyRest( $opts );
+        $ably->time(); // make a request
+        $this->assertRegExp( '/^https?:\/\/some\.other\.host/', $ably->http->lastUrl, 'Unexpected host mismatch' );
     }
 
     /**
      * Verify encrypted defaults to true
      */
     public function testEncryptedDefaultIsTrue() {
-        try {
-            $opts = array(
-                'appId' => self::$testApp->getAppId(),
-            );
-            $ably = new AblyRest( $opts );
-            $this->assertEquals( 'https', $ably->get_setting('scheme'), 'Unexpected scheme mismatch' );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
-        }
+        $opts = array(
+            'httpClass' => 'tests\HttpMockInitTest',
+        );
+        $ably = new AblyRest( $opts );
+        $ably->time(); // make a request
+        $this->assertRegExp( '/^https:\/\//', $ably->http->lastUrl, 'Unexpected scheme mismatch' );
     }
 
     /**
      * Verify encrypted can be set to false
      */
     public function testEncryptedCanBeFalse() {
-        try {
-            $opts = array(
-                'appId' => self::$testApp->getAppId(),
-                'encrypted' => false,
-            );
-            $ably = new AblyRest( $opts );
-            $this->assertEquals( 'http', $ably->get_setting('scheme'), 'Unexpected scheme mismatch' );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
-        }
+        $opts = array(
+            'httpClass' => 'tests\HttpMockInitTest',
+            'tls' => false,
+        );
+        $ably = new AblyRest( $opts );
+        $ably->time(); // make a request
+        $this->assertRegExp( '/^http:\/\//', $ably->http->lastUrl, 'Unexpected scheme mismatch' );
     }
 
     /**
-     * Init with log handler; check called
+     * Init with log handler; check if called
      */
-    protected $init8_logCalled = false;
-    public function testLoggerIsCalledWithDebugTrue() {
-        try {
-            $opts = array(
-                'appId' => self::$testApp->getAppId(),
-                'debug' => function( $output ) {
-                    $this->init8_logCalled = true;
-                    return $output;
-                },
-            );
-            new AblyRest( $opts );
-            $this->assertTrue( $this->init8_logCalled, 'Log handler not called' );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
-        }
+    public function testLogHandler() {
+        $called = false;
+        $opts = array(
+            'logLevel' => Log::VERBOSE,
+            'logHandler' => function( $level, $args ) use ( &$called ) {
+                $called = true;
+            },
+        );
+
+        new AblyRest( $opts );
+        $this->assertTrue( $called, 'Log handler not called' );
     }
 
     /**
-     * Init with log handler; check not called if logLevel == NONE
+     * Init with log handler; check if not called when logLevel == NONE
      */
     public function testLoggerNotCalledWithDebugFalse() {
-        try {
-            $opts = array(
-                'appId' => self::$testApp->getAppId(),
-                'debug' => false,
-            );
-            $ably = new AblyRest( $opts );
-            # There is no logLevel in the PHP library so we'll simply assert log_action returns false
-            $this->assertFalse( $ably->log_action('test()', 'called'), 'Log handler incorrectly called' );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
-        }
+        $called = false;
+        $opts = array(
+            'logLevel' => Log::NONE,
+            'logHandler' => function( $level, $args ) use ( &$called ) {
+                $called = true;
+            },
+        );
+
+        $ably = new AblyRest( $opts );
+        $this->assertFalse( $called, 'Log handler incorrectly called' );
+    }
+}
+
+
+class HttpMockInitTest extends Http {
+    public $lastUrl;
+    
+    public function request($method, $url, $headers = array(), $params = array()) {
+        $this->lastUrl = $url;
+
+        // mock response to /time
+        return array(
+            'headers' => '',
+            'body' => array( round( microtime( true ) * 1000 ), 0 )
+        );
     }
 }

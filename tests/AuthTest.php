@@ -91,13 +91,13 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
             'authHeaders' => $headers,
             'authParams' => $params,
             'authMethod' => $method,
-            'httpClass' => 'tests\HttpMock',
+            'httpClass' => 'tests\HttpMockAuthTest',
         ) ) );
         
         // make a call to trigger a token request
         $ably->auth->authorise();
         
-        $this->assertTrue( is_a( $ably->http, '\tests\HttpMock' ) , 'Expected HttpMock class to be used' );
+        $this->assertTrue( is_a( $ably->http, '\tests\HttpMockAuthTest' ) , 'Expected HttpMock class to be used' );
         $this->assertEquals( $headers, $ably->http->headers, 'Expected authHeaders to match' );
         $this->assertEquals( $params, $ably->http->params, 'Expected authParams to match' );
         $this->assertEquals( $method, $ably->http->method, 'Expected authMethod to match' );
@@ -137,7 +137,7 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
     }
 }
 
-class HttpMock extends Http {
+class HttpMockAuthTest extends Http {
     public $headers;
     public $params;
     public $method;

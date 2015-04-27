@@ -1,7 +1,7 @@
 <?php
 namespace tests;
 use Ably\AblyRest;
-use \Exception;
+use Ably\Exceptions\AblyException;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -31,70 +31,53 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Base requestToken case with null params
+     * Base requestToken case with empty params
      */
-    public function testBaseRequestTokenWithNullParams() {
-        $request_time = self::$ably->time();
-        $token_details = self::$ably->request_token(null, null);
-        $this->assertNotNull( $token_details->token, 'Expected token id' );
+    public function testBaseRequestTokenWithEmptyParams() {
+        $requestTime = self::$ably->time();
+        $tokenDetails = self::$ably->auth->requestToken();
+        $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
         $this->assertTrue(
-            ($token_details->issued_at >= $request_time - self::$errorMarginMillis)
-            && ($token_details->issued_at <= $request_time + self::$errorMarginMillis),
-            'Unexpected issued_at time'
+            ($tokenDetails->issued >= $requestTime - self::$errorMarginMillis)
+            && ($tokenDetails->issued <= $requestTime + self::$errorMarginMillis),
+            'Unexpected issued time'
         );
-        $this->assertEquals( $token_details->issued_at + 60*60*1000, $token_details->expires, 'Unexpected expires time' );
-        $this->assertEquals( self::$capabilityAll, json_decode($token_details->capability), 'Unexpected capability' );
-    }
-
-    /**
-     * Base requestToken case with non-null but empty params
-     */
-    public function testBaseRequestTokenWithNonNullButEmptyParams() {
-        $request_time = self::$ably->time();
-        $params = self::$tokenParams;
-        $token_details = self::$ably->request_token(null, $params);
-        $this->assertNotNull( $token_details->token, 'Expected token id' );
-        $this->assertTrue(
-            ($token_details->issued_at >= $request_time - self::$errorMarginMillis)
-            && ($token_details->issued_at <= $request_time + self::$errorMarginMillis),
-            'Unexpected issued_at time'
-        );
-        $this->assertEquals( $token_details->issued_at + 60*60*1000, $token_details->expires, 'Unexpected expires time' );
-        $this->assertEquals( self::$capabilityAll, json_decode($token_details->capability), 'Unexpected capability' );
+        $this->assertEquals( $tokenDetails->issued + 60*60*1000, $tokenDetails->expires, 'Unexpected expires time' );
+        $this->assertEquals( self::$capabilityAll, json_decode($tokenDetails->capability), 'Unexpected capability' );
     }
 
     /**
      * requestToken with explicit timestamp
      */
     public function testRequestTokenWithExplicitTimestamp() {
-        $request_time = self::$ably->time();
+        $requestTime = self::$ably->time();
         $params = array_merge(self::$tokenParams, array(
-            'timestamp' => $request_time
+            'timestamp' => $requestTime
         ));
-        $token_details = self::$ably->request_token(null, $params);
-        $this->assertNotNull( $token_details->token, 'Expected token id' );
+        $tokenDetails = self::$ably->auth->requestToken( array(), $params );
+        $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
         $this->assertTrue(
-            ($token_details->issued_at >= $request_time - self::$errorMarginMillis)
-            && ($token_details->issued_at <= $request_time + self::$errorMarginMillis),
-            'Unexpected issued_at time'
+            ($tokenDetails->issued >= $requestTime - self::$errorMarginMillis)
+            && ($tokenDetails->issued <= $requestTime + self::$errorMarginMillis),
+            'Unexpected issued time'
         );
-        $this->assertEquals( $token_details->issued_at + 60*60*1000, $token_details->expires, 'Unexpected expires time' );
-        $this->assertEquals( self::$capabilityAll, json_decode($token_details->capability), 'Unexpected capability' );
+        $this->assertEquals( $tokenDetails->issued + 60*60*1000, $tokenDetails->expires, 'Unexpected expires time' );
+        $this->assertEquals( self::$capabilityAll, json_decode($tokenDetails->capability), 'Unexpected capability' );
     }
 
     /**
      * requestToken with explicit, invalid timestamp
      */
     public function testRequestTokenWithExplicitInvalidTimestamp() {
-        $request_time = self::$ably->time();
+        $requestTime = self::$ably->time();
         $params = array_merge(self::$tokenParams, array(
-            'timestamp' => $request_time - 30 * 60 * 1000
+            'timestamp' => $requestTime - 30 * 60 * 1000
         ));
         try {
-            self::$ably->request_token(null, $params);
+            self::$ably->auth->requestToken( array(), $params );
             $this->fail('Expected token request rejection');
-        } catch (Exception $e) {
-            $this->assertEquals( 401, (int)substr((string)$e->getCode(),0,3), 'Unexpected error code' );
+        } catch (AblyException $e) {
+            $this->assertEquals( 401, $e->getCode(), 'Unexpected error code' );
         }
     }
 
@@ -102,55 +85,37 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      * requestToken with system timestamp
      */
     public function testRequestWithSystemTimestamp() {
-        $request_time = time() * 1000;
-        $auth_options = array('query' => true);
-        $token_details = self::$ably->request_token($auth_options, null);
-        $this->assertNotNull( $token_details->token, 'Expected token id' );
+        $requestTime = time() * 1000;
+        $authOptions = array('query' => true);
+        $tokenDetails = self::$ably->auth->requestToken( $authOptions );
+        $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
         $this->assertTrue(
-            ($token_details->issued_at >= $request_time - self::$errorMarginMillis)
-            && ($token_details->issued_at <= $request_time + self::$errorMarginMillis),
-            'Unexpected issued_at time'
+            ($tokenDetails->issued >= $requestTime - self::$errorMarginMillis)
+            && ($tokenDetails->issued <= $requestTime + self::$errorMarginMillis),
+            'Unexpected issued time'
         );
-        $this->assertEquals( $token_details->issued_at + 60*60*1000, $token_details->expires, 'Unexpected expires time' );
-        $this->assertEquals( self::$capabilityAll, json_decode($token_details->capability), 'Unexpected capability' );
+        $this->assertEquals( $tokenDetails->issued + 60*60*1000, $tokenDetails->expires, 'Unexpected expires time' );
+        $this->assertEquals( self::$capabilityAll, json_decode($tokenDetails->capability), 'Unexpected capability' );
     }
 
     /**
-     * requestToken with duplicate nonce
+     * Request token with a clientId specified
      */
-    public function testRequestTokenWithDuplicateNonce() {
-        $request_time = self::$ably->time();
-        $token_params = array(
-            'timestamp' => $request_time,
-            'nonce' => "1234567890123456",
+    public function testRequestWithClientId() {
+        $requestTime = self::$ably->time();
+        $tokenParams = array(
+            'clientId' => 'test client id',
         );
-        $token_details = self::$ably->request_token( null, $token_params );
-        $this->assertNotNull( $token_details->token, 'Expected token id' );
-        try {
-            self::$ably->request_token( null, $token_params );
-        } catch (Exception $e) {
-            $this->assertEquals( 401, (int)substr((string)$e->getCode(),0,3), 'Unexpected error code' );
-        }
-    }
-
-    /**
-     * Base requestToken case with non-null but empty params
-     */
-    public function testBaseRequestTokenCaseWithNonNullButEmptyParams() {
-        $request_time = self::$ably->time();
-        $token_params = array(
-            'client_id' => 'test client id',
-        );
-        $token_details = self::$ably->request_token( null, $token_params );
-        $this->assertNotNull( $token_details->token, 'Expected token id' );
+        $tokenDetails = self::$ably->auth->requestToken( array(), $tokenParams );
+        $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
         $this->assertTrue(
-            ($token_details->issued_at >= $request_time - self::$errorMarginMillis)
-            && ($token_details->issued_at <= $request_time + self::$errorMarginMillis),
-            'Unexpected issued_at time'
+            ($tokenDetails->issued >= $requestTime - self::$errorMarginMillis)
+            && ($tokenDetails->issued <= $requestTime + self::$errorMarginMillis),
+            'Unexpected issued time'
         );
-        $this->assertEquals( $token_details->issued_at + 60*60*1000, $token_details->expires, 'Unexpected expires time' );
-        $this->assertEquals( self::$capabilityAll, json_decode($token_details->capability), 'Unexpected capability' );
-        $this->assertEquals( $token_params['client_id'], $token_details->clientId, 'Unexpected clientId' );
+        $this->assertEquals( $tokenDetails->issued + 60*60*1000, $tokenDetails->expires, 'Unexpected expires time' );
+        $this->assertEquals( self::$capabilityAll, json_decode($tokenDetails->capability), 'Unexpected capability' );
+        $this->assertEquals( $tokenParams['clientId'], $tokenDetails->clientId, 'Unexpected clientId' );
     }
 
     /**
@@ -158,10 +123,10 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      */
     public function testTokenGenerationWithCapabilityKey() {
         $capability = array( 'onlythischannel' => array('subscribe') );
-        $token_params = array('capability' => $capability );
-        $token_details = self::$ably->request_token( null, $token_params );
-        $this->assertNotNull( $token_details->token, 'Expected token id' );
-        $this->assertEquals( $capability_obj, (array) json_decode($token_details->capability), 'Unexpected capability' );
+        $tokenParams = array( 'capability' => $capability );
+        $tokenDetails = self::$ably->auth->requestToken( array(), $tokenParams );
+        $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
+        $this->assertEquals( $capability, (array) json_decode($tokenDetails->capability), 'Unexpected capability' );
     }
 
     /**
@@ -170,51 +135,36 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
     public function testTokenGenerationWithSpecifiedKey() {
         $key = self::$testApp->getAppKeyWithCapabilities();
 
-        $auth_options = array(
-            'keyId' => $key->id,
-            'keyValue' => $key->value,
+        $authOptions = array(
+            'key' => $key->string,
         );
-        $token_details = self::$ably->request_token($auth_options, null);
-        $capability_obj = json_decode($key->capability, false);
+        $tokenDetails = self::$ably->auth->requestToken( $authOptions );
+        $capability_obj = json_decode( $key->capability, false );
 
-        $this->assertNotNull( $token_details->token, 'Expected token id' );
-        $this->assertEquals( $capability_obj, json_decode($token_details->capability), 'Unexpected capability' );
-    }
-
-
-    /**
-     * requestToken with invalid mac
-     */
-    public function testRequestTokenWithInvalidMac() {
-        $token_params = array( 'mac' => 'thisisnotavalidmac' );
-        try {
-            self::$ably->request_token( null, $token_params );
-            $this->fail('Expected token request rejection');
-        } catch (Exception $e) {
-            $this->assertEquals( 401, (int)substr((string)$e->getCode(),0,3), 'Unexpected error code' );
-        }
+        $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
+        $this->assertEquals( $capability_obj, json_decode($tokenDetails->capability), 'Unexpected capability' );
     }
 
     /**
      * Token generation with specified ttl
      */
     public function testTokenGenerationWithSpecifiedTTL() {
-        $token_params = array( 'ttl' => 60 * 1000 );
-        $token_details = self::$ably->request_token(null, $token_params);
-        $this->assertNotNull( $token_details->token, 'Expected token id' );
-        $this->assertEquals( $token_details->issued_at + 60 * 1000, $token_details->expires, 'Unexpected expires time' );
+        $tokenParams = array( 'ttl' => 60 * 1000 );
+        $tokenDetails = self::$ably->auth->requestToken( array(), $tokenParams );
+        $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
+        $this->assertEquals( $tokenDetails->issued + 60 * 1000, $tokenDetails->expires, 'Unexpected expires time' );
     }
 
     /**
      * Token generation with excessive ttl
      */
     public function testTokenGenerationWithExcessiveTTL() {
-        $token_params = array( 'ttl' => 365*24*60*60*1000 );
+        $tokenParams = array( 'ttl' => 365*24*60*60*1000 );
         try {
-            self::$ably->request_token(null, $token_params);
-            $this->fail('Expected token request rejection');
-        } catch (Exception $e) {
-            $this->assertEquals( 40003, $e->getCode(), 'Unexpected error code' );
+            self::$ably->auth->requestToken( array(), $tokenParams );
+            $this->fail( 'Expected token request rejection' );
+        } catch (AblyException $e) {
+            $this->assertEquals( 40003, $e->getAblyCode(), 'Unexpected error code' );
         }
     }
 
@@ -222,12 +172,12 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      * Token generation with invalid ttl
      */
     public function testTokenGenerationWithInvalidTTL() {
-        $token_params = array( 'ttl' => -1 * 1000 );
+        $tokenParams = array( 'ttl' => -1 * 1000 );
         try {
-            self::$ably->request_token(null, $token_params);
-            $this->fail('Expected token request rejection');
-        } catch (Exception $e) {
-            $this->assertEquals( 40003, $e->getCode(), 'Unexpected error code' );
+            self::$ably->auth->requestToken( array(), $tokenParams );
+            $this->fail( 'Expected token request rejection' );
+        } catch (AblyException $e) {
+            $this->assertEquals( 40003, $e->getAblyCode(), 'Unexpected error code' );
         }
     }
 }

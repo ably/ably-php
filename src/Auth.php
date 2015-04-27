@@ -80,7 +80,7 @@ class Auth {
     public function getAuthHeaders() {
         $header = array();
         if ( $this->isUsingBasicAuth() ) {
-            $header = array( "authorization: Basic {$this->authOptions->key}" );
+            $header = array( "authorization: Basic " . base64_encode( $this->authOptions->key ) );
         } else if ( !empty( $this->tokenDetails ) ) {
             $this->authorise();
             $header = array( "authorization: Bearer {$this->tokenDetails->token}" );

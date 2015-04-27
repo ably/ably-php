@@ -22,7 +22,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
             'key' => self::$testApp->getAppKeyDefault()->string,
         ) ) );
 
-        self::$timeOffset = self::$ably->time() - self::$ably->system_time();
+        self::$timeOffset = self::$ably->time() - self::$ably->systemTime();
     }
 
     public static function tearDownAfterClass() {
@@ -137,12 +137,12 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
             $history5->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
         }
-        $interval_start = self::$timeOffset + self::$ably->system_time() + 1;
+        $interval_start = self::$timeOffset + self::$ably->systemTime() + 1;
         for ($i=20; $i<40; $i++) {
             $history5->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
         }
-        $interval_end = self::$timeOffset + self::$ably->system_time();
+        $interval_end = self::$timeOffset + self::$ably->systemTime();
         for ($i=40; $i<60; $i++) {
             $history5->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
@@ -180,12 +180,12 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
             $history6->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
         }
-        $interval_start = self::$timeOffset + self::$ably->system_time() + 1;
+        $interval_start = self::$timeOffset + self::$ably->systemTime() + 1;
         for ($i=20; $i<40; $i++) {
             $history6->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
         }
-        $interval_end = self::$timeOffset + self::$ably->system_time();
+        $interval_end = self::$timeOffset + self::$ably->systemTime();
         for ($i=40; $i<60; $i++) {
             $history6->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second

@@ -36,9 +36,7 @@ class TimeTest extends \PHPUnit_Framework_TestCase {
      * Verify time can be obtained without any valid key or token
      */
     public function testTimeWithoutValidKeyToken() {
-        $ablyNoAuth = new AblyRest( array_merge( self::$defaultOptions, array(
-            'appId' => 'fakeAppId',
-        )));
+        $ablyNoAuth = new AblyRest( self::$defaultOptions );
 
         $reportedTime = $ablyNoAuth->time();
 

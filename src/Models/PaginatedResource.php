@@ -17,13 +17,13 @@ class PaginatedResource {
     private $paginationHeaders = false;
 
     /**
-     * @var Ably\Models\BaseMessage[] Array of returned models (either Message or PresenceMessage)
+     * @var \Ably\Models\BaseMessage[] Array of returned models (either Message or PresenceMessage)
      */
     public $items = array();
 
     /**
      * Constructor.
-     * @param AblyRest $ably Ably API instance
+     * @param \Ably\AblyRest $ably Ably API instance
      * @param mixed $model Name of a class that will populate this ArrayObject. It must implement a fromJSON() method.
      * @param CipherParams|null $cipherParams Optional cipher parameters if data should be decoded
      * @param string $path Request path
@@ -35,8 +35,7 @@ class PaginatedResource {
         $this->cipherParams = $cipherParams;
         $this->path = $path;
 
-        $withHeaders = true;
-        $response = $this->ably->get( $path, $this->ably->auth_headers(), $params, $withHeaders );
+        $response = $this->ably->get( $path, $headers = array(), $params, $withHeaders = true );
 
         if (isset($response['body']) && is_array($response['body'])) {
 
