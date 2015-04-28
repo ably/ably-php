@@ -4,7 +4,6 @@ namespace Ably;
 use Ably\Log;
 use Ably\Exceptions\AblyException;
 use Ably\Exceptions\AblyRequestException;
-use Ably\Exceptions\AblyRequestTimeoutException;
 
 /**
  * Makes HTTP requests using cURL
@@ -116,7 +115,7 @@ class Http {
                     $curlCmd .= '--data "'.str_replace( '"', '\"', $params ).'" ';
                 }
             } else {
-                throw new AblyRequestException('Unknown $params format', 400, 40000);
+                throw new AblyRequestException( 'Unknown $params format' );
             }
         }
 
@@ -141,14 +140,13 @@ class Http {
         $raw = curl_exec($ch);
         $info = curl_getinfo($ch);
         $err = curl_errno($ch);
-        if ($err) {
-            Log::e('cURL error:', $err, curl_error($ch));
-        }
-
+        $errmsg = $err ? curl_error($ch) : '';
+        
         curl_close ($ch);
 
-        if ( $err == 28 ) { // code for timeout, the constant name is inconsistent - could be either CURLE_OPERATION_TIMEDOUT or CURLE_OPERATION_TIMEOUTED 
-            throw new AblyRequestTimeoutException( 'cURL request timed out', 500, 50003 );
+        if ($err) { // a connection error has occured (no data received)
+            Log::e('cURL error:', $err, $errmsg);
+            throw new AblyRequestException( 'cURL error: ' . $errmsg, 500, 50003 );
         }
 
         $response = null;

@@ -128,8 +128,7 @@ class AblyRest {
             
             $causedByExpiredToken = $auth
                 && !$this->auth->isUsingBasicAuth()
-                && $e->getAblyCode() == 40140
-                && preg_match( '/Www-authenticate:.*stale *= *"?true"?/i', $res['headers'] );
+                && $e->getAblyCode() == 40140;
 
             if ( $causedByExpiredToken ) { // renew the token
                 $this->auth->authorise( array(), true );
@@ -153,13 +152,8 @@ class AblyRest {
      * Does a HTTP request backed up by fallback servers
      */
     protected function requestWithFallback( $method, $path, $headers = array(), $params = array(), $attempt = 0 ) {
-
-        if ( $attempt >= count( $this->options->host ) ) {
-            throw new AblyRequestException( 'Could not connect to server or any of the fallback servers', 500, 50003 );
-        }
-
         if ( $attempt > 0 ) {
-            Log::d( 'Connection failed, attempting with fallback server #' . $attempt );
+            Log::d( 'Connection failed, attempting with fallback server #' . ($attempt+1) );
         }
 
         $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->host[$attempt];
@@ -167,7 +161,7 @@ class AblyRest {
         try {
             $res = $this->http->request( $method, $server . $path, $headers, $params );
 
-            // successful reuest
+            // successful request
 
             if ($attempt > 0) { // reorder servers, so that the working one is first and not working one(s) last
                 Log::d( 'Switching server to: ' . $this->options->host[$attempt] );
@@ -177,8 +171,13 @@ class AblyRest {
             return $res;
         }
         catch (AblyRequestException $e) {
-            if ( $e->getAblyCode() == 50003 ) {
-                return $this->requestWithFallback( $method, $path, $headers, $params, $attempt + 1);
+            if ( $e->getAblyCode() >= 50000 ) {
+                if ( $attempt + 1 < count( $this->options->host ) ) {
+                    return $this->requestWithFallback( $method, $path, $headers, $params, $attempt + 1);
+                } else {
+                    Log::e( 'Failed to connect to server and all of the fallback servers.' );
+                    throw $e;
+                }
             }
 
             throw $e; // other error code than timeout, rethrow exception

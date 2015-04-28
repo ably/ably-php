@@ -61,13 +61,13 @@ class ClientOptions extends AuthOptions {
 
         if (empty($this->host)) {
             $this->host = array(
-                'a.rest.ably.io',
-                'b.rest.ably.io',
-                'c.rest.ably.io',
-                'd.rest.ably.io',
-                'e.rest.ably.io',
+                'rest.ably.io',
+                'a.ably-realtime.com',
+                'b.ably-realtime.com',
+                'c.ably-realtime.com',
+                'd.ably-realtime.com',
+                'e.ably-realtime.com',
             );
-            shuffle( $this->host );
         }
     }
 }

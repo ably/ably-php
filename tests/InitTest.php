@@ -69,7 +69,7 @@ class InitTest extends \PHPUnit_Framework_TestCase {
 
 
     /**
-     * Verify if fallback hosts are working
+     * Verify if fallback hosts are working and used in correct order
      */
     public function testFallbackHosts() {
         $defaultOpts = new ClientOptions();
@@ -83,8 +83,6 @@ class InitTest extends \PHPUnit_Framework_TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-            sort( $ably->http->failedHosts );
-            sort( $defaultOpts->host );
             $this->assertEquals( $defaultOpts->host, $ably->http->failedHosts, 'Expected to have tried all defined fallback hosts' );
         }
     }
@@ -119,7 +117,7 @@ class InitTest extends \PHPUnit_Framework_TestCase {
         $ably = new AblyRest( $opts );
 
         // try every host twice
-        for ($i = 0; $i < $fallbackHosts * 2; $i++) {
+        for ($i = 0; $i < $fallbackHosts; $i++) {
             // host should work
             $ably->http->failAttempts = 0;
             $ably->time();
@@ -129,12 +127,8 @@ class InitTest extends \PHPUnit_Framework_TestCase {
             $ably->time();
         }
 
-        // compare if the first half of attempts is in the same order as the second one
-        $firstCycle = array_slice( $ably->http->failedHosts, 0, $fallbackHosts );
-        $secondCycle = array_slice( $ably->http->failedHosts, $fallbackHosts );
-
-        $this->assertEquals( $fallbackHosts * 2, count( $ably->http->failedHosts ), 'Expected ' . ($fallbackHosts * 2) . ' host failures' );
-        $this->assertEquals( $firstCycle, $secondCycle, 'Expected fallback hosts to cycle' );
+        $this->assertEquals( $fallbackHosts, count( $ably->http->failedHosts ), 'Expected ' . ($fallbackHosts * 2) . ' host failures' );
+        $this->assertEquals( $defaultOpts->host, $ably->http->failedHosts, 'Expected fallback hosts to cycle' );
     }
 
     /**
