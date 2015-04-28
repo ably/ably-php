@@ -61,9 +61,9 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
             'end'       => $interval[1],
         ));
 
-        $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->messages->count );
+        $this->assertNotNull( $stats->items, 'Expected non-null stats' );
+        $this->assertEquals ( 1, count($stats->items), 'Expected 1 record' );
+        $this->assertEquals ( 5, (int)$stats->items[0]->inbound->all->messages->count );
     }
 
     /**
@@ -79,8 +79,8 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         ));
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->messages->count );
+        $this->assertEquals ( 1, count($stats->items), 'Expected 1 record' );
+        $this->assertEquals ( 5, (int)$stats->items[0]->inbound->all->messages->count );
     }
 
     /**
@@ -96,8 +96,8 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         ));
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->messages->count );
+        $this->assertEquals ( 1, count($stats->items), 'Expected 1 record' );
+        $this->assertEquals ( 5, (int)$stats->items[0]->inbound->all->messages->count );
     }
 
 
@@ -114,8 +114,8 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         ));
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 5, (int)$stats[0]->inbound->all->messages->count );
+        $this->assertEquals ( 1, count($stats->items), 'Expected 1 record' );
+        $this->assertEquals ( 5, (int)$stats->items[0]->inbound->all->messages->count );
     }
 
     /**
@@ -157,8 +157,8 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         ));
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 6, (int)$stats[0]->inbound->all->messages->count );
+        $this->assertEquals ( 1, count($stats->items), 'Expected 1 record' );
+        $this->assertEquals ( 6, (int)$stats->items[0]->inbound->all->messages->count );
     }
 
     /**
@@ -174,11 +174,11 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         ));
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertTrue ( count($stats) == 1 || count($stats) == 2, 'Expected 1 or two records' );
-        if (count($stats) == 1) {
-            $this->assertEquals ( 11, (int)$stats[0]->inbound->all->messages->count );
+        $this->assertTrue ( count($stats->items) == 1 || count($stats->items) == 2, 'Expected 1 or two records' );
+        if (count($stats->items) == 1) {
+            $this->assertEquals ( 11, (int)$stats->items[0]->inbound->all->messages->count );
         } else {
-            $this->assertEquals ( 6, (int)$stats[1]->inbound->all->messages->count );
+            $this->assertEquals ( 6, (int)$stats->items[1]->inbound->all->messages->count );
         }
 
     }
@@ -196,11 +196,11 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         ));
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertTrue ( count($stats) == 1 || count($stats) == 2, 'Expected 1 or two records' );
-        if (count($stats) == 1) {
-            $this->assertEquals ( 11, (int)$stats[0]->inbound->all->messages->count );
+        $this->assertTrue ( count($stats->items) == 1 || count($stats->items) == 2, 'Expected 1 or two records' );
+        if (count($stats->items) == 1) {
+            $this->assertEquals ( 11, (int)$stats->items[0]->inbound->all->messages->count );
         } else {
-            $this->assertEquals ( 6, (int)$stats[1]->inbound->all->messages->count );
+            $this->assertEquals ( 6, (int)$stats->items[1]->inbound->all->messages->count );
         }
     }
 
@@ -218,11 +218,11 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         ));
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertTrue ( count($stats) == 1 || count($stats) == 2, 'Expected 1 or two records' );
-        if (count($stats) == 1) {
-            $this->assertEquals ( 11, (int)$stats[0]->inbound->all->messages->count );
+        $this->assertTrue ( count($stats->items) == 1 || count($stats->items) == 2, 'Expected 1 or two records' );
+        if (count($stats->items) == 1) {
+            $this->assertEquals ( 11, (int)$stats->items[0]->inbound->all->messages->count );
         } else {
-            $this->assertEquals ( 6, (int)$stats[1]->inbound->all->messages->count );
+            $this->assertEquals ( 6, (int)$stats->items[1]->inbound->all->messages->count );
         }
     }
 
@@ -266,8 +266,8 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         ));
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 7, (int)$stats[0]->inbound->all->messages->count );
+        $this->assertEquals ( 1, count($stats->items), 'Expected 1 record' );
+        $this->assertEquals ( 7, (int)$stats->items[0]->inbound->all->messages->count );
     }
 
     /**
@@ -283,7 +283,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         ));
 
         $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertEquals ( 1, count($stats), 'Expected 1 record' );
-        $this->assertEquals ( 7, (int)$stats[0]->inbound->all->messages->count );
+        $this->assertEquals ( 1, count($stats->items), 'Expected 1 record' );
+        $this->assertEquals ( 7, (int)$stats->items[0]->inbound->all->messages->count );
     }
 }

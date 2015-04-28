@@ -5,6 +5,7 @@ use Ably\Auth;
 use Ably\Http;
 use Ably\Log;
 use Ably\Models\ClientOptions;
+use Ably\Models\PaginatedResource;
 use Ably\Exceptions\AblyException;
 use Ably\Exceptions\AblyRequestException;
 
@@ -63,7 +64,7 @@ class AblyRest {
      * @return array Statistics
      */
     public function stats( $params = array() ) {
-        return $this->get( '/stats', $headers = array(), $params );
+        return new PaginatedResource( $this, 'Ably\Models\Stats', $cipher = false, '/stats', $params );
     }
 
     /**
@@ -175,9 +176,5 @@ class AblyRest {
 
             throw $e; // other error code than timeout, rethrow exception
         }
-    }
-
-    private function rotateArray( $array, $offset ) {
-        return array_merge( array_slice( $array, $offset, NULL, true ), array_slice( $array, 0, $offset, true ) );
     }
 }

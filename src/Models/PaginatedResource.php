@@ -45,8 +45,8 @@ class PaginatedResource {
                 
                 $instance = new $model;
 
-                if (!($instance instanceof BaseMessage)) {
-                    throw new AblyException( 'Invalid model class provided: '. $model, 400, 40000 );
+                if ( !method_exists( $model, 'fromJSON' ) ) {
+                    throw new AblyException( 'Invalid model class provided: ' . $model . '. The model needs to implement fromJSON method.' );
                 }
                 if (!empty( $cipherParams ) ) {
                     $instance->setCipherParams( $cipherParams );
