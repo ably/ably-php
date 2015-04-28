@@ -39,13 +39,19 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
             'array' => array( 'This is a JSONarray message payload', 'Test' ),
         );
 
+        $messages = array();
+
         foreach ($data as $type => $payload) {
             $msg = new Message();
             $msg->name = $type;
             $msg->data = $payload;
             
-            $channel->publish($msg);
-            
+            $messages[] = $msg;
+        }
+
+        $channel->publish( $messages ); // publish all messages at once
+
+        foreach ($messages as $msg) {
             if ($channel->options['encrypted']) {
                 # check if the messages are encrypted
                 $msgJSON = json_decode( $msg->toJSON() );
@@ -117,6 +123,26 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $this->assertTrue( $encrypted2->options['encrypted'], 'Expected channel to be encrypted' );
 
         $this->executePublishTestOnChannel( $encrypted2 );
+    }
+
+    /**
+     * Publish single Message
+     */
+    public function testPublishSingleMessageUnencrypted() {
+        $channel = self::$ably->channel( 'persisted:unencryptedSingle' );
+        $data = (object)array( 'test' => 'This is a JSONObject message payload' );
+
+        $msg = new Message();
+        $msg->name = 'single';
+        $msg->data = $data;
+
+        $channel->publish( $msg );
+
+        # get the history for this channel
+        $messages = $channel->history();
+        $this->assertNotNull( $messages, 'Expected non-null messages' );
+        $this->assertEquals( 1, count($messages->items), 'Expected 1 message' );
+        $this->assertEquals( $data, $messages->items[0]->data, 'Expected message contents to match' );
     }
 
     /**

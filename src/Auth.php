@@ -19,30 +19,35 @@ class Auth {
     private $tokenDetails;
     private $ably;
 
-    public function __construct(AblyRest $ably, ClientOptions $options) {
+    public function __construct( AblyRest $ably, ClientOptions $options ) {
         $this->authOptions = new AuthOptions($options);
         $this->ably = $ably;
 
-        if ($this->authOptions->key && empty($this->authOptions->clientId)) {
+        if ( $this->authOptions->key && empty( $this->authOptions->clientId ) ) {
             $this->basicAuth = true;
-            Log::d('Auth: anonymous, using basic auth');
+            Log::d( 'Auth: anonymous, using basic auth' );
+
+            if ( !$options->tls ) {
+                log::e( 'Trying to use basic key auth over unsecure connection' );
+                throw new AblyException ( 'Trying to use basic key auth over unsecure connection', 401, 40103 );
+            }
             return;
         }
 
         $this->basicAuth = false;
 
         if(!empty( $this->authOptions->authCallback )) {
-            Log::d("Auth: using token auth with authCallback");
+            Log::d( 'Auth: using token auth with authCallback' );
         } else if(!empty( $this->authOptions->authUrl )) {
-            Log::d("Auth: using token auth with authUrl");
+            Log::d( 'Auth: using token auth with authUrl' );
         } else if(!empty( $this->authOptions->key )) {
-            Log::d("Auth: using token auth with client-side signing");
+            Log::d( 'Auth: using token auth with client-side signing' );
         } else if(!empty( $this->authOptions->tokenDetails )) {
-            Log::d("Auth: using token auth with supplied token only");
+            Log::d( 'Auth: using token auth with supplied token only' );
         } else {
             /* this is not a hard error - but any operation that requires
              * authentication will fail */
-            Log::w("Auth: no authentication parameters supplied");
+            Log::w( 'Auth: no authentication parameters supplied' );
         }
     }
 
@@ -84,6 +89,8 @@ class Auth {
         } else if ( !empty( $this->tokenDetails ) ) {
             $this->authorise();
             $header = array( 'authorization: Bearer '. base64_encode( $this->tokenDetails->token ) );
+        } else {
+            throw new AblyException( 'Unable to provide auth headers. No auth parameters defined.' );
         }
         return $header;
     }

@@ -33,7 +33,17 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         $this->assertTrue( $ably->auth->isUsingBasicAuth(), 'Expected basic auth to be used' );
     }
 
+    /**
+     * Init library with a key over unsecure connection
+     */
+    public function testAuthoriseWithKeyInsecure() {
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 401 );
 
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+            'tls' => false,
+        ) ) );
+    }
     /**
      * Init library with a token only
      */

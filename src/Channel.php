@@ -57,28 +57,50 @@ class Channel {
 
     /**
      * Posts a message to this channel
-     * @param mixed ... Either a Message or name and data
+     * @param mixed ... Either a Message, array of Messages, or name and data
      * @param string $data Message data
      */
     public function publish() {
 
         $args = func_get_args();
+        $json = '';
         
-        if (count($args) == 1 && is_a($args[0], 'Ably\Models\Message')) {
+        if (count($args) == 1 && is_a( $args[0], 'Ably\Models\Message' )) { // single Message
             $msg = $args[0];
-        } else if (count($args) == 2) {
+
+            if ($this->options['encrypted']) {
+                $msg->setCipherParams( $this->options['cipherParams'] );
+            }
+
+            $json = $msg->toJSON();
+        } else if (count($args) == 1 && is_array( $args[0] )) { // array of Messages
+            $msg = $args[0];
+            $jsonArray = array();
+
+            foreach ($args[0] as $msg) {
+                if ($this->options['encrypted']) {
+                    $msg->setCipherParams( $this->options['cipherParams'] );
+                }
+
+                $jsonArray[] = $msg->toJSON();
+            }
+            
+            $json = '[' . implode( ',', $jsonArray ) . ']';
+        } else if (count($args) == 2) { // name and data
             $msg = new Message();
             $msg->name = $args[0];
             $msg->data = $args[1];
+
+            if ($this->options['encrypted']) {
+                $msg->setCipherParams( $this->options['cipherParams'] );
+            }
+
+            $json = $msg->toJSON();
         } else {
-            throw new AblyException( 'Wrong parameters provided, use either: Message or: name, data' );
+            throw new AblyException( 'Wrong parameters provided, use either Message, array of Messages, or name and data' );
         }
 
-        if ($this->options['encrypted']) {
-            $msg->setCipherParams( $this->options['cipherParams'] );
-        }
-
-        $this->ably->post( $this->channelPath . '/messages', $headers = array(), $msg->toJSON() );
+        $this->ably->post( $this->channelPath . '/messages', $headers = array(), $json );
         return true;
     }
 
