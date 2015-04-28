@@ -35,15 +35,20 @@ class ClientOptions extends AuthOptions {
 
     /**
      * @var bool If true, msgpack is used for communication, otherwise JSON is used
-     * msgpack is currently not supported because of lack of working msgpack libraries for PHP
+     * note that msgpack is currently NOT SUPPORTED because of lack of working msgpack libraries for PHP
      */
     public $useBinaryProtocol = false;
 
     /**
-     * @var string|string[] alternate server domain or array of domains (for use with fallback servers)
+     * @var string alternate server domain
      * For use in development environments only.
      */
     public $host;
+
+    /**
+     * @var string[] fallback hosts, used when connection to default host fails, populated automatically
+     */
+    public $fallbackHosts;
 
     /**
      * @var integer connection timeout after which a next fallback host is used
@@ -60,14 +65,16 @@ class ClientOptions extends AuthOptions {
         parent::__construct( $options );
 
         if (empty($this->host)) {
-            $this->host = array(
-                'rest.ably.io',
+            $this->host = 'rest.ably.io';
+            $this->fallbackHosts = array(
                 'a.ably-realtime.com',
                 'b.ably-realtime.com',
                 'c.ably-realtime.com',
                 'd.ably-realtime.com',
                 'e.ably-realtime.com',
             );
+
+            shuffle( $this->fallbackHosts );
         }
     }
 }

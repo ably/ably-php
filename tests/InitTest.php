@@ -58,7 +58,7 @@ class InitTest extends \PHPUnit_Framework_TestCase {
      */
     public function testEncryptedCanBeFalse() {
         $opts = array(
-            'key' => 'fake.key:veryFake',
+            'token' => 'fake.token',
             'httpClass' => 'tests\HttpMockInitTest',
             'tls' => false,
         );
@@ -73,17 +73,19 @@ class InitTest extends \PHPUnit_Framework_TestCase {
      */
     public function testFallbackHosts() {
         $defaultOpts = new ClientOptions();
+        $hostWithFallbacks = array_merge( array( $defaultOpts->host ), $defaultOpts->fallbackHosts );
 
-        $opts = array(
+        // reuse default options so that fallback host order is not randomized again
+        $opts = array_merge ( $defaultOpts->toArray(), array(
             'key' => 'fake.key:veryFake',
             'httpClass' => 'tests\HttpMockInitTestTimeout',
-        );
+        ) );
         $ably = new AblyRest( $opts );
         try {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-            $this->assertEquals( $defaultOpts->host, $ably->http->failedHosts, 'Expected to have tried all defined fallback hosts' );
+            $this->assertEquals( $hostWithFallbacks, $ably->http->failedHosts, 'Expected to have tried all defined fallback hosts' );
         }
     }
 
@@ -108,16 +110,17 @@ class InitTest extends \PHPUnit_Framework_TestCase {
      */
     public function testFallbackHostsCycling() {
         $defaultOpts = new ClientOptions();
-        $fallbackHosts = count( $defaultOpts->host );
+        $hostWithFallbacks = array_merge( array( $defaultOpts->host ), $defaultOpts->fallbackHosts );
 
-        $opts = array(
+        // reuse default options so that fallback host order is not randomized again
+        $opts = array_merge ( $defaultOpts->toArray(), array(
             'key' => 'fake.key:veryFake',
             'httpClass' => 'tests\HttpMockInitTestTimeout',
-        );
+        ) );
         $ably = new AblyRest( $opts );
 
         // try every host twice
-        for ($i = 0; $i < $fallbackHosts; $i++) {
+        for ($i = 0; $i < count( $hostWithFallbacks ); $i++) {
             // host should work
             $ably->http->failAttempts = 0;
             $ably->time();
@@ -127,8 +130,8 @@ class InitTest extends \PHPUnit_Framework_TestCase {
             $ably->time();
         }
 
-        $this->assertEquals( $fallbackHosts, count( $ably->http->failedHosts ), 'Expected ' . ($fallbackHosts * 2) . ' host failures' );
-        $this->assertEquals( $defaultOpts->host, $ably->http->failedHosts, 'Expected fallback hosts to cycle' );
+        $this->assertEquals( count( $hostWithFallbacks ), count( $ably->http->failedHosts ), 'Expected ' . count( $hostWithFallbacks ) . ' host failures' );
+        $this->assertEquals( $hostWithFallbacks, $ably->http->failedHosts, 'Expected fallback hosts to cycle' );
     }
 
     /**
