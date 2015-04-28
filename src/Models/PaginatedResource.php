@@ -8,7 +8,7 @@ use Ably\Exceptions\AblyException;
  *
  * Requests for channel history and channel presence are wrapped in this class automatically.
  */
-class PaginatedResource extends \ArrayObject {
+class PaginatedResource {
 
     private $ably;
     private $path;
@@ -17,23 +17,25 @@ class PaginatedResource extends \ArrayObject {
     private $paginationHeaders = false;
 
     /**
+     * @var \Ably\Models\BaseMessage[] Array of returned models (either Message or PresenceMessage)
+     */
+    public $items = array();
+
+    /**
      * Constructor.
-     * @param AblyRest $ably Ably API instance
+     * @param \Ably\AblyRest $ably Ably API instance
      * @param mixed $model Name of a class that will populate this ArrayObject. It must implement a fromJSON() method.
      * @param CipherParams|null $cipherParams Optional cipher parameters if data should be decoded
      * @param string $path Request path
      * @param array $params Parameters to be sent with the request
      */
     public function __construct( \Ably\AblyRest $ably, $model, $cipherParams, $path, $params = array() ) {
-        parent::__construct();
-
         $this->ably = $ably;
         $this->model = $model;
         $this->cipherParams = $cipherParams;
         $this->path = $path;
 
-        $withHeaders = true;
-        $response = $this->ably->get( $path, $this->ably->auth_headers(), $params, $withHeaders );
+        $response = $this->ably->get( $path, $headers = array(), $params, $withHeaders = true );
 
         if (isset($response['body']) && is_array($response['body'])) {
 
@@ -54,7 +56,7 @@ class PaginatedResource extends \ArrayObject {
                 $transformedArray[] = $instance;
             }
 
-            $this->exchangeArray( $transformedArray );
+            $this->items = $transformedArray;
             $this->parseHeaders( $response['headers'] );
         }
     }
@@ -65,16 +67,42 @@ class PaginatedResource extends \ArrayObject {
      */
 
     /**
-     * @return boolean whether the fetched results have multiple pages
+     * Fetches the first page of results
+     * @return PaginatedResource Returns self if the current page is the first
      */
-    public function isPaginated() {
-        return is_array($this->paginationHeaders) && !empty($this->paginationHeaders);
+    public function getFirst() {
+        if ($this->isFirstPage()) {
+            return this;
+        } else if (isset($this->paginationHeaders['first'])) {
+            return new PaginatedResource( $this->ably, $this->model, $this->cipherParams, $this->paginationHeaders['first'] );
+        } else {
+            return null;
+        }
     }
 
     /**
-     * @return boolean whether the current page is the first, always true for single-page results
+     * Fetches the next page of results
+     * @return PaginatedResource|null Next page or null if the current page is the last
      */
-    public function isFirstPage() {
+    public function getNext() {
+        if ($this->isPaginated() && isset($this->paginationHeaders['next'])) {
+            return new PaginatedResource( $this->ably, $this->model, $this->cipherParams, $this->paginationHeaders['next'] );
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return boolean Whether there is a next page
+     */
+    public function hasNext() {
+        return $this->isPaginated() && isset($this->paginationHeaders['next']);
+    }
+
+    /**
+     * @return boolean Whether the current page is the first, always true for single-page results
+     */
+    public function isFirst() {
         if (!$this->isPaginated() ) {
             return true;
         }
@@ -88,9 +116,9 @@ class PaginatedResource extends \ArrayObject {
     }
 
     /**
-     * @return boolean whether the current page is the last, always true for single-page results
+     * @return boolean Whether the current page is the last, always true for single-page results
      */
-    public function isLastPage() {
+    public function isLast() {
         if (!$this->isPaginated() || !isset($this->paginationHeaders['next']) ) {
             return true;
         } else {
@@ -99,29 +127,10 @@ class PaginatedResource extends \ArrayObject {
     }
 
     /**
-     * Fetches the first page of results
-     * @return PaginatedResource returns self if the current page is the first
+     * @return boolean Whether the fetched results have multiple pages
      */
-    public function getFirstPage() {
-        if ($this->isFirstPage()) {
-            return this;
-        } else if (isset($this->paginationHeaders['first'])) {
-            return new PaginatedResource( $this->ably, $this->model, $this->cipherParams, $this->paginationHeaders['first'] );
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Fetches the next page of results
-     * @return PaginatedResource or null if the current page is the last
-     */
-    public function getNextPage() {
-        if ($this->isPaginated() && isset($this->paginationHeaders['next'])) {
-            return new PaginatedResource( $this->ably, $this->model, $this->cipherParams, $this->paginationHeaders['next'] );
-        } else {
-            return null;
-        }
+    public function isPaginated() {
+        return is_array($this->paginationHeaders) && count($this->paginationHeaders);
     }
 
 

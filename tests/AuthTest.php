@@ -1,47 +1,36 @@
 <?php
 namespace tests;
 use Ably\AblyRest;
-use Ably\AuthMethod;
-use \Exception;
+use Ably\Http;
+use Ably\Models\TokenDetails;
+use Ably\Models\TokenRequest;
+use Ably\Exceptions\AblyRequestException;
 
-require_once __DIR__ . '/factories/TestOption.php';
+require_once __DIR__ . '/factories/TestApp.php';
 
 class AuthTest extends \PHPUnit_Framework_TestCase {
 
-    protected static $options;
-    protected $defaults;
+    protected static $testApp;
+    protected static $defaultOptions;
 
     public static function setUpBeforeClass() {
-
-        self::$options = TestOption::get_instance()->get_opts();
-
+        self::$testApp = new TestApp();
+        self::$defaultOptions = self::$testApp->getOptions();
     }
 
     public static function tearDownAfterClass() {
-        TestOption::get_instance()->clear_opts();
-    }
-
-    protected function setUp() {
-
-        $options = self::$options;
-        $defaults = array(
-            'debug' => false,
-            'encrypted' => $options['encrypted'],
-            'host' => $options['host'],
-            'port' => $options['port'],
-        );
-
-        $this->defaults = $defaults;
+        self::$testApp->release();
     }
 
     /**
      * Init library with a key only
      */
     public function testAuthoriseWithKeyOnly() {
-        $ably = new AblyRest(array_merge($this->defaults, array(
-            'key' => self::$options['first_private_api_key'],
-        )));
-        $this->assertEquals( AuthMethod::BASIC, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+        ) ) );
+
+        $this->assertTrue( $ably->auth->isUsingBasicAuth(), 'Expected basic auth to be used' );
     }
 
 
@@ -49,33 +38,71 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
      * Init library with a token only
      */
     public function testAuthoriseWithTokenOnly() {
-        $options = self::$options;
-        $ably = new AblyRest(array_merge($this->defaults, array(
-            'appId'     => $options['appId'],
-            'authToken' => "this_is_not_really_a_token",
-        )));
-        $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'tokenDetails' => new TokenDetails( "this_is_not_really_a_token" ),
+        ) ) );
+
+        $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
     }
 
-    protected $authinit2_cbCalled = false;
     /**
      * Init library with a token callback
      */
     public function testAuthoriseWithTokenCallback() {
-        $options = self::$options;
-        $ably = new AblyRest(array_merge($this->defaults, array(
-            'appId'        => $options['appId'],
-            'authCallback' => function( $params ) {
-                $this->authinit2_cbCalled = true;
-                return "this_is_not_really_a_token_request";
+        $callbackCalled = false;
+        $keyName = self::$testApp->getAppKeyDefault()->name;
+
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'authCallback' => function( $tokenParams ) use( &$callbackCalled, $keyName ) {
+                $callbackCalled = true;
+
+                return new TokenRequest( array(
+                    'token' => 'this_is_not_really_a_token_request',
+                    'timestamp' => time()*1000,
+                    'keyName' => $keyName,
+                ) );
             }
-        )));
+        ) ) );
+        
+        // make a call to trigger a token request, catch request exception
+        try {
+            $ably->auth->authorise();
+            $this->fail( 'Expected unsigned fake token to be rejected' );
+        } catch (AblyRequestException $e) {
+            $this->assertEquals( 40101, $e->getAblyCode(), 'Expected error code 40101' );
+        }
+
+        $this->assertTrue( $callbackCalled, 'Token callback not called' );
+        $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
+    }
+    
+    /**
+     * Init library with an authUrl
+     */
+    public function testAuthoriseWithAuthUrl() {
+        $keyName = self::$testApp->getAppKeyDefault()->name;
+        
+        $headers = array( 'Test header: yes', 'Another one: no' );
+        $params = array( 'keyName' => $keyName, 'test' => 1 );
+        $method = 'PUT';
+
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'authUrl' => 'TEST/tokenRequest',
+            'authHeaders' => $headers,
+            'authParams' => $params,
+            'authMethod' => $method,
+            'httpClass' => 'tests\HttpMockAuthTest',
+        ) ) );
         
         // make a call to trigger a token request
-        $ably->authorise();
-
-        $this->assertTrue( $this->authinit2_cbCalled, 'Token callback not called' );
-        $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
+        $ably->auth->authorise();
+        
+        $this->assertTrue( is_a( $ably->http, '\tests\HttpMockAuthTest' ) , 'Expected HttpMock class to be used' );
+        $this->assertEquals( $headers, $ably->http->headers, 'Expected authHeaders to match' );
+        $this->assertEquals( $params, $ably->http->params, 'Expected authParams to match' );
+        $this->assertEquals( $method, $ably->http->method, 'Expected authMethod to match' );
+        $this->assertEquals( 'mock_token_authurl', $ably->auth->getTokenDetails()->token, 'Expected mock token to be used' );
+        $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
     }
 
 
@@ -83,30 +110,73 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
      * Init library with a key and clientId; expect token auth to be chosen
      */
     public function testAuthoriseWithKeyAndClientId() {
-        $options = self::$options;
-        $ably = new AblyRest(array_merge($this->defaults, array(
-            'key'      => $options['first_private_api_key'],
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key'      => self::$testApp->getAppKeyDefault()->string,
             'clientId' => 'testClientId',
-        )));
-        $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
+        ) ) );
+
+        $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
     }
 
     /**
      * Init library with a token
      */
     public function testAuthoriseWithToken() {
-        $options = self::$options;
+        $ably_for_token = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+        ) ) );
+        $tokenDetails = $ably_for_token->auth->requestToken();
 
-        $ably_for_token = new AblyRest(array_merge($this->defaults, array(
-            'key' => $options['first_private_api_key'],
-        )));
-        $token_details = $ably_for_token->request_token();
-        $this->assertNotNull($token_details->id, 'Expected token id' );
+        $this->assertNotNull($tokenDetails->token, 'Expected token id' );
 
-        $ably = new AblyRest(array_merge($this->defaults, array(
-            'appId'     => $options['appId'],
-            'authToken' => $token_details->id,
-        )));
-        $this->assertEquals( AuthMethod::TOKEN, $ably->auth_method(), 'Unexpected Auth method mismatch.' );
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'tokenDetails' => $tokenDetails,
+        ) ) );
+
+        $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
+    }
+}
+
+class HttpMockAuthTest extends Http {
+    public $headers;
+    public $params;
+    public $method;
+    
+    public function request($method, $url, $headers = array(), $params = array()) {
+        if ($url == 'TEST/tokenRequest') {
+            $this->method = $method;
+            $this->headers = $headers;
+            $this->params = $params;
+            
+            $tokenRequest = new TokenRequest( array(
+                'timestamp' => time()*1000,
+                'keyName' => $params['keyName'],
+                'mac' => 'not_really_hmac',
+            ) );
+            
+            $response = json_encode( $tokenRequest->toArray() );
+            
+            return array(
+                'headers' => 'HTTP/1.1 200 OK'."\n",
+                'body' => json_decode ( $response ),
+            );
+        } else if ( preg_match( '/\/keys\/[^\/]*\/requestToken$/', $url ) ) {
+            $tokenDetails = new TokenDetails( array(
+                'token' => 'mock_token_authurl',
+                'issued' => time()*1000,
+                'expires' => time()*1000 + 3600*1000,
+            ) );
+            
+            $response = json_encode( $tokenDetails->toArray() );
+            
+            return array(
+                'headers' => 'HTTP/1.1 200 OK'."\n",
+                'body' => json_decode ( $response ),
+            );
+        }
+        
+        echo $url."\n";
+        
+        return '?';
     }
 }

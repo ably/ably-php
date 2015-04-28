@@ -1,169 +1,205 @@
 <?php
 namespace tests;
 use Ably\AblyRest;
-use \Exception;
+use Ably\Http;
+use Ably\Log;
+use Ably\Exceptions\AblyRequestException;
+use Ably\Models\ClientOptions;
 
-require_once __DIR__ . '/factories/TestOption.php';
+require_once __DIR__ . '/factories/TestApp.php';
 
 class InitTest extends \PHPUnit_Framework_TestCase {
-
-    protected static $options;
-    protected $ably;
-
-    public static function setUpBeforeClass() {
-
-        self::$options = TestOption::get_instance()->get_opts();
-
-    }
-
-    public static function tearDownAfterClass() {
-        TestOption::get_instance()->clear_opts();
-    }
 
     /**
      * Init library with a key only
      */
     public function testInitLibWithKeyOnly() {
-        try {
-            $key = self::$options['keys'][0];
-            new AblyRest( $key->key_str );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
-        }
+        $key = 'fake.key:veryFake';
+        new AblyRest( $key );
     }
 
     /**
      * Init library with a key in options
      */
     public function testInitLibWithKeyOption() {
-        try {
-            $key = self::$options['keys'][0];
-            new AblyRest( array('key' => $key->key_str) );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
-        }
-    }
-
-    /**
-     * Init library with appId
-     */
-    public function testInitLibWithAppId() {
-        try {
-            new AblyRest( array('appId' => self::$options['appId']) );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
-        }
-    }
-
-    /**
-     * Verify library fails to init when both appId and key are missing
-     */
-    public function testFailInitOnMissingAppIdAndKey() {
-        try {
-            new AblyRest( array() );
-            $this->fail('Unexpected success instantiating library');
-        } catch (Exception $e) {
-            # do nothing
-        }
+        $key = 'fake.key:veryFake';
+        new AblyRest( array('key' => $key ) );
     }
 
     /**
      * Init library with specified host
      */
     public function testInitLibWithSpecifiedHost() {
-        try {
-            $opts = array(
-                'appId' => self::$options['appId'],
-                'host'  => 'some.other.host',
-            );
-            $ably = new AblyRest( $opts );
-            $this->assertEquals( $opts['host'], $ably->get_setting('host'), 'Unexpected host mismatch' );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
-        }
-    }
-
-    /**
-     * Init library with specified port
-     */
-    public function testInitLibWithSpecifiedPort() {
-        try {
-            $opts = array(
-                'appId' => self::$options['appId'],
-                'port'  => 9999,
-            );
-            $ably = new AblyRest( $opts );
-            $this->assertEquals( $opts['port'], $ably->get_setting('port'), 'Unexpected port mismatch' );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
-        }
+        $opts = array(
+            'key' => 'fake.key:veryFake',
+            'host'  => 'some.other.host',
+            'httpClass' => 'tests\HttpMockInitTest',
+        );
+        $ably = new AblyRest( $opts );
+        $ably->time(); // make a request
+        $this->assertRegExp( '/^https?:\/\/some\.other\.host/', $ably->http->lastUrl, 'Unexpected host mismatch' );
     }
 
     /**
      * Verify encrypted defaults to true
      */
     public function testEncryptedDefaultIsTrue() {
-        try {
-            $opts = array(
-                'appId' => self::$options['appId'],
-            );
-            $ably = new AblyRest( $opts );
-            $this->assertEquals( 'https', $ably->get_setting('scheme'), 'Unexpected scheme mismatch' );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
-        }
+        $opts = array(
+            'key' => 'fake.key:veryFake',
+            'httpClass' => 'tests\HttpMockInitTest',
+        );
+        $ably = new AblyRest( $opts );
+        $ably->time(); // make a request
+        $this->assertRegExp( '/^https:\/\//', $ably->http->lastUrl, 'Unexpected scheme mismatch' );
     }
 
     /**
      * Verify encrypted can be set to false
      */
     public function testEncryptedCanBeFalse() {
-        try {
-            $opts = array(
-                'appId' => self::$options['appId'],
-                'encrypted' => false,
-            );
-            $ably = new AblyRest( $opts );
-            $this->assertEquals( 'http', $ably->get_setting('scheme'), 'Unexpected scheme mismatch' );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
-        }
+        $opts = array(
+            'key' => 'fake.key:veryFake',
+            'httpClass' => 'tests\HttpMockInitTest',
+            'tls' => false,
+        );
+        $ably = new AblyRest( $opts );
+        $ably->time(); // make a request
+        $this->assertRegExp( '/^http:\/\//', $ably->http->lastUrl, 'Unexpected scheme mismatch' );
     }
 
+
     /**
-     * Init with log handler; check called
+     * Verify if fallback hosts are working and used in correct order
      */
-    protected $init8_logCalled = false;
-    public function testLoggerIsCalledWithDebugTrue() {
+    public function testFallbackHosts() {
+        $defaultOpts = new ClientOptions();
+
+        $opts = array(
+            'key' => 'fake.key:veryFake',
+            'httpClass' => 'tests\HttpMockInitTestTimeout',
+        );
+        $ably = new AblyRest( $opts );
         try {
-            $opts = array(
-                'appId' => self::$options['appId'],
-                'debug' => function( $output ) {
-                    $this->init8_logCalled = true;
-                    return $output;
-                },
-            );
-            new AblyRest( $opts );
-            $this->assertTrue( $this->init8_logCalled, 'Log handler not called' );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
+            $ably->time(); // make a request
+            $this->fail('Expected the request to fail');
+        } catch(AblyRequestException $e) {
+            $this->assertEquals( $defaultOpts->host, $ably->http->failedHosts, 'Expected to have tried all defined fallback hosts' );
         }
     }
 
     /**
-     * Init with log handler; check not called if logLevel == NONE
+     * Verify if fallback hosts are working - first 3 fail, 4th works
+     */
+    public function testFallbackHostsFailFirst3() {
+        $opts = array(
+            'key' => 'fake.key:veryFake',
+            'httpClass' => 'tests\HttpMockInitTestTimeout',
+        );
+        $ably = new AblyRest( $opts );
+        $ably->http->failAttempts = 3;
+        $data = $ably->time(); // make a request
+        
+        $this->assertEquals( 999999, $data, 'Expected to receive test data' );
+        $this->assertEquals( 3, count( $ably->http->failedHosts ), 'Expected 3 hosts to fail' );
+    }
+
+    /**
+     * Verify if fallback host cycling is working - every host works at 1st attempt, fails at 2nd attempt
+     */
+    public function testFallbackHostsCycling() {
+        $defaultOpts = new ClientOptions();
+        $fallbackHosts = count( $defaultOpts->host );
+
+        $opts = array(
+            'key' => 'fake.key:veryFake',
+            'httpClass' => 'tests\HttpMockInitTestTimeout',
+        );
+        $ably = new AblyRest( $opts );
+
+        // try every host twice
+        for ($i = 0; $i < $fallbackHosts; $i++) {
+            // host should work
+            $ably->http->failAttempts = 0;
+            $ably->time();
+
+            // host should fail, host list should cycle
+            $ably->http->failAttempts = 1;
+            $ably->time();
+        }
+
+        $this->assertEquals( $fallbackHosts, count( $ably->http->failedHosts ), 'Expected ' . ($fallbackHosts * 2) . ' host failures' );
+        $this->assertEquals( $defaultOpts->host, $ably->http->failedHosts, 'Expected fallback hosts to cycle' );
+    }
+
+    /**
+     * Init with log handler; check if called
+     */
+    public function testLogHandler() {
+        $called = false;
+        $opts = array(
+            'key' => 'fake.key:veryFake',
+            'logLevel' => Log::VERBOSE,
+            'logHandler' => function( $level, $args ) use ( &$called ) {
+                $called = true;
+            },
+        );
+
+        new AblyRest( $opts );
+        $this->assertTrue( $called, 'Log handler not called' );
+    }
+
+    /**
+     * Init with log handler; check if not called when logLevel == NONE
      */
     public function testLoggerNotCalledWithDebugFalse() {
-        try {
-            $opts = array(
-                'appId' => self::$options['appId'],
-                'debug' => false,
-            );
-            $ably = new AblyRest( $opts );
-            # There is no logLevel in the PHP library so we'll simply assert log_action returns false
-            $this->assertFalse( $ably->log_action('test()', 'called'), 'Log handler incorrectly called' );
-        } catch (Exception $e) {
-            $this->fail('Unexpected exception instantiating library');
+        $called = false;
+        $opts = array(
+            'key' => 'fake.key:veryFake',
+            'logLevel' => Log::NONE,
+            'logHandler' => function( $level, $args ) use ( &$called ) {
+                $called = true;
+            },
+        );
+
+        $ably = new AblyRest( $opts );
+        $this->assertFalse( $called, 'Log handler incorrectly called' );
+    }
+}
+
+
+class HttpMockInitTest extends Http {
+    public $lastUrl;
+    
+    public function request($method, $url, $headers = array(), $params = array()) {
+        $this->lastUrl = $url;
+
+        // mock response to /time
+        return array(
+            'headers' => '',
+            'body' => array( round( microtime( true ) * 1000 ), 0 )
+        );
+    }
+}
+
+
+class HttpMockInitTestTimeout extends Http {
+    public $failedHosts = array();
+    public $failAttempts = 100; // number of attempts to time out before starting to return data
+    
+    public function request($method, $url, $headers = array(), $params = array()) {
+
+        if ($this->failAttempts > 0) {
+            preg_match('/\/\/([a-z0-9\.\-]+)\//', $url, $m);
+            $this->failedHosts[] = $m[1];
+            
+            $this->failAttempts--;
+
+            throw new AblyRequestException( 'Fake time out', 500, 50003 );
         }
+
+        return array(
+            'headers' => '',
+            'body' => array( 999999, 0 )
+        );
     }
 }

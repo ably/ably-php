@@ -21,6 +21,11 @@ abstract class BaseMessage {
      */
     public $clientId;
     /**
+     * @var string|null ID of the connection.
+     * This property is populated by the system.
+     */
+    public $connectionId;
+    /**
      * @var int The timestamp of this message. Populated by the system.
      */
     public $timestamp;

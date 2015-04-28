@@ -4,7 +4,7 @@ use Ably\Models\CipherParams;
 use Ably\Models\Message;
 use Ably\Models\PresenceMessage;
 
-require_once __DIR__ . '/factories/TestOption.php';
+require_once __DIR__ . '/factories/TestApp.php';
 
 class CryptoTest extends \PHPUnit_Framework_TestCase {
 
@@ -16,7 +16,7 @@ class CryptoTest extends \PHPUnit_Framework_TestCase {
      * @dataProvider filenameProvider
      */
     public function testMessageEncryptionAgainstFixture( $filename ) {
-        $fixture = json_decode( file_get_contents( __DIR__ . '/fixtures/' . $filename ) );
+        $fixture = json_decode( file_get_contents( $filename ) );
 
         foreach ($fixture->items as $example) {
             $key = base64_decode( $fixture->key );
@@ -46,7 +46,7 @@ class CryptoTest extends \PHPUnit_Framework_TestCase {
      * @dataProvider filenameProvider
      */
     public function testPrenenceMessageEncryptionAgainstFixture( $filename ) {
-        $fixture = json_decode( file_get_contents( __DIR__ . '/fixtures/' . $filename ) );
+        $fixture = json_decode( file_get_contents( $filename ) );
 
         foreach ($fixture->items as $example) {
             unset ($example->encoded->name); // we're reusing fixtures for standard messages, but presence messages do not have a name
@@ -73,8 +73,8 @@ class CryptoTest extends \PHPUnit_Framework_TestCase {
 
     public function filenameProvider() {
         return array(
-            array('crypto-data-128.json'),
-            array('crypto-data-256.json'),
+            array( __DIR__ . '/../ably-common/test-resources/crypto-data-128.json'),
+            array( __DIR__ . '/../ably-common/test-resources/crypto-data-256.json'),
         );
     }
 }

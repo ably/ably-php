@@ -15,7 +15,7 @@ class Crypto {
         $raw = defined( 'OPENSSL_RAW_DATA' ) ? OPENSSL_RAW_DATA : true;
 
         $ciphertext = openssl_encrypt( $plaintext, $cipherParams->algorithm, $cipherParams->key, $raw, $cipherParams->iv );
-        
+
         if ($ciphertext === false) {
             return false;
         }
@@ -53,10 +53,10 @@ class Crypto {
      */
     protected static function updateIV( CipherParams $cipherParams ) {
         $raw = defined( 'OPENSSL_RAW_DATA' ) ? OPENSSL_RAW_DATA : true;
-                
-                $ivLength = strlen( $cipherParams->iv );
+
+        $ivLength = strlen( $cipherParams->iv );
 
         $cipherParams->iv = openssl_encrypt( str_repeat( ' ', $ivLength ), $cipherParams->algorithm, $cipherParams->key, $raw, $cipherParams->iv );
-                $cipherParams->iv = substr( $cipherParams->iv, 0, $ivLength);
+        $cipherParams->iv = substr( $cipherParams->iv, 0, $ivLength);
     }
 }

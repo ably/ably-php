@@ -28,7 +28,7 @@ class Channel {
      * Constructor
      * @param AblyRest $ably Ably API instance
      * @param string $name Channel's name
-     * @param array $options Channel options
+     * @param array $options Channel options ['encrypted', 'cipherParams']
      * @throws AblyException
      */
     public function __construct( AblyRest $ably, $name, $options = array() ) {
@@ -71,14 +71,14 @@ class Channel {
             $msg->name = $args[0];
             $msg->data = $args[1];
         } else {
-            return false;
+            throw new AblyException( 'Wrong parameters provided, use either: Message or: name, data' );
         }
 
         if ($this->options['encrypted']) {
             $msg->setCipherParams( $this->options['cipherParams'] );
         }
 
-        $this->post( '/messages', $msg->toJSON() );
+        $this->ably->post( $this->channelPath . '/messages', $headers = array(), $msg->toJSON() );
         return true;
     }
 
@@ -110,9 +110,5 @@ class Channel {
      */
     public function getCipherParams() {
         return $this->options['encrypted'] ? $this->options['cipherParams'] : null;
-    }
-
-    private function post( $path, $params = array() ) {
-        return $this->ably->post( $this->channelPath . $path, $this->ably->auth_headers(), $params );
     }
 }
