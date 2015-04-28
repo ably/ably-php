@@ -106,35 +106,6 @@ class InitTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Verify if fallback host cycling is working - every host works at 1st attempt, fails at 2nd attempt
-     */
-    public function testFallbackHostsCycling() {
-        $defaultOpts = new ClientOptions();
-        $hostWithFallbacks = array_merge( array( $defaultOpts->host ), $defaultOpts->fallbackHosts );
-
-        // reuse default options so that fallback host order is not randomized again
-        $opts = array_merge ( $defaultOpts->toArray(), array(
-            'key' => 'fake.key:veryFake',
-            'httpClass' => 'tests\HttpMockInitTestTimeout',
-        ) );
-        $ably = new AblyRest( $opts );
-
-        // try every host twice
-        for ($i = 0; $i < count( $hostWithFallbacks ); $i++) {
-            // host should work
-            $ably->http->failAttempts = 0;
-            $ably->time();
-
-            // host should fail, host list should cycle
-            $ably->http->failAttempts = 1;
-            $ably->time();
-        }
-
-        $this->assertEquals( count( $hostWithFallbacks ), count( $ably->http->failedHosts ), 'Expected ' . count( $hostWithFallbacks ) . ' host failures' );
-        $this->assertEquals( $hostWithFallbacks, $ably->http->failedHosts, 'Expected fallback hosts to cycle' );
-    }
-
-    /**
      * Init with log handler; check if called
      */
     public function testLogHandler() {

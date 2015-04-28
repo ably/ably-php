@@ -21,8 +21,6 @@ class AblyRest {
      */
     public $auth;
 
-    private $hostWithFallbacks;
-
     /**
      * Constructor
      * @param \Ably\Models\ClientOptions|string options or a string with app key or token
@@ -43,10 +41,6 @@ class AblyRest {
         Log::setLogLevel( $this->options->logLevel );
         if ( !empty( $this->options->logHandler ) ) {
             Log::setLogCallback( $this->options->logHandler );
-        }
-
-        if ( !empty( $this->options->fallbackHosts ) ) {
-            $this->hostWithFallbacks = array_merge( array( $this->options->host ), $this->options->fallbackHosts );
         }
 
         $httpClass = $this->options->httpClass;
@@ -122,7 +116,7 @@ class AblyRest {
         }
 
         try {
-            if ( !empty( $this->hostWithFallbacks ) ) {
+            if ( !empty( $this->options->fallbackHosts ) ) {
                 $res = $this->requestWithFallback( $method, $path, $mergedHeaders, $params );
             } else {
                 $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->host;
@@ -158,27 +152,20 @@ class AblyRest {
      * Does a HTTP request backed up by fallback servers
      */
     protected function requestWithFallback( $method, $path, $headers = array(), $params = array(), $attempt = 0 ) {
-        if ( $attempt > 0 ) {
-            Log::d( 'Connection failed, attempting with fallback server #' . $attempt );
-        }
-
-        $server = ($this->options->tls ? 'https://' : 'http://') . $this->hostWithFallbacks[$attempt];
-
         try {
-            $res = $this->http->request( $method, $server . $path, $headers, $params );
-
-            // successful request
-
-            if ($attempt > 0) { // reorder servers, so that the working one is first and not working one(s) last
-                Log::d( 'Switching server to: ' . $this->hostWithFallbacks[$attempt] );
-                $this->hostWithFallbacks = $this->rotateArray( $this->hostWithFallbacks, $attempt );
+            if ( $attempt == 0 ) { // using default host
+                $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->host;
+            } else { // using a fallback host
+                Log::d( 'Connection failed, attempting with fallback server #' . $attempt );
+                // attempt 1 uses fallback host with index 0
+                $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->fallbackHosts[$attempt - 1];
             }
 
-            return $res;
+            return $this->http->request( $method, $server . $path, $headers, $params );
         }
         catch (AblyRequestException $e) {
             if ( $e->getAblyCode() >= 50000 ) {
-                if ( $attempt + 1 < count( $this->hostWithFallbacks ) ) {
+                if ( $attempt < count( $this->options->fallbackHosts ) ) {
                     return $this->requestWithFallback( $method, $path, $headers, $params, $attempt + 1);
                 } else {
                     Log::e( 'Failed to connect to server and all of the fallback servers.' );
