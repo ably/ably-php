@@ -3,7 +3,7 @@
     "description": "Ably REST client library for PHP.",
     "keywords": ["messaging", "messages", "ably"],
     "version": "1.0.1",
-    "homepage" "https://www.ably.io/"
+    "homepage": "https://www.ably.io/",
     "require": {
         "php": ">=5.4",
         "ext-json" : "*",
