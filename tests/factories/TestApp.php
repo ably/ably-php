@@ -73,8 +73,8 @@ class TestApp {
 
     public function release() {
         if (!empty($this->options)) {
-            $ably = new AblyRest( $this->getAppKeyDefault()->string );
-            $this->request( 'DELETE', $this->server . '/apps/' . $this->appId );
+            $headers = array( 'authorization: Basic ' . base64_encode( $this->getAppKeyDefault()->string ) );
+            $this->request( 'DELETE', $this->server . '/apps/' . $this->appId, $headers );
             $this->options = null;
         }
     }
@@ -99,9 +99,8 @@ class TestApp {
         return $this->appKeys[1];
     }
 
-    private function request( $mode, $url, $headers = array(), $params = array() ) {
+    private function request( $mode, $url, $headers = array(), $params = '' ) {
         $ch = curl_init($url);
-        $curl_cmd = 'curl ';
 
         if ( $mode == 'DELETE') curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, 'DELETE' );
         if ( $mode == 'POST' )  curl_setopt ( $ch, CURLOPT_POST, 1 );
@@ -109,25 +108,11 @@ class TestApp {
         if (!empty($params)) {
             curl_setopt( $ch, CURLOPT_POSTFIELDS, $params );
             array_push( $headers, 'Accept: application/json', 'Content-Type: application/json' );
-            if (is_array($params)) {
-                $curl_cmd .= '--data "'. $this->safe_params($params) .'" ';
-            } else {
-                $curl_cmd .= "--data '{$params}' ";
-            }
-            $curl_cmd .= '-X POST ';
         }
 
         if (!empty($headers)) {
             curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
         }
-
-        if (!empty($headers)) {
-            foreach($headers as $header) {
-                $curl_cmd .= "-H '{$header}' ";
-            }
-        }
-
-        $curl_cmd .= $url;
 
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
         if ($this->debugRequests) {
@@ -138,7 +123,6 @@ class TestApp {
         curl_close ($ch);
 
         if ($this->debugRequests) {
-            var_dump($curl_cmd);
             var_dump($raw);
         }
 
