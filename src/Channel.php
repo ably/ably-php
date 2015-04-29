@@ -1,7 +1,7 @@
 <?php
 namespace Ably;
 
-use Ably\Models\PaginatedResource;
+use Ably\Models\PaginatedResult;
 use Ably\Models\Message;
 use Ably\Exceptions\AblyException;
 
@@ -107,10 +107,10 @@ class Channel {
     /**
      * Retrieves channel's history of messages
      * @param array $params Parameters to be sent with the request
-     * @return PaginatedResource
+     * @return PaginatedResult
      */
     public function history( $params = array() ) {
-        return new PaginatedResource( $this->ably, 'Ably\Models\Message', $this->getCipherParams(), $this->getPath() . '/messages', $params );
+        return new PaginatedResult( $this->ably, 'Ably\Models\Message', $this->getCipherParams(), $this->getPath() . '/messages', $params );
     }
 
     /**

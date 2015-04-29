@@ -28,8 +28,8 @@ class Auth {
             Log::d( 'Auth: anonymous, using basic auth' );
 
             if ( !$options->tls ) {
-                log::e( 'Trying to use basic key auth over unsecure connection' );
-                throw new AblyException ( 'Trying to use basic key auth over unsecure connection', 401, 40103 );
+                log::e( 'Trying to use basic key auth over insecure connection' );
+                throw new AblyException ( 'Trying to use basic key auth over insecure connection', 401, 40103 );
             }
             return;
         }

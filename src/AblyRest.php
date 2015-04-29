@@ -5,7 +5,7 @@ use Ably\Auth;
 use Ably\Http;
 use Ably\Log;
 use Ably\Models\ClientOptions;
-use Ably\Models\PaginatedResource;
+use Ably\Models\PaginatedResult;
 use Ably\Exceptions\AblyException;
 use Ably\Exceptions\AblyRequestException;
 
@@ -64,7 +64,7 @@ class AblyRest {
      * @return array Statistics
      */
     public function stats( $params = array() ) {
-        return new PaginatedResource( $this, 'Ably\Models\Stats', $cipher = false, '/stats', $params );
+        return new PaginatedResult( $this, 'Ably\Models\Stats', $cipher = false, '/stats', $params );
     }
 
     /**
