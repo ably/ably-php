@@ -70,8 +70,8 @@ class PaginatedResource {
      * Fetches the first page of results
      * @return PaginatedResource Returns self if the current page is the first
      */
-    public function getFirst() {
-        if ($this->isFirstPage()) {
+    public function first() {
+        if ($this->isFirst()) {
             return this;
         } else if (isset($this->paginationHeaders['first'])) {
             return new PaginatedResource( $this->ably, $this->model, $this->cipherParams, $this->paginationHeaders['first'] );
@@ -81,10 +81,17 @@ class PaginatedResource {
     }
 
     /**
+     * @return boolean Whether there is a next page
+     */
+    public function hasFirst() {
+        return $this->isPaginated() && isset($this->paginationHeaders['first']);
+    }
+
+    /**
      * Fetches the next page of results
      * @return PaginatedResource|null Next page or null if the current page is the last
      */
-    public function getNext() {
+    public function next() {
         if ($this->isPaginated() && isset($this->paginationHeaders['next'])) {
             return new PaginatedResource( $this->ably, $this->model, $this->cipherParams, $this->paginationHeaders['next'] );
         } else {

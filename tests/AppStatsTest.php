@@ -9,8 +9,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
     protected static $testApp;
     protected static $defaultOptions;
     protected static $ably;
-
-    protected static $timeOffset;
+    protected static $timestamp;
 
     public static function setUpBeforeClass() {
         self::$testApp = new TestApp();
@@ -19,271 +18,265 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
             'key' => self::$testApp->getAppKeyDefault()->string,
         ) ) );
 
-        self::$timeOffset = self::$ably->time() - self::$ably->systemTime();
+        self::$timestamp = strtotime('-2 weeks monday') + 14 * 3600 + 5 * 60; // previous monday @ 14:05:00
+
+        $fixture = '[
+            {
+                "intervalId": "' . gmdate( 'Y-m-d:H:i', self::$timestamp ) . '",
+                "inbound":  { "realtime": { "messages": { "count": 50, "data": 5000 } } },
+                "outbound": { "realtime": { "messages": { "count": 20, "data": 2000 } } }
+            },
+            {
+                "intervalId": "' . gmdate( 'Y-m-d:H:i', self::$timestamp + 60 ) . '",
+                "inbound":  { "realtime": { "messages": { "count": 60, "data": 6000 } } },
+                "outbound": { "realtime": { "messages": { "count": 10, "data": 1000 } } }
+            },
+            {
+                "intervalId": "' . gmdate( 'Y-m-d:H:i', self::$timestamp + 120 ) . '",
+                "inbound":       { "realtime": { "messages": { "count": 70, "data": 7000 } } },
+                "outbound":      { "realtime": { "messages": { "count": 40, "data": 4000 } } },
+                "persisted":     { "presence": { "count": 20, "data": 2000 } },
+                "connections":   { "tls":      { "peak": 20,  "opened": 10 } },
+                "channels":      { "peak": 50, "opened": 30 },
+                "apiRequests":   { "succeeded": 50, "failed": 10 },
+                "tokenRequests": { "succeeded": 60, "failed": 20 }
+            }
+        ]';
+
+        self::$ably->post( '/stats', array(), $fixture );
     }
 
     public static function tearDownAfterClass() {
         self::$testApp->release();
     }
 
-    public function testPublishEventsForwards() {
-        $interval = array();
-
-        # wait for the start of the next minute
-        $t = self::$timeOffset + self::$ably->systemTime();
-        $interval[0] = ceil(($t + 1000)/60000)*60000;
-        $wait = ceil(($interval[0] - $t)/1000);
-        sleep($wait);
-
-        # publish some messages
-        $stats0 = self::$ably->channel( 'appstats_0' );
-        for ($i=0; $i < 5; $i++) {
-            $stats0->publish( 'stats' . $i, $i );
-        }
-
-        # wait for the stats to be persisted
-        $interval[1] = self::$timeOffset + self::$ably->systemTime();
-        sleep( 10 );
-
-        $this->assertTrue( true );
-
-        return $interval;
-    }
-
     /**
      * Check minute-level stats exist (forwards)
-     * @depends testPublishEventsForwards
      */
-    public function testMinuteLevelStatsExistForwards(array $interval) {
+    public function testAppstatsMinute0() {
+        // get the stats for this channel 
+        // note that bounds are inclusive 
         $stats = self::$ably->stats(array(
-            'direction' => 'forwards',
-            'start'     => $interval[0],
-            'end'       => $interval[1],
+            "direction" => "forwards",
+            "start" => self::$timestamp * 1000,
+            "end" => self::$timestamp * 1000
         ));
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
 
-        $this->assertNotNull( $stats->items, 'Expected non-null stats' );
-        $this->assertEquals ( 1, count($stats->items), 'Expected 1 record' );
-        $this->assertEquals ( 5, (int)$stats->items[0]->inbound->all->messages->count );
-    }
-
-    /**
-     * Check hour-level stats exist (forwards)
-     * @depends testPublishEventsForwards
-     */
-    public function testHourLevelStatsExistForwards(array $interval) {
         $stats = self::$ably->stats(array(
-            'direction' => 'forwards',
-            'start'     => $interval[0],
-            'end'       => $interval[1],
-            'by'        => 'hour',
+            "direction" => "forwards",
+            "start" => self::$timestamp * 1000 + 60000,
+            "end" => self::$timestamp * 1000 + 60000
         ));
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 60, $stats->items[0]->inbound->all->all->count, "Expected 60 messages" );
 
-        $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertEquals ( 1, count($stats->items), 'Expected 1 record' );
-        $this->assertEquals ( 5, (int)$stats->items[0]->inbound->all->messages->count );
-    }
-
-    /**
-     * Check day-level stats exist (forwards)
-     * @depends testPublishEventsForwards
-     */
-    public function testDayLevelStatsExistForwards(array $interval) {
         $stats = self::$ably->stats(array(
-            'direction' => 'forwards',
-            'start'     => $interval[0],
-            'end'       => $interval[1],
-            'by'        => 'day',
+            "direction" => "forwards",
+            "start" => self::$timestamp * 1000 + 120000,
+            "end" => self::$timestamp * 1000 + 120000
         ));
-
-        $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertEquals ( 1, count($stats->items), 'Expected 1 record' );
-        $this->assertEquals ( 5, (int)$stats->items[0]->inbound->all->messages->count );
-    }
-
-
-    /**
-     * Check month-level stats exist (forwards)
-     * @depends testPublishEventsForwards
-     */
-    public function testMonthLevelStatsExistForwards(array $interval) {
-        $stats = self::$ably->stats(array(
-            'direction' => 'forwards',
-            'start'     => $interval[0],
-            'end'       => $interval[1],
-            'by'        => 'month',
-        ));
-
-        $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertEquals ( 1, count($stats->items), 'Expected 1 record' );
-        $this->assertEquals ( 5, (int)$stats->items[0]->inbound->all->messages->count );
-    }
-
-    /**
-     * Publish events (backwards)
-     */
-    public function testPublishEventsBackwards() {
-        $interval = array();
-
-        # wait for the start of the next minute
-        $t = self::$timeOffset + self::$ably->systemTime();
-        $interval[0] = ceil(($t + 1000)/60000)*60000;
-        $wait = ceil(($interval[0] - $t)/1000);
-        sleep($wait);
-
-        # publish some messages
-        $stats0 = self::$ably->channel('appstats_1');
-        for ($i=0; $i < 6; $i++) {
-            $stats0->publish( 'stats'.$i, $i );
-        }
-
-        # wait for the stats to be persisted
-        $interval[1] = self::$timeOffset + self::$ably->systemTime();
-        sleep( 10 );
-
-        $this->assertTrue( true );
-
-        return $interval;
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 70, $stats->items[0]->inbound->all->all->count, "Expected 70 messages" );
     }
 
     /**
      * Check minute-level stats exist (backwards)
-     * @depends testPublishEventsBackwards
      */
-    public function testMinuteLevelStatsExistBackwards(array $interval) {
+    public function testAppstatsMinute1() {
+        // get the stats for this channel 
+        // note that bounds are inclusive 
         $stats = self::$ably->stats(array(
-            'direction' => 'backwards',
-            'start'     => $interval[0],
-            'end'       => $interval[1],
+            "direction" => "backwards",
+            "start" => self::$timestamp * 1000,
+            "end" => self::$timestamp * 1000
         ));
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
 
-        $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertEquals ( 1, count($stats->items), 'Expected 1 record' );
-        $this->assertEquals ( 6, (int)$stats->items[0]->inbound->all->messages->count );
+        $stats = self::$ably->stats(array(
+            "direction" => "backwards",
+            "start" => self::$timestamp * 1000 + 60000,
+            "end" => self::$timestamp * 1000 + 60000
+        ));
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 60, $stats->items[0]->inbound->all->all->count, "Expected 60 messages" );
+
+        $stats = self::$ably->stats(array(
+            "direction" => "backwards",
+            "start" => self::$timestamp * 1000 + 120000,
+            "end" => self::$timestamp * 1000 + 120000
+        ));
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 70, $stats->items[0]->inbound->all->all->count, "Expected 70 messages" );
     }
 
     /**
-     * Check hour-level stats exist (backwards)
-     * @depends testPublishEventsBackwards
+     * Check hour-level stats exist (forwards)
      */
-    public function testHourLevelStatsExistBackwards(array $interval) {
+    public function testAppstatsHour0() {
+        // get the stats for this channel 
         $stats = self::$ably->stats(array(
-            'direction' => 'backwards',
-            'start'     => $interval[0],
-            'end'       => $interval[1],
-            'by'        => 'hour',
+            "direction" => "forwards",
+            "start" => self::$timestamp * 1000,
+            "end" => self::$timestamp * 1000 + 120000,
+            "unit" => "hour"
         ));
-
-        $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertTrue ( count($stats->items) == 1 || count($stats->items) == 2, 'Expected 1 or two records' );
-        if (count($stats->items) == 1) {
-            $this->assertEquals ( 11, (int)$stats->items[0]->inbound->all->messages->count );
-        } else {
-            $this->assertEquals ( 6, (int)$stats->items[1]->inbound->all->messages->count );
-        }
-
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 180, $stats->items[0]->inbound->all->all->count, "Expected 180 messages" );
     }
 
     /**
-     * Check day-level stats exist (backwards)
-     * @depends testPublishEventsBackwards
+     * Check day-level stats exist (forwards)
      */
-    public function testDayLevelStatsExistBackwards(array $interval) {
+    public function testAppstatsDay0() {
+        // get the stats for this channel 
         $stats = self::$ably->stats(array(
-            'direction' => 'backwards',
-            'start'     => $interval[0],
-            'end'       => $interval[1],
-            'by'        => 'day',
+            "direction" => "forwards",
+            "start" => self::$timestamp * 1000,
+            "end" => self::$timestamp * 1000 + 120000,
+            "unit" => "day"
         ));
-
-        $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertTrue ( count($stats->items) == 1 || count($stats->items) == 2, 'Expected 1 or two records' );
-        if (count($stats->items) == 1) {
-            $this->assertEquals ( 11, (int)$stats->items[0]->inbound->all->messages->count );
-        } else {
-            $this->assertEquals ( 6, (int)$stats->items[1]->inbound->all->messages->count );
-        }
-    }
-
-
-    /**
-     * Check month-level stats exist (backwards)
-     * @depends testPublishEventsBackwards
-     */
-    public function testMonthLevelStatsExistBackwards(array $interval) {
-        $stats = self::$ably->stats(array(
-            'direction' => 'backwards',
-            'start'     => $interval[0],
-            'end'       => $interval[1],
-            'by'        => 'month',
-        ));
-
-        $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertTrue ( count($stats->items) == 1 || count($stats->items) == 2, 'Expected 1 or two records' );
-        if (count($stats->items) == 1) {
-            $this->assertEquals ( 11, (int)$stats->items[0]->inbound->all->messages->count );
-        } else {
-            $this->assertEquals ( 6, (int)$stats->items[1]->inbound->all->messages->count );
-        }
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 180, $stats->items[0]->inbound->all->all->count, "Expected 180 messages" );
     }
 
     /**
-     * Publish events with limit query
+     * Check month-level stats exist (forwards)
      */
-    public function testPublishEventsLimit() {
-        $interval = array();
-
-        # wait for the start of the next minute
-        $t = self::$timeOffset + self::$ably->systemTime();
-        $interval[0] = ceil(($t + 1000)/60000)*60000;
-        $wait = ceil(($interval[0] - $t)/1000);
-        sleep($wait);
-
-        # publish some messages
-        $stats0 = self::$ably->channel('appstats_2');
-        for ($i=0; $i < 7; $i++) {
-            $stats0->publish( 'stats'.$i, $i );
-        }
-
-        # wait for the stats to be persisted
-        $interval[1] = self::$timeOffset + self::$ably->systemTime();
-        sleep( 10 );
-
-        $this->assertTrue( true );
-
-        return $interval;
+    public function testAppstatsMonth0() {
+        // get the stats for this channel 
+        $stats = self::$ably->stats(array(
+            "direction" => "forwards",
+            "start" => self::$timestamp * 1000,
+            "end" => self::$timestamp * 1000 + 120000,
+            "unit" => "month"
+        ));
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 180, $stats->items[0]->inbound->all->all->count, "Expected 180 messages" );
     }
 
     /**
-     * Check limit query param (backwards)
-     * @depends testPublishEventsLimit
+     * Publish events and check limit query param (backwards)
      */
-    public function testLimitParamBackwards(array $interval) {
+    public function testAppstatsLimit0() {
+        // get the stats for this channel 
         $stats = self::$ably->stats(array(
-            'direction' => 'backwards',
-            'start'     => $interval[0],
-            'end'       => $interval[1],
-            'limit'     => '1',
+            "direction" => "backwards",
+            "start" => self::$timestamp * 1000,
+            "end" => self::$timestamp * 1000 + 120000,
+            "limit" => 1
         ));
-
-        $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertEquals ( 1, count($stats->items), 'Expected 1 record' );
-        $this->assertEquals ( 7, (int)$stats->items[0]->inbound->all->messages->count );
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 70, $stats->items[0]->inbound->all->all->count, "Expected 70 messages" );
     }
 
     /**
      * Check limit query param (forwards)
-     * @depends testPublishEventsLimit
      */
-    public function testLimitParamForwards(array $interval) {
+    public function testAppstatsLimit1() {
         $stats = self::$ably->stats(array(
-            'direction' => 'forwards',
-            'start'     => $interval[0],
-            'end'       => $interval[1],
-            'limit'     => '1',
+            "direction" => "forwards",
+            "start" => self::$timestamp * 1000,
+            "end" => self::$timestamp * 1000 + 120000,
+            "limit" => 1
         ));
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
+    }
 
-        $this->assertNotNull( $stats, 'Expected non-null stats' );
-        $this->assertEquals ( 1, count($stats->items), 'Expected 1 record' );
-        $this->assertEquals ( 7, (int)$stats->items[0]->inbound->all->messages->count );
+    /**
+     * Check query pagination (backwards)
+     */
+    public function testAppstatsPagination0() {
+        $stats = self::$ably->stats(array(
+            "direction" => "backwards",
+            "start" => self::$timestamp * 1000,
+            "end" => self::$timestamp * 1000 + 120000,
+            "limit" => 1
+        ));
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 70, $stats->items[0]->inbound->all->all->count, "Expected 70 messages" );
+        // get next page 
+        $stats = $stats->next();
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 60, $stats->items[0]->inbound->all->all->count, "Expected 60 messages" );
+        // get next page 
+        $stats = $stats->next();
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
+        // verify that there is no next page 
+        $this->assertFalse( $stats->hasNext(), "Expected not to have next page" );
+        $this->assertNull( $stats->next(), "Expected null next page" );
+    }
+
+    /**
+     * Check query pagination (forwards)
+     */
+    public function testAppstatsPagination1() {
+        $stats = self::$ably->stats(array(
+            "direction" => "forwards",
+            "start" => self::$timestamp * 1000,
+            "end" => self::$timestamp * 1000 + 120000,
+            "limit" => 1
+        ));
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
+        // get next page 
+        $stats = $stats->next();
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 60, $stats->items[0]->inbound->all->all->count, "Expected 60 messages" );
+        // get next page 
+        $stats = $stats->next();
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 70, $stats->items[0]->inbound->all->all->count, "Expected 70 messages" );
+        // verify that there is no next page 
+        $this->assertFalse( $stats->hasNext(), "Expected not to have next page" );
+        $this->assertNull( $stats->next(), "Expected null next page" );
+    }
+
+    /**
+     * Check query pagination rel="first" (backwards)
+     */
+    public function testAppstatsPagination2() {
+        $stats = self::$ably->stats(array(
+            "direction" => "backwards",
+            "start" => self::$timestamp * 1000,
+            "end" => self::$timestamp * 1000 + 120000,
+            "limit" => 1
+        ));
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 70, $stats->items[0]->inbound->all->all->count, "Expected 70 messages" );
+        // get next page 
+        $stats = $stats->next();
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 60, $stats->items[0]->inbound->all->all->count, "Expected 60 messages" );
+        // get first page 
+        $stats = $stats->first();
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 70, $stats->items[0]->inbound->all->all->count, "Expected 70 messages" );
+    }
+
+    /**
+     * Check query pagination rel="first" (forwards)
+     */
+    public function testAppstatsPagination3() {
+        $stats = self::$ably->stats(array(
+            "direction" => "forwards",
+            "start" => self::$timestamp * 1000,
+            "end" => self::$timestamp * 1000 + 120000,
+            "limit" => 1
+        ));
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
+        // get next page 
+        $stats = $stats->next();
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 60, $stats->items[0]->inbound->all->all->count, "Expected 60 messages" );
+        // get first page 
+        $stats = $stats->first();
+        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
     }
 }

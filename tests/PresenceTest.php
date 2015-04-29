@@ -71,7 +71,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         $this->assertTrue( $firstPage->isFirst(), 'Expected the page to be first' );
         $this->assertEquals( 3, count($firstPage->items), 'Expected 3 presence entries on the 1st page' );
 
-        $nextPage = $firstPage->getNext();
+        $nextPage = $firstPage->next();
         $this->assertEquals( 3, count($nextPage->items), 'Expected 3 presence entries on the 2nd page' );
         $this->assertTrue( $nextPage->isLast(), 'Expected last page' );
     }
@@ -106,7 +106,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         $this->assertTrue( $firstPage->isFirst(), 'Expected the page to be first' );
         $this->assertEquals( 3, count($firstPage->items), 'Expected 3 presence entries' );
 
-        $nextPage = $firstPage->getNext();
+        $nextPage = $firstPage->next();
 
         $this->assertEquals( self::$presenceFixture[0]->clientId, $firstPage->items[0]->clientId, 'Expected least recent presence activity to be the first' );
         $this->assertEquals( self::$presenceFixture[5]->clientId, $nextPage->items[2]->clientId, 'Expected most recent presence activity to be the last' );
@@ -117,7 +117,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         $this->assertTrue( $firstPage->isFirst(), 'Expected the page to be first' );
         $this->assertEquals( 3, count($firstPage->items), 'Expected 3 presence entries' );
 
-        $nextPage = $firstPage->getNext();
+        $nextPage = $firstPage->next();
 
         $this->assertEquals( self::$presenceFixture[5]->clientId, $firstPage->items[0]->clientId, 'Expected most recent presence activity to be the first' );
         $this->assertEquals( self::$presenceFixture[0]->clientId, $nextPage->items[2]->clientId, 'Expected least recent presence activity to be the last' );

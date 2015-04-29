@@ -7,4 +7,9 @@
     <listeners>
         <listener file="tests/extensions/DebugTestListener.php" class="DebugTestListener" />
     </listeners>
+    <filter>
+        <blacklist>
+            <directory suffix=".php">tests</directory>
+        </blacklist>
+    </filter>
 </phpunit>

@@ -2,10 +2,20 @@
 namespace Ably\Models;
 
 /**
- * Base class for messages sent over channels.
- * Provides automatic encoding and decoding.
+ * Model for stats
  */
 class Stats {
+    /**
+     * @var stdClass $all MessageTypes representing the total of all inbound and outbound message traffic.
+     * This is the aggregate number that is considered in applying account message limits.
+     * @var stdClass $inbound MessageTraffic representing inbound messages (ie published by clients and sent inbound to the Ably service) by all transport types;
+     * @var stdClass $outbound MessageTraffic representing outbound messages (ie delivered by the Ably service to connected and subscribed clients);
+     * @var stdClass $persisted MessageTypes representing the aggregate volume of messages persisted;
+     * @var stdClass $connections ConnectionTypes representing the usage of connections;
+     * @var stdClass $channels ResourceCount representing the number of channels activated and used;
+     * @var stdClass $apiRequests RequestCount representing the number of requests made to the REST API;
+     * @var stdClass $tokenRequests RequestCount representing the number of requests made to issue access tokens.
+     */
     public $all;
     public $inbound;
     public $outbound;
