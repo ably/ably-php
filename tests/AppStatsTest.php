@@ -47,7 +47,8 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
     }
 
     public static function tearDownAfterClass() {
-        self::$testApp->release();
+        echo 'The appId was: '.self::$testApp->getAppKeyDefault()->string."\n";
+        //self::$testApp->release();
     }
 
     /**
