@@ -59,6 +59,7 @@ class Channel {
      * Posts a message to this channel
      * @param mixed ... Either a Message, array of Messages, or name and data
      * @param string $data Message data
+     * @throws \Ably\Exceptions\AblyException
      */
     public function publish() {
 

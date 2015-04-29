@@ -1,100 +1,129 @@
-# [Ably](https://ably.io)
+# [Ably](https://www.ably.io)
 
 [![Build Status](https://travis-ci.org/ably/ably-php.png)](https://travis-ci.org/ably/ably-php)
 
-This is the Ably REST client library for PHP.
+A PHP REST client library for [ably.io](https://www.ably.io), the realtime messaging service.
 
-For complete API documentation, see the [ably documentation](https://ably.io/documentation).
+## Documentation
 
-## Introduction
+Visit https://www.ably.io/documentation for a complete API reference and more examples.
 
-Include the library:
+## Installation
+
+### Via composer
+
+The client library is available as a [composer package on packagist](https://packagist.org/packages/ably/ably-php). If you don't have composer already installed, you can get it from https://getcomposer.org/.
+
+Install Ably from the shell with:
+
+    $ composer require ably/ably-php --update-no-dev
+
+Omit the `--update-no-dev` parameter, if you want to run tests. Then simply require composer's autoloader:
 
 ```php
-require_once 'path/to/lib/ably.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+```
+
+### Manual installation
+Clone or download Ably from this repo and require `ably-loader.php`:
+```php
+require_once __DIR__ . '/ably-php/ably-loader.php';
 ```
 
 ## Using the REST API
 
+### Introduction
+
+All examples assume a client and/or channel has been created as follows:
+
+```php
+$client = new AblyRest('your.appkey:xxxxxx');
+$channel = $client->channel('test');
+```
+
 ### Publishing a message to a channel
 
 ```php
-$client = AblyRest.new(array('key' => 'xxxx'));
-$channel = $client->channel('my_channel');
-$channel->publish('myEvent', 'Hello!'); // true
+$channel->publish('myEvent', 'Hello!'); // => true
 ```
 
-### Fetching a channel's history
+### Querying the History
 
 ```php
-$client = AblyRest.new(array('key' => 'xxxx'));
-$channel = $client->channel('my_channel');
-$channel->history();
+$messagesPage = $channel->history(); // => \Ably\Models\PaginatedResult
+$messagesPage->items[0]; // => \Ably\Models\Message
+$messagesPage->items[0]->data; // payload for the message
+$messagesPage->next(); // retrieves the next page => \Ably\Models\PaginatedResult
+$messagesPage->hasNext(); // false, there are no more pages
 ```
 
-### Authentication with a token
+### Presence on a channel
 
 ```php
-$client->auth->authorise(); # creates a token and will use token authentication moving forwards
-$client->auth->current_token() #=> #<Ably::Models::Token>
-$channel->publish("myEvent", "Hello!") #=> true, sent using token authentication
+$membersPage = $channel->presence->get(); // => \Ably\Models\PaginatedResult
+$membersPage->items[0]; // first member present in this page => \Ably\Models\PresenceMessage
+$membersPage->items[0]->clientId; // client ID of first member present
+$membersPage->next(); // retrieves the next page => \Ably\Models\PaginatedResult
+$membersPage->hasNext(); // false, there are no more pages
+```
+
+### Querying the Presence History
+
+```php
+$presencePage = channel->presence->history(); // => \Ably\Models\PaginatedResult
+$presencePage->items[0]; // => \Ably\Models\PresenceMessage
+$presencePage->items[0]->clientId; // client ID of first member
+$presencePage->next(); # retrieves the next page => \Ably\Models\PaginatedResult
+```
+
+### Generate Token and Token Request
+
+```php
+$tokenDetails = $client->auth->requestToken();
+// => \Ably\Models\PresenceMessage
+$tokenDetails->token; // => "xVLyHw.CLchevH3hF....MDh9ZC_Q"
+
+$client = new Ably\AblyRest( $tokenDetails->token );
+// or
+$client = new Ably\AblyRest( array( 'tokenDetails' => $tokenDetails ) );
+
+$token = $client->auth->createTokenRequest();
+// => {"id" => ...,
+//     "clientId" => null,
+//     "ttl" => 3600,
+//     "timestamp" => ...,
+//     "capability" => "{\"*\":[\"*\"]}",
+//     "nonce" => ...,
+//     "mac" => ...}
 ```
 
 ### Fetching your application's stats
 
 ```php
-$client = AblyRest.new(array('key' => 'xxxx'));
-$client->stats()
+$statsPage = client->stats(); // => \Ably\Models\PaginatedResult
+$statsPage->items[0]; // => \Ably\Models\Stats
+$statsPage->next(); // retrieves the next page => \Ably\Models\PaginatedResult
 ```
 
 ### Fetching the Ably service time
 
 ```php
-$client = AblyRest.new(array('key' => 'xxxx'));
-$client->time // => 2013-12-12 14:23:34 +0000
+$client->time(); // in milliseconds => 1430313364993
 ```
 
-## Testing
+## Support and feedback
 
-Before you can run the tests you will need to install some tools:
-
-```bash
-# Install Composer from https://getcomposer.org/
-# Then download dependencies
-$ composer install
-
-# Run a test
-$ vendor/bin/phpunit test/TimeTest.php
-```
-
-Old instructions (Does not work!):
-
-```bash
-# Install PHPUnit 3.7 (assumes PEAR already installed)
-$ sudo pear config-set auto_discover 1
-$ sudo pear install pear.phpunit.de/PHPUnit
-
-# Install the PHPUnit_Selenium package
-$ pear install phpunit/PHPUnit_Selenium
-
-# Install the Selenium Server
-$ brew install selenium-server-standalone
-
-# Start the Selenium Server
-$ java -jar /path/to/selenium-server-standalone-2.25.0.jar -p 4444
-
-# Finally, run a test
-$ cd /path/to/ably-php/test
-$ phpunit auth
-```
-
-Note: before running any tests please ensure you have a config.php file in the root folder (see config.php.sample for example).
-ABLY_KEY is required whereas ABLY_HOST is optional as the library defaults to rest.ably.io
+Please visit https://support.ably.io/ for access to our knowledgebase and to ask for any assistance.
 
 ## Contributing
 
 1. Fork it
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Ensure you have added suitable tests and the test suite is passing (run `vendor/bin/phpunit`)
 4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+5. Create a new Pull Request
+
+## License
+
+Copyright (c) 2015 Ably, Licensed under an MIT license.  Refer to [LICENSE.txt](LICENSE.txt) for the license terms.
