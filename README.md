@@ -37,7 +37,7 @@ require_once __DIR__ . '/ably-php/ably-loader.php';
 All examples assume a client and/or channel has been created as follows:
 
 ```php
-$client = new AblyRest('your.appkey:xxxxxx');
+$client = new Ably\AblyRest('your.appkey:xxxxxx');
 $channel = $client->channel('test');
 ```
 
@@ -73,7 +73,7 @@ $membersPage->hasNext(); // false, there are no more pages
 $presencePage = channel->presence->history(); // => \Ably\Models\PaginatedResult
 $presencePage->items[0]; // => \Ably\Models\PresenceMessage
 $presencePage->items[0]->clientId; // client ID of first member
-$presencePage->next(); # retrieves the next page => \Ably\Models\PaginatedResult
+$presencePage->next(); // retrieves the next page => \Ably\Models\PaginatedResult
 ```
 
 ### Generate Token and Token Request

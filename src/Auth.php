@@ -58,6 +58,7 @@ class Auth {
     /**
      * Ensures valid auth credentials are present for the library instance. This may rely on an already-known and valid token, and will obtain a new token if necessary.
      * In the event that a new token request is made, the specified options are used.
+     * If not already using token based auth, this will enable it.
      */
     public function authorise( $options = array(), $force = false ) {
         if ( !$force && !empty( $this->tokenDetails ) ) {
@@ -74,8 +75,9 @@ class Auth {
         Log::d( 'Auth::authorise: requesting new token' );
         $this->tokenDetails = $this->requestToken( $options );
         $this->authOptions->tokenDetails = $this->tokenDetails;
+        $this->basicAuth = false;
 
-        return $this;
+        return $this->tokenDetails;
     }
 
     /**
