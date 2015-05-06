@@ -9,7 +9,7 @@ use Ably\Log;
 class ClientOptions extends AuthOptions {
 
     /**
-     * @var true A boolean value, indicating whether or not a TLS (“SSL”) secure connection should be used.
+     * @var boolean value indicating whether or not a TLS (“SSL”) secure connection should be used.
      */
     public $tls = true;
     

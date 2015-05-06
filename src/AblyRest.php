@@ -1,9 +1,6 @@
 <?php
 namespace Ably;
 
-use Ably\Auth;
-use Ably\Http;
-use Ably\Log;
 use Ably\Models\ClientOptions;
 use Ably\Models\PaginatedResult;
 use Ably\Exceptions\AblyException;
@@ -14,13 +11,17 @@ class AblyRest {
     private $options;
 
     /**
-     * @var \Ably\Http $http
+     * @var \Ably\Http $http Class for making HTTP requests
      */
     public $http;
     /**
-     * @var \Ably\Auth $auth
+     * @var \Ably\Auth $auth Class providing authorisation functionality
      */
     public $auth;
+    /**
+     * @var \Ably\Channels $channels Class for creating and releasing channels
+     */
+    public $channels;
 
     /**
      * Constructor
@@ -47,6 +48,7 @@ class AblyRest {
         $httpClass = $this->options->httpClass;
         $this->http = new $httpClass( $this->options->hostTimeout );
         $this->auth = new Auth( $this, $this->options );
+        $this->channels = new Channels( $this );
         
         return $this;
     }
@@ -55,7 +57,7 @@ class AblyRest {
      * @return \Ably\Channel Channel
      */
     public function channel( $name, $options = array() ) {
-        return new Channel( $this, $name, $options );
+        return $this->channels->get( $name, $options );
     }
 
     /**
@@ -132,7 +134,7 @@ class AblyRest {
                 && $e->getAblyCode() == 40140;
 
             if ( $causedByExpiredToken ) { // renew the token
-                $this->auth->authorise( array(), true );
+                $this->auth->authorise( array(), array(), $force = true );
                 
                 // merge headers now and use auth = false to prevent potential endless recursion
                 $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $headers );

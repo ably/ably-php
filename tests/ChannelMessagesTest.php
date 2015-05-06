@@ -52,12 +52,12 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $channel->publish( $messages ); // publish all messages at once
 
         foreach ($messages as $msg) {
-            if ($channel->options['encrypted']) {
+            if ( $channel->getCipherParams() ) {
                 # check if the messages are encrypted
                 $msgJSON = json_decode( $msg->toJSON() );
                 
                 $this->assertTrue(
-                    strpos( $msgJSON->encoding, $channel->options['cipherParams']->algorithm ) !== false,
+                    strpos( $msgJSON->encoding, $channel->getCipherParams()->algorithm ) !== false,
                     'Expected message encoding to contain a cipher algorithm'
                 );
                 $this->assertFalse( $msgJSON->data === $payload, 'Expected encrypted message payload not to match original data' );
@@ -96,7 +96,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      * Publish events with data of various datatypes to an unencrypted channel
      */
     public function testPublishMessagesVariousTypesUnencrypted() {
-        $unencrypted = self::$ably->channel( 'persisted:unencrypted' );
+        $unencrypted = self::$ably->channels->get( 'persisted:unencrypted' );
 
         $this->executePublishTestOnChannel( $unencrypted );
     }
@@ -106,9 +106,9 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      */
     public function testPublishMessagesVariousTypesAES128() {
         $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
-        $encrypted1 = self::$ably->channel( 'persisted:encrypted1', $options );
+        $encrypted1 = self::$ably->channels->get( 'persisted:encrypted1', $options );
         
-        $this->assertTrue( $encrypted1->options['encrypted'], 'Expected channel to be encrypted' );
+        $this->assertNotNull( $encrypted1->getCipherParams(), 'Expected channel to be encrypted' );
 
         $this->executePublishTestOnChannel( $encrypted1 );
     }
@@ -118,9 +118,9 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      */
     public function testPublishMessagesVariousTypesAES256() {
         $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-256-cbc' ));
-        $encrypted2 = self::$ably->channel( 'persisted:encrypted2', $options );
+        $encrypted2 = self::$ably->channels->get( 'persisted:encrypted2', $options );
         
-        $this->assertTrue( $encrypted2->options['encrypted'], 'Expected channel to be encrypted' );
+        $this->assertNotNull( $encrypted2->getCipherParams(), 'Expected channel to be encrypted' );
 
         $this->executePublishTestOnChannel( $encrypted2 );
     }
@@ -151,13 +151,13 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      * @expectedException Ably\Exceptions\AblyEncryptionException
      */
     public function testEncryptedMessageUnencryptedHistory() {
+        $payload = 'This is a test message';
+
         $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
         $encrypted = self::$ably->channel( 'persisted:mismatch1', $options );
-        $unencrypted = self::$ably->channel( 'persisted:mismatch1' );
-
-        $payload = 'This is a test message';
         $encrypted->publish( 'test', $payload );
 
+        $unencrypted = self::$ably->channel( 'persisted:mismatch1', array() );
         $messages = $unencrypted->history();
     }
 
@@ -165,13 +165,13 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      * Publish message over unencrypted channel, retrieve history over encrypted channel, there should be no decryption attempts
      */
     public function testUnencryptedMessageEncryptedHistory() {
+        $payload = 'This is a test message';
+
         $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
         $encrypted = self::$ably->channel( 'persisted:mismatch2' );
-        $unencrypted = self::$ably->channel( 'persisted:mismatch2', $options );
-
-        $payload = 'This is a test message';
         $encrypted->publish( 'test', $payload );
 
+        $unencrypted = self::$ably->channel( 'persisted:mismatch2', $options );
         $messages = $unencrypted->history();
         $this->assertNotNull( $messages, 'Expected non-null messages' );
         $this->assertEquals( 1, count($messages->items), 'Expected 1 message' );
@@ -184,15 +184,14 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      * @expectedException Ably\Exceptions\AblyEncryptionException
      */
     public function testEncryptionKeyMismatch() {
+        $payload = 'This is a test message';
+
         $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
         $encrypted1 = self::$ably->channel( 'persisted:mismatch3', $options );
+        $encrypted1->publish( 'test', $payload );
 
         $options2 = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'DIFFERENT PASSWORD', 'aes-128-cbc' ));
         $encrypted2 = self::$ably->channel( 'persisted:mismatch3', $options2 );
-
-        $payload = 'This is a test message';
-        $encrypted1->publish( 'test', $payload );
-
         $messages = $encrypted2->history();
     }
 

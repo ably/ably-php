@@ -1,9 +1,10 @@
 <?php
 namespace Ably;
 
-use Ably\Models\PaginatedResult;
-use Ably\Models\Message;
 use Ably\Exceptions\AblyException;
+use Ably\Models\ChannelOptions;
+use Ably\Models\Message;
+use Ably\Models\PaginatedResult;
 
 /**
  * Represents a channel
@@ -17,12 +18,10 @@ class Channel {
     private $channelPath;
     private $ably;
     private $presence;
+    /**
+     * @var Ably\Models\ChannelOptions
+     */
     public $options;
-
-    private static $defaultOptions = array(
-        'encrypted' => false,
-        'cipherParams' => null,
-    );
 
     /**
      * Constructor
@@ -37,11 +36,7 @@ class Channel {
         $this->channelPath = "/channels/" . urlencode( $name );
         $this->presence = new Presence( $ably, $this );
 
-        $this->options = array_merge( self::$defaultOptions, $options );
-
-        if ($this->options['encrypted'] && !$this->options['cipherParams']) {
-            throw new AblyException( 'Channel created as encrypted, but no cipherParams provided' );
-        }
+        $this->setOptions( $options );
     }
 
     /**
@@ -69,8 +64,8 @@ class Channel {
         if (count($args) == 1 && is_a( $args[0], 'Ably\Models\Message' )) { // single Message
             $msg = $args[0];
 
-            if ($this->options['encrypted']) {
-                $msg->setCipherParams( $this->options['cipherParams'] );
+            if ($this->options->encrypted) {
+                $msg->setCipherParams( $this->options->cipherParams );
             }
 
             $json = $msg->toJSON();
@@ -79,8 +74,8 @@ class Channel {
             $jsonArray = array();
 
             foreach ($args[0] as $msg) {
-                if ($this->options['encrypted']) {
-                    $msg->setCipherParams( $this->options['cipherParams'] );
+                if ($this->options->encrypted) {
+                    $msg->setCipherParams( $this->options->cipherParams );
                 }
 
                 $jsonArray[] = $msg->toJSON();
@@ -92,8 +87,8 @@ class Channel {
             $msg->name = $args[0];
             $msg->data = $args[1];
 
-            if ($this->options['encrypted']) {
-                $msg->setCipherParams( $this->options['cipherParams'] );
+            if ($this->options->encrypted) {
+                $msg->setCipherParams( $this->options->cipherParams );
             }
 
             $json = $msg->toJSON();
@@ -132,6 +127,26 @@ class Channel {
      * @return CipherParams|null Cipher params if the channel is encrypted
      */
     public function getCipherParams() {
-        return $this->options['encrypted'] ? $this->options['cipherParams'] : null;
+        return $this->options->encrypted ? $this->options->cipherParams : null;
+    }
+
+    /**
+     * @return \Ably\Models\ChannelOptions
+     */
+    public function getOptions() {
+        return $this->options;
+    }
+
+    /**
+     * Sets channel options
+     * @param array|null $options channel options
+     * @throws AblyException
+     */
+    public function setOptions( $options = array() ) {
+        $this->options = new ChannelOptions( $options );
+
+        if ($this->options->encrypted && !$this->options->cipherParams) {
+            throw new AblyException( 'Channel created as encrypted, but no cipherParams provided' );
+        }
     }
 }
