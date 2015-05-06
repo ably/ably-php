@@ -13,16 +13,12 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
     protected static $defaultOptions;
     protected static $ably;
 
-    protected static $timeOffset;
-
     public static function setUpBeforeClass() {
         self::$testApp = new TestApp();
         self::$defaultOptions = self::$testApp->getOptions();
         self::$ably = new AblyRest( array_merge( self::$defaultOptions, array(
             'key' => self::$testApp->getAppKeyDefault()->string,
         ) ) );
-
-        self::$timeOffset = self::$ably->time() - self::$ably->systemTime();
     }
 
     public static function tearDownAfterClass() {
@@ -228,12 +224,12 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
             $history5->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
         }
-        $interval_start = self::$timeOffset + self::$ably->systemTime() + 1;
+        $interval_start = self::$ably->time();
         for ($i=2; $i<4; $i++) {
             $history5->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
         }
-        $interval_end = self::$timeOffset + self::$ably->systemTime();
+        $interval_end = self::$ably->time();
         for ($i=4; $i<6; $i++) {
             $history5->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
@@ -270,12 +266,12 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
             $history6->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
         }
-        $interval_start = self::$timeOffset + self::$ably->systemTime() + 1;
+        $interval_start = self::$ably->time();
         for ($i=2; $i<4; $i++) {
             $history6->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
         }
-        $interval_end = self::$timeOffset + self::$ably->systemTime();
+        $interval_end = self::$ably->time();
         for ($i=4; $i<6; $i++) {
             $history6->publish('history'.$i, sprintf('%s',$i));
             usleep(100000); // sleep for 0.1 of a second
