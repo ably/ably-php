@@ -23,17 +23,6 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Init library with a key only
-     */
-    public function testAuthoriseWithKeyOnly() {
-        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
-            'key' => self::$testApp->getAppKeyDefault()->string,
-        ) ) );
-
-        $this->assertTrue( $ably->auth->isUsingBasicAuth(), 'Expected basic auth to be used' );
-    }
-
-    /**
      * Init library with a key over unsecure connection
      */
     public function testAuthoriseWithKeyInsecure() {
@@ -44,15 +33,14 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
             'tls' => false,
         ) ) );
     }
-    /**
-     * Init library with a token only
-     */
-    public function testAuthoriseWithTokenOnly() {
-        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
-            'tokenDetails' => new TokenDetails( "this_is_not_really_a_token" ),
-        ) ) );
 
-        $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
+    /**
+     * Init library without any valid auth
+     */
+    public function testNoAuthParams() {
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 401 );
+
+        $ably = new AblyRest( );
     }
 
     /**

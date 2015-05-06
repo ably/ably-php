@@ -115,6 +115,10 @@ $client->time(); // in milliseconds => 1430313364993
 
 Please visit https://support.ably.io/ for access to our knowledgebase and to ask for any assistance.
 
+## Known limitations
+
+[msgpack](http://msgpack.org/) support is currently missing in PHP client library, as there is no stable PHP msgpack library available.
+
 ## Contributing
 
 1. Fork it

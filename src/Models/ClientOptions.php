@@ -46,6 +46,12 @@ class ClientOptions extends AuthOptions {
     public $host;
 
     /**
+     * @var string optional prefix to be prepended to $host
+     * Example: 'sandbox' -> 'sandbox-rest.ably.io'
+     */
+    public $environment;
+
+    /**
      * @var string[] fallback hosts, used when connection to default host fails, populated automatically
      */
     public $fallbackHosts;
@@ -64,17 +70,28 @@ class ClientOptions extends AuthOptions {
     public function __construct( $options = array() ) {
         parent::__construct( $options );
 
-        if (empty($this->host)) {
-            $this->host = 'rest.ably.io';
-            $this->fallbackHosts = array(
-                'a.ably-realtime.com',
-                'b.ably-realtime.com',
-                'c.ably-realtime.com',
-                'd.ably-realtime.com',
-                'e.ably-realtime.com',
-            );
+        if ( empty( $this->environment ) && getenv( 'ABLY_ENV' ) ) {
+            $this->environment = getenv( 'ABLY_ENV' );
+        }
 
-            shuffle( $this->fallbackHosts );
+        if ( empty( $this->host ) ) {
+            $this->host = 'rest.ably.io';
+
+            if ( empty( $this->environment ) ) {
+                $this->fallbackHosts = array(
+                    'a.ably-realtime.com',
+                    'b.ably-realtime.com',
+                    'c.ably-realtime.com',
+                    'd.ably-realtime.com',
+                    'e.ably-realtime.com',
+                );
+
+                shuffle( $this->fallbackHosts );
+            }
+        }
+
+        if ( !empty( $this->environment ) ) {
+            $this->host = $this->environment . '-' . $this->host;
         }
     }
 }
