@@ -43,7 +43,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
             'Unexpected issued time'
         );
         $this->assertEquals( $tokenDetails->issued + 60*60*1000, $tokenDetails->expires, 'Unexpected expires time' );
-        $this->assertEquals( self::$capabilityAll, json_decode($tokenDetails->capability), 'Unexpected capability' );
+        $this->assertEquals( self::$capabilityAll, json_decode($tokenDetails->capability), 'Unexpected default capability' );
     }
 
     /**
@@ -138,7 +138,12 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         $authOptions = array(
             'key' => $key->string,
         );
-        $tokenDetails = self::$ably->auth->requestToken( $authOptions );
+
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => 'fake.key:veryFake',
+        ) ) );
+
+        $tokenDetails = $ably->auth->requestToken( $authOptions ); // fake key should get overridden with the real key
         $capability_obj = json_decode( $key->capability, false );
 
         $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
@@ -153,6 +158,15 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         $tokenDetails = self::$ably->auth->requestToken( array(), $tokenParams );
         $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
         $this->assertEquals( $tokenDetails->issued + 60 * 1000, $tokenDetails->expires, 'Unexpected expires time' );
+    }
+
+    /**
+     * Token generation with default ttl
+     */
+    public function testTokenGenerationWithDefaultTTL() {
+        $tokenDetails = self::$ably->auth->requestToken( array(), array() );
+        $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
+        $this->assertEquals( $tokenDetails->issued + 3600 * 1000, $tokenDetails->expires, 'Expected the default expire time to be 1 hour' );
     }
 
     /**

@@ -23,7 +23,7 @@ class Auth {
         $this->authOptions = new AuthOptions($options);
         $this->ably = $ably;
 
-        if ( $this->authOptions->key && empty( $this->authOptions->clientId ) ) {
+        if ( empty( $this->authOptions->useTokenAuth ) && $this->authOptions->key && empty( $this->authOptions->clientId ) ) {
             $this->basicAuth = true;
             Log::d( 'Auth: anonymous, using basic auth' );
 
@@ -61,7 +61,7 @@ class Auth {
      * In the event that a new token request is made, the specified options are used.
      * If not already using token based auth, this will enable it.
      */
-    public function authorise( $options = array(), $force = false ) {
+    public function authorise( $authOptions = array(), $tokenParams = array(), $force = false ) {
         if ( !$force && !empty( $this->tokenDetails ) ) {
             if ( empty( $this->tokenDetails->expires ) ) {
                 // using cached token
@@ -74,7 +74,7 @@ class Auth {
             }
         }
         Log::d( 'Auth::authorise: requesting new token' );
-        $this->tokenDetails = $this->requestToken( $options );
+        $this->tokenDetails = $this->requestToken( $authOptions, $tokenParams );
         $this->authOptions->tokenDetails = $this->tokenDetails;
         $this->basicAuth = false;
 
@@ -153,22 +153,24 @@ class Auth {
             
             $data = $data['body'];
 
-            if ( !is_object( $data ) ) {
-                Log::e( 'Auth::requestToken:', 'Invalid response from authURL, expecting JSON' );
-                throw new AblyException( 'Invalid response from authURL' );
-            }
-
-            if ( !empty( $data->issued ) ) { // assuming it's a token
-                return new TokenDetails( $data );
-            } else if ( !empty( $data->mac ) ) { // assuming it's a signed token request
-                $signedTokenRequest = new TokenRequest( $data );
+            if ( is_string( $data ) ) {
+                return new TokenDetails( $data ); // assuming it's a token string
+            } else if ( is_object( $data ) ) {
+                if ( !empty( $data->issued ) ) { // assuming it's a token
+                    return new TokenDetails( $data );
+                } else if ( !empty( $data->mac ) ) { // assuming it's a signed token request
+                    $signedTokenRequest = new TokenRequest( $data );
+                } else {
+                    Log::e( 'Auth::requestToken:', 'Invalid response from authURL, expecting JSON representation of signed TokenRequest or TokenDetails' );
+                    throw new AblyException( 'Invalid response from authURL' );
+                }
             } else {
-                Log::e( 'Auth::requestToken:', 'Invalid response from authURL, expecting JSON representation of signed TokenRequest or a Token' );
+                Log::e( 'Auth::requestToken:', 'Invalid response from authURL, expecting token string or JSON representation of signed TokenRequest or TokenDetails' );
                 throw new AblyException( 'Invalid response from authURL' );
             }
         } elseif ( !empty( $authOptions->key ) ) {
             Log::d( 'Auth::requestToken:', 'using token auth with client-side signing' );
-            $signedTokenRequest = $this->createTokenRequest( $authOptions, $tokenParams );
+            $signedTokenRequest = $this->createTokenRequest( $authOptions->toArray(), $tokenParams->toArray() );
         } else {
             Log::e( 'Auth::requestToken:', 'Unable to request a Token, auth options don\'t provide means to do so' );
             throw new AblyException( 'Unable to request a Token, auth options don\'t provide means to do so', 401, 40101 );
@@ -205,6 +207,8 @@ class Auth {
      * @param \Ably\Models\TokenParams $tokenParams
      */
     public function createTokenRequest( $authOptions = array(), $tokenParams = array() ) {
+        $authOptions = new AuthOptions( array_merge( $this->authOptions->toArray(), $authOptions ) );
+        $tokenParams = new TokenParams( $tokenParams );
         $keyParts = explode( ':', $authOptions->key );
         
         if ( count( $keyParts ) != 2 ) {

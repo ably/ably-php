@@ -25,8 +25,8 @@ class TestApp {
         $settings = array();
 
         $settings['tls'] = true;
-        //$settings['host'] = "staging-rest.ably.io";
-        $settings['host'] = "sandbox-rest.ably.io";
+        $settings['host'] = "staging-rest.ably.io";
+        //$settings['host'] = "sandbox-rest.ably.io";
         //$settings['host'] = "rest.ably.io";
         //$settings['logLevel'] = Log::DEBUG;
 

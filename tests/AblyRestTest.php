@@ -248,6 +248,24 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
         $this->setExpectedException('Ably\Exceptions\AblyRequestException');
         $reportedTime = $ablyInvalidHost->time();
     }
+
+    /**
+     * Verify that custom timeout works
+     */
+    public function testHttpTimeout() {
+        $ably = new AblyRest( array(
+            'key' => 'fake.key:veryFake',
+        ));
+
+        $ablyTimeout = new AblyRest( array(
+            'key' => 'fake.key:veryFake',
+            'hostTimeout' => 50, // 50 ms
+        ));
+
+        $ably->http->get('https://cdn.ably.io/lib/ably.js'); // should work
+        $this->setExpectedException('Ably\Exceptions\AblyRequestException', '', 500);
+        $ablyTimeout->http->get('https://cdn.ably.io/lib/ably.js'); // guaranteed to take more than 50 ms
+    }    
 }
 
 
