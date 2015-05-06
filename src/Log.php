@@ -63,14 +63,6 @@ class Log {
     }
 
     /**
-     * Log info level information.
-     * @param mixed ... Any number of variables or messages to log
-     */
-    public static function i(/*...*/) {
-        self::log( Log::INFO, func_get_args() );
-    }
-
-    /**
      * Log warning level information.
      * @param mixed ... Any number of variables or messages to log
      */

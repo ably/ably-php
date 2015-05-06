@@ -1,10 +1,8 @@
 <?php
 namespace Ably;
 
-use Ably\Auth;
-use Ably\Http;
-use Ably\Log;
 use Ably\Models\ClientOptions;
+use Ably\Models\PaginatedResult;
 use Ably\Exceptions\AblyException;
 use Ably\Exceptions\AblyRequestException;
 
@@ -13,13 +11,17 @@ class AblyRest {
     private $options;
 
     /**
-     * @var \Ably\Http $http
+     * @var \Ably\Http $http Class for making HTTP requests
      */
     public $http;
     /**
-     * @var \Ably\Auth $auth
+     * @var \Ably\Auth $auth Class providing authorisation functionality
      */
     public $auth;
+    /**
+     * @var \Ably\Channels $channels Class for creating and releasing channels
+     */
+    public $channels;
 
     /**
      * Constructor
@@ -46,6 +48,7 @@ class AblyRest {
         $httpClass = $this->options->httpClass;
         $this->http = new $httpClass( $this->options->hostTimeout );
         $this->auth = new Auth( $this, $this->options );
+        $this->channels = new Channels( $this );
         
         return $this;
     }
@@ -54,7 +57,7 @@ class AblyRest {
      * @return \Ably\Channel Channel
      */
     public function channel( $name, $options = array() ) {
-        return new Channel( $this, $name, $options );
+        return $this->channels->get( $name, $options );
     }
 
     /**
@@ -63,7 +66,7 @@ class AblyRest {
      * @return array Statistics
      */
     public function stats( $params = array() ) {
-        return $this->get( '/stats', $headers = array(), $params );
+        return new PaginatedResult( $this, 'Ably\Models\Stats', $cipher = false, '/stats', $params );
     }
 
     /**
@@ -116,7 +119,7 @@ class AblyRest {
         }
 
         try {
-            if ( is_array( $this->options->host ) ) {
+            if ( !empty( $this->options->fallbackHosts ) ) {
                 $res = $this->requestWithFallback( $method, $path, $mergedHeaders, $params );
             } else {
                 $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->host;
@@ -131,7 +134,7 @@ class AblyRest {
                 && $e->getAblyCode() == 40140;
 
             if ( $causedByExpiredToken ) { // renew the token
-                $this->auth->authorise( array(), true );
+                $this->auth->authorise( array(), array(), $force = true );
                 
                 // merge headers now and use auth = false to prevent potential endless recursion
                 $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $headers );
@@ -152,27 +155,20 @@ class AblyRest {
      * Does a HTTP request backed up by fallback servers
      */
     protected function requestWithFallback( $method, $path, $headers = array(), $params = array(), $attempt = 0 ) {
-        if ( $attempt > 0 ) {
-            Log::d( 'Connection failed, attempting with fallback server #' . ($attempt+1) );
-        }
-
-        $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->host[$attempt];
-
         try {
-            $res = $this->http->request( $method, $server . $path, $headers, $params );
-
-            // successful request
-
-            if ($attempt > 0) { // reorder servers, so that the working one is first and not working one(s) last
-                Log::d( 'Switching server to: ' . $this->options->host[$attempt] );
-                $this->options->host = $this->rotateArray( $this->options->host, $attempt );
+            if ( $attempt == 0 ) { // using default host
+                $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->host;
+            } else { // using a fallback host
+                Log::d( 'Connection failed, attempting with fallback server #' . $attempt );
+                // attempt 1 uses fallback host with index 0
+                $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->fallbackHosts[$attempt - 1];
             }
 
-            return $res;
+            return $this->http->request( $method, $server . $path, $headers, $params );
         }
         catch (AblyRequestException $e) {
             if ( $e->getAblyCode() >= 50000 ) {
-                if ( $attempt + 1 < count( $this->options->host ) ) {
+                if ( $attempt < count( $this->options->fallbackHosts ) ) {
                     return $this->requestWithFallback( $method, $path, $headers, $params, $attempt + 1);
                 } else {
                     Log::e( 'Failed to connect to server and all of the fallback servers.' );
@@ -182,9 +178,5 @@ class AblyRest {
 
             throw $e; // other error code than timeout, rethrow exception
         }
-    }
-
-    private function rotateArray( $array, $offset ) {
-        return array_merge( array_slice( $array, $offset, NULL, true ), array_slice( $array, 0, $offset, true ) );
     }
 }

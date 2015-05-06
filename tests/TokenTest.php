@@ -43,7 +43,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
             'Unexpected issued time'
         );
         $this->assertEquals( $tokenDetails->issued + 60*60*1000, $tokenDetails->expires, 'Unexpected expires time' );
-        $this->assertEquals( self::$capabilityAll, json_decode($tokenDetails->capability), 'Unexpected capability' );
+        $this->assertEquals( self::$capabilityAll, json_decode($tokenDetails->capability), 'Unexpected default capability' );
     }
 
     /**
@@ -138,7 +138,12 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         $authOptions = array(
             'key' => $key->string,
         );
-        $tokenDetails = self::$ably->auth->requestToken( $authOptions );
+
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => 'fake.key:veryFake',
+        ) ) );
+
+        $tokenDetails = $ably->auth->requestToken( $authOptions ); // fake key should get overridden with the real key
         $capability_obj = json_decode( $key->capability, false );
 
         $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
@@ -153,6 +158,15 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         $tokenDetails = self::$ably->auth->requestToken( array(), $tokenParams );
         $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
         $this->assertEquals( $tokenDetails->issued + 60 * 1000, $tokenDetails->expires, 'Unexpected expires time' );
+    }
+
+    /**
+     * Token generation with default ttl
+     */
+    public function testTokenGenerationWithDefaultTTL() {
+        $tokenDetails = self::$ably->auth->requestToken( array(), array() );
+        $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
+        $this->assertEquals( $tokenDetails->issued + 3600 * 1000, $tokenDetails->expires, 'Expected the default expire time to be 1 hour' );
     }
 
     /**
@@ -185,8 +199,6 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      * Automatic token renewal on expiration (known time)
      */
     public function testTokenRenewalKnownExpiration() {
-
-        $keyName = self::$testApp->getAppKeyDefault()->name;
         $ablyKeyAuth = self::$ably;
 
         $options = array_merge( self::$defaultOptions, array(
@@ -199,8 +211,6 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
                 return $ablyKeyAuth->auth->requestToken( array(), $tokenParams );
             }
         ) );
-
-        unset( $options['key'] );
 
         $ablyTokenAuth = new AblyRest( $options );
         $ablyTokenAuth->auth->authorise();
@@ -222,11 +232,34 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * Automatic token renewal on expiration (known time) should fail with no means of renewal
+     */
+    public function testFailingTokenRenewalKnownExpiration() {
+        $ablyKeyAuth = self::$ably;
+
+        $tokenParams = array(
+            'ttl' => 2 * 1000, // 2 seconds
+        );
+        $tokenDetails = $ablyKeyAuth->auth->requestToken( array(), $tokenParams );
+
+        $options = array_merge( self::$defaultOptions, array(
+            'tokenDetails' => $tokenDetails,
+        ) );
+
+        $ablyTokenAuth = new AblyRest( $options );
+        $channel = $ablyTokenAuth->channel( 'testchannel' );
+        $channel->publish( 'test', 'test' ); // this should work
+
+        sleep(2);
+
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 401 );
+        $channel->publish( 'test', 'test' ); // this should fail
+    }
+
+    /**
      * Automatic token renewal on expiration (unknown time)
      */
     public function testTokenRenewalUnknownExpiration() {
-
-        $keyName = self::$testApp->getAppKeyDefault()->name;
         $ablyKeyAuth = self::$ably;
 
         $options = array_merge( self::$defaultOptions, array(
@@ -240,8 +273,6 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
                 return $tokenDetails->token;
             }
         ) );
-
-        unset( $options['key'] );
 
         $ablyTokenAuth = new AblyRest( $options );
         $ablyTokenAuth->auth->authorise();
@@ -260,5 +291,29 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
 
         $this->assertEquals( $tokenBefore, $tokenReq1, 'Expected token not to change before expiration' );
         $this->assertFalse( $tokenReq1 == $tokenReq2, 'Expected token to change after expiration' );
+    }
+
+    /**
+     * Automatic token renewal on expiration (unknown time) should fail with no means of renewal
+     */
+    public function testFailingTokenRenewalUnknownExpiration() {
+        $ablyKeyAuth = self::$ably;
+
+        $tokenParams = array(
+            'ttl' => 2 * 1000, // 2 seconds
+        );
+        $tokenDetails = $ablyKeyAuth->auth->requestToken( array(), $tokenParams );
+
+        $options = array_merge( self::$defaultOptions, array(
+            'token' => $tokenDetails->token,
+        ) );
+        $ablyTokenAuth = new AblyRest( $options );
+        $channel = $ablyTokenAuth->channel( 'testchannel' );
+        $channel->publish( 'test', 'test' ); // this should work
+
+        sleep(2);
+
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 401 );
+        $channel->publish( 'test', 'test' ); // this should fail
     }
 }

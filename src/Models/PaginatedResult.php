@@ -6,9 +6,9 @@ use Ably\Exceptions\AblyException;
 /**
  * Provides automatic pagination for applicable requests
  *
- * Requests for channel history and channel presence are wrapped in this class automatically.
+ * Requests for channel history, channel presence and app stats are wrapped in this class automatically.
  */
-class PaginatedResource {
+class PaginatedResult {
 
     private $ably;
     private $path;
@@ -17,7 +17,7 @@ class PaginatedResource {
     private $paginationHeaders = false;
 
     /**
-     * @var \Ably\Models\BaseMessage[] Array of returned models (either Message or PresenceMessage)
+     * @var array Array of returned models (either Message, PresenceMessage or Stats)
      */
     public $items = array();
 
@@ -45,8 +45,8 @@ class PaginatedResource {
                 
                 $instance = new $model;
 
-                if (!($instance instanceof BaseMessage)) {
-                    throw new AblyException( 'Invalid model class provided: '. $model, 400, 40000 );
+                if ( !method_exists( $model, 'fromJSON' ) ) {
+                    throw new AblyException( 'Invalid model class provided: ' . $model . '. The model needs to implement fromJSON method.' );
                 }
                 if (!empty( $cipherParams ) ) {
                     $instance->setCipherParams( $cipherParams );
@@ -61,32 +61,34 @@ class PaginatedResource {
         }
     }
 
-
-    /*
-     * Public methods
-     */
-
     /**
      * Fetches the first page of results
-     * @return PaginatedResource Returns self if the current page is the first
+     * @return PaginatedResult Returns self if the current page is the first
      */
-    public function getFirst() {
-        if ($this->isFirstPage()) {
+    public function first() {
+        if ($this->isFirst()) {
             return this;
         } else if (isset($this->paginationHeaders['first'])) {
-            return new PaginatedResource( $this->ably, $this->model, $this->cipherParams, $this->paginationHeaders['first'] );
+            return new PaginatedResult( $this->ably, $this->model, $this->cipherParams, $this->paginationHeaders['first'] );
         } else {
             return null;
         }
     }
 
     /**
-     * Fetches the next page of results
-     * @return PaginatedResource|null Next page or null if the current page is the last
+     * @return boolean Whether there is a first page
      */
-    public function getNext() {
+    public function hasFirst() {
+        return $this->isPaginated() && isset($this->paginationHeaders['first']);
+    }
+
+    /**
+     * Fetches the next page of results
+     * @return PaginatedResult|null Next page or null if the current page is the last
+     */
+    public function next() {
         if ($this->isPaginated() && isset($this->paginationHeaders['next'])) {
-            return new PaginatedResource( $this->ably, $this->model, $this->cipherParams, $this->paginationHeaders['next'] );
+            return new PaginatedResult( $this->ably, $this->model, $this->cipherParams, $this->paginationHeaders['next'] );
         } else {
             return null;
         }
@@ -127,16 +129,11 @@ class PaginatedResource {
     }
 
     /**
-     * @return boolean Whether the fetched results have multiple pages
+     * @return boolean Whether the fetched results can be paginated (pagination headers received)
      */
     public function isPaginated() {
         return is_array($this->paginationHeaders) && count($this->paginationHeaders);
     }
-
-
-    /*
-     * Private methods
-     */
 
     /**
      * Parses HTTP headers for pagination links

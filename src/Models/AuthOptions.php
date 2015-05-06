@@ -34,6 +34,11 @@ class AuthOptions extends BaseOptions {
     public $tokenDetails;
 
     /**
+     * @var bool Forces token auth to be used when true
+     */
+    public $useTokenAuth;
+
+    /**
      * @var function|null A function to call when a new token is required.
      * The role of the callback is to generate a signed token request which may then be submitted by the library to the requestToken API.
      * See authentication for details of the token request format and associated API calls.

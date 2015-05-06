@@ -19,31 +19,37 @@ class Auth {
     private $tokenDetails;
     private $ably;
 
-    public function __construct(AblyRest $ably, ClientOptions $options) {
+    public function __construct( AblyRest $ably, ClientOptions $options ) {
         $this->authOptions = new AuthOptions($options);
         $this->ably = $ably;
 
-        if ($this->authOptions->key && empty($this->authOptions->clientId)) {
+        if ( empty( $this->authOptions->useTokenAuth ) && $this->authOptions->key && empty( $this->authOptions->clientId ) ) {
             $this->basicAuth = true;
-            Log::d('Auth: anonymous, using basic auth');
+            Log::d( 'Auth: anonymous, using basic auth' );
+
+            if ( !$options->tls ) {
+                log::e( 'Auth: trying to use basic key auth over insecure connection' );
+                throw new AblyException ( 'Trying to use basic key auth over insecure connection', 401, 40103 );
+            }
             return;
         }
 
         $this->basicAuth = false;
 
         if(!empty( $this->authOptions->authCallback )) {
-            Log::d("Auth: using token auth with authCallback");
+            Log::d( 'Auth: using token auth with authCallback' );
         } else if(!empty( $this->authOptions->authUrl )) {
-            Log::d("Auth: using token auth with authUrl");
+            Log::d( 'Auth: using token auth with authUrl' );
         } else if(!empty( $this->authOptions->key )) {
-            Log::d("Auth: using token auth with client-side signing");
+            Log::d( 'Auth: using token auth with client-side signing' );
         } else if(!empty( $this->authOptions->tokenDetails )) {
-            Log::d("Auth: using token auth with supplied token only");
+            Log::d( 'Auth: using token auth with supplied token only' );
         } else {
-            /* this is not a hard error - but any operation that requires
-             * authentication will fail */
-            Log::w("Auth: no authentication parameters supplied");
+            Log::e( 'Auth: no authentication parameters supplied' );
+            throw new AblyException ( 'No authentication parameters supplied', 401, 40103 );
         }
+
+        $this->tokenDetails = $this->authOptions->tokenDetails;
     }
 
     public function isUsingBasicAuth() {
@@ -53,24 +59,26 @@ class Auth {
     /**
      * Ensures valid auth credentials are present for the library instance. This may rely on an already-known and valid token, and will obtain a new token if necessary.
      * In the event that a new token request is made, the specified options are used.
+     * If not already using token based auth, this will enable it.
      */
-    public function authorise( $options = array(), $force = false ) {
+    public function authorise( $authOptions = array(), $tokenParams = array(), $force = false ) {
         if ( !$force && !empty( $this->tokenDetails ) ) {
             if ( empty( $this->tokenDetails->expires ) ) {
                 // using cached token
                 Log::d( 'Auth::authorise: using cached token, unknown expiration time' );
                 return $this;
-            } else if ( $this->tokenDetails->expires > $this->ably->time() ) {
+            } else if ( $this->tokenDetails->expires > $this->ably->systemTime() ) {
                 // using cached token
                 Log::d( 'Auth::authorise: using cached token, expires on ' . date( 'Y-m-d H:i:s', $this->tokenDetails->expires / 1000 ) );
                 return $this;
             }
         }
         Log::d( 'Auth::authorise: requesting new token' );
-        $this->tokenDetails = $this->requestToken( $options );
+        $this->tokenDetails = $this->requestToken( $authOptions, $tokenParams );
         $this->authOptions->tokenDetails = $this->tokenDetails;
+        $this->basicAuth = false;
 
-        return $this;
+        return $this->tokenDetails;
     }
 
     /**
@@ -84,6 +92,8 @@ class Auth {
         } else if ( !empty( $this->tokenDetails ) ) {
             $this->authorise();
             $header = array( 'authorization: Bearer '. base64_encode( $this->tokenDetails->token ) );
+        } else {
+            throw new AblyException( 'Unable to provide auth headers. No auth parameters defined.', 401, 40101 );
         }
         return $header;
     }
@@ -129,7 +139,7 @@ class Auth {
                 return new TokenDetails( $data );
             } else {
                 Log::e( 'Auth::requestToken:', 'Invalid response from authCallback, expecting signed TokenRequest or TokenDetails or a token string' );
-                throw new AblyException( 'Invalid response from authCallback', 400, 40000 );
+                throw new AblyException( 'Invalid response from authCallback' );
             }
         } elseif ( !empty( $authOptions->authUrl ) ) {
             Log::d( 'Auth::requestToken:', 'using token auth with auth_url' );
@@ -143,25 +153,27 @@ class Auth {
             
             $data = $data['body'];
 
-            if ( !is_object( $data ) ) {
-                Log::e( 'Auth::requestToken:', 'Invalid response from authURL, expecting JSON' );
-                throw new AblyException( 'Invalid response from authURL', 400, 40000 );
-            }
-
-            if ( !empty( $data->issued ) ) { // assuming it's a token
-                return new TokenDetails( $data );
-            } else if ( !empty( $data->mac ) ) { // assuming it's a signed token request
-                $signedTokenRequest = new TokenRequest( $data );
+            if ( is_string( $data ) ) {
+                return new TokenDetails( $data ); // assuming it's a token string
+            } else if ( is_object( $data ) ) {
+                if ( !empty( $data->issued ) ) { // assuming it's a token
+                    return new TokenDetails( $data );
+                } else if ( !empty( $data->mac ) ) { // assuming it's a signed token request
+                    $signedTokenRequest = new TokenRequest( $data );
+                } else {
+                    Log::e( 'Auth::requestToken:', 'Invalid response from authURL, expecting JSON representation of signed TokenRequest or TokenDetails' );
+                    throw new AblyException( 'Invalid response from authURL' );
+                }
             } else {
-                Log::e( 'Auth::requestToken:', 'Invalid response from authURL, expecting JSON representation of signed TokenRequest or a Token' );
-                throw new AblyException( 'Invalid response from authURL', 400, 40000 );
+                Log::e( 'Auth::requestToken:', 'Invalid response from authURL, expecting token string or JSON representation of signed TokenRequest or TokenDetails' );
+                throw new AblyException( 'Invalid response from authURL' );
             }
         } elseif ( !empty( $authOptions->key ) ) {
             Log::d( 'Auth::requestToken:', 'using token auth with client-side signing' );
-            $signedTokenRequest = $this->createTokenRequest( $authOptions, $tokenParams );
+            $signedTokenRequest = $this->createTokenRequest( $authOptions->toArray(), $tokenParams->toArray() );
         } else {
-            Log::e( 'Auth::requestToken:', 'Unable to request a Token, options must include valid authentication parameters' );
-            throw new AblyException( 'Invalid auth parameters', 400, 40000 );
+            Log::e( 'Auth::requestToken:', 'Unable to request a Token, auth options don\'t provide means to do so' );
+            throw new AblyException( 'Unable to request a Token, auth options don\'t provide means to do so', 401, 40101 );
         }
 
         // do the request
@@ -169,7 +181,7 @@ class Auth {
         $keyName = $signedTokenRequest->keyName;
 
         if ( empty( $keyName ) ) {
-            throw new AblyException( 'No keyName specified in the TokenRequest', 400, 40000 );
+            throw new AblyException( 'No keyName specified in the TokenRequest' );
         }
         
         $res = $this->ably->post(
@@ -195,6 +207,8 @@ class Auth {
      * @param \Ably\Models\TokenParams $tokenParams
      */
     public function createTokenRequest( $authOptions = array(), $tokenParams = array() ) {
+        $authOptions = new AuthOptions( array_merge( $this->authOptions->toArray(), $authOptions ) );
+        $tokenParams = new TokenParams( $tokenParams );
         $keyParts = explode( ':', $authOptions->key );
         
         if ( count( $keyParts ) != 2 ) {

@@ -1,7 +1,7 @@
 <?php
 namespace Ably;
 
-use Ably\Models\PaginatedResource;
+use Ably\Models\PaginatedResult;
 
 class Presence {
 
@@ -21,18 +21,18 @@ class Presence {
     /**
      * Retrieves channel's presence data
      * @param array $params Parameters to be sent with the request
-     * @return PaginatedResource
+     * @return PaginatedResult
      */
     public function get( $params = array() ) {
-        return new PaginatedResource( $this->ably, 'Ably\Models\PresenceMessage', $this->channel->getCipherParams(), $this->channel->getPath() . '/presence', $params );
+        return new PaginatedResult( $this->ably, 'Ably\Models\PresenceMessage', $this->channel->getCipherParams(), $this->channel->getPath() . '/presence', $params );
     }
 
     /**
      * Retrieves channel's history of presence data
      * @param array $params Parameters to be sent with the request
-     * @return PaginatedResource
+     * @return PaginatedResult
      */
     public function history( $params = array() ) {
-        return new PaginatedResource( $this->ably, 'Ably\Models\PresenceMessage', $this->channel->getCipherParams(), $this->channel->getPath() . '/presence/history', $params );
+        return new PaginatedResult( $this->ably, 'Ably\Models\PresenceMessage', $this->channel->getCipherParams(), $this->channel->getPath() . '/presence/history', $params );
     }
 }

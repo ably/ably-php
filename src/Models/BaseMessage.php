@@ -117,10 +117,12 @@ abstract class BaseMessage {
                 $type = '';
                 $msg->data = $this->data;
             }
-        } else { // it's a UTF-8 string
+        } else if ( is_string( $this->data ) ){ // it's a UTF-8 string
 
             $type = 'utf-8';
             $msg->data = $this->data;
+        } else {
+            throw new AblyException( 'Message data must be either, string, string with binary data, or JSON-encodable array or object.' );
         }
 
         if ($this->cipherParams) {
