@@ -7,6 +7,13 @@ require_once __DIR__ . '/factories/TestApp.php';
 
 class LogTest extends \PHPUnit_Framework_TestCase {
 
+    public static function tearDownAfterClass() {
+        // ensure the logger is reset to default
+        $ably = new AblyRest( array(
+            'key' => 'fake.key:totallyFake'
+        ) );
+    }
+
     private function logMessages() {
         Log::v('This is a test verbose message.');
         Log::d('This is a test debug message.');

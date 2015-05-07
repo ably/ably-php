@@ -43,6 +43,8 @@ class AblyRest {
         Log::setLogLevel( $this->options->logLevel );
         if ( !empty( $this->options->logHandler ) ) {
             Log::setLogCallback( $this->options->logHandler );
+        } else {
+            Log::setLogCallback( null );
         }
 
         $httpClass = $this->options->httpClass;
