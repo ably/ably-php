@@ -2,8 +2,8 @@
 namespace Ably\Models;
 
 use Ably\Exceptions\AblyException;
-use Ably\Exceptions\AblyEncryptionException;
 use Ably\Utils\Crypto;
+use Ably\Log;
 
 /**
  * Base class for messages sent over channels.
@@ -138,7 +138,6 @@ abstract class BaseMessage {
     /**
      * Decodes message's data field according to encoding
      * @throws AblyException
-     * @throws AblyEncryptionException
      */
     protected function decode() {
         $this->originalData = $this->data;
@@ -154,26 +153,35 @@ abstract class BaseMessage {
                     if ($this->data === false) {
                         throw new AblyException( 'Could not base64-decode message data' );
                     }
+
+                    array_pop( $encodings );
                 } else if ($encoding == 'json') {
                     $this->data = json_decode( $this->data );
 
                     if ($this->data === null) {
                         throw new AblyException( 'Could not JSON-decode message data' );
                     }
+
+                    array_pop( $encodings );
                 } else if (strpos( $encoding, 'cipher+' ) === 0) {
                     if (!$this->cipherParams) {
-                        throw new AblyEncryptionException( 'Could not decrypt message data, no cipherParams provided' );
+                        Log::e( 'Could not decrypt message data, no cipherParams provided' );
+                        break;
                     }
 
-                    $this->data = Crypto::decrypt( $this->data, $this->cipherParams );
+                    $data = Crypto::decrypt( $this->data, $this->cipherParams );
                     
-                    if ($this->data === false) {
-                        throw new AblyEncryptionException( 'Could not decrypt message data' );
+                    if ($data === false) {
+                        Log::e( 'Could not decrypt message data' );
+                        break;
                     }
+
+                    $this->data = $data;
+                    array_pop( $encodings );
                 }
             }
 
-            $this->encoding = null;
+            $this->encoding = count( $encodings ) ? implode( '/', $encodings ) : null;
         }
     }
 

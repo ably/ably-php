@@ -3,6 +3,7 @@ namespace tests;
 use Ably\AblyRest;
 use Ably\Channel;
 use Ably\Http;
+use Ably\Log;
 use Ably\Models\CipherParams;
 use Ably\Models\Message;
 
@@ -147,10 +148,34 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * Verify that batch sending messages actually makes just one request
+     */
+    public function testMessageArraySingleRequest() {
+        $messages = array();
+        
+        for ( $i = 0; $i < 10; $i++ ) {
+            $msg = new Message();
+            $msg->name = 'msg'.$i;
+            $msg->data = 'test string'.$i;
+            $messages[] = $msg;
+        }
+
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+            'httpClass' => 'tests\HttpMockMsgCounter',
+        ) ) );
+
+        $channel = $ably->channel( 'singleReq' );
+        $channel->publish( $messages );
+
+        $this->assertEquals( 1, $ably->http->requestCount, 'Expected 1 request to be made' );
+    }
+
+    /**
      * Verify that publishing invalid types fails
      */
     public function testInvalidTypes() {
-        $channel = self::$ably->channel( 'persisted:unencryptedSingle' );
+        $channel = self::$ably->channel( 'invalidTypes' );
         
         $msg = new Message();
         $msg->name = 'int';
@@ -184,19 +209,48 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * Verify that publishing too large message (>128KB) fails
+     */
+    public function testTooLargeMessage() {
+        $channel = self::$ably->channel( 'huge' );
+        
+        $msg = new Message();
+        $msg->name = 'huge';
+        $msg->data = str_repeat("~", 128 * 1024); // 128 kilobytes + message JSON
+
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40009 );
+        $channel->publish( $msg );
+    }
+
+    /**
      * Encryption mismatch - publish message over encrypted channel, retrieve history over unencrypted channel
-     *
-     * @expectedException Ably\Exceptions\AblyEncryptionException
      */
     public function testEncryptedMessageUnencryptedHistory() {
+        $errorLogged = false;
+
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+            'logHandler' => function( $level, $args ) use ( &$errorLogged ) {
+                if ( $level == Log::ERROR ) {
+                    $errorLogged = true;
+                }
+            },
+        ) ) );
+
         $payload = 'This is a test message';
 
         $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
-        $encrypted = self::$ably->channel( 'persisted:mismatch1', $options );
-        $encrypted->publish( 'test', $payload );
+        $encrypted1 = $ably->channel( 'persisted:mismatch1', $options );
+        $encrypted1->publish( 'test', $payload );
 
-        $unencrypted = self::$ably->channel( 'persisted:mismatch1', array() );
-        $messages = $unencrypted->history();
+        $options2 = array();
+        $encrypted2 = $ably->channel( 'persisted:mismatch1', $options2 );
+        $messages = $encrypted2->history();
+        $msg = $messages->items[0];
+
+        $this->assertTrue( $errorLogged, 'Expected an error to be logged' );
+        $this->assertEquals( 'utf-8/cipher+aes-128-cbc/base64', $msg->originalEncoding, 'Expected the original message to be encrypted + base64 encoded' );
+        $this->assertEquals( 'utf-8/cipher+aes-128-cbc', $msg->encoding, 'Expected to receive the message still encrypted, but base64 decoded' );
     }
 
     /**
@@ -205,10 +259,10 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     public function testUnencryptedMessageEncryptedHistory() {
         $payload = 'This is a test message';
 
-        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
         $encrypted = self::$ably->channel( 'persisted:mismatch2' );
         $encrypted->publish( 'test', $payload );
 
+        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
         $unencrypted = self::$ably->channel( 'persisted:mismatch2', $options );
         $messages = $unencrypted->history();
         $this->assertNotNull( $messages, 'Expected non-null messages' );
@@ -218,29 +272,43 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
     /**
      * Encryption key mismatch - publish message with key1, retrieve history with key2
-     *
-     * @expectedException Ably\Exceptions\AblyEncryptionException
      */
     public function testEncryptionKeyMismatch() {
+        $errorLogged = false;
+
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+            'logHandler' => function( $level, $args ) use ( &$errorLogged ) {
+                if ( $level == Log::ERROR ) {
+                    $errorLogged = true;
+                }
+            },
+        ) ) );
+
         $payload = 'This is a test message';
 
         $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
-        $encrypted1 = self::$ably->channel( 'persisted:mismatch3', $options );
+        $encrypted1 = $ably->channel( 'persisted:mismatch3', $options );
         $encrypted1->publish( 'test', $payload );
 
         $options2 = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'DIFFERENT PASSWORD', 'aes-128-cbc' ));
-        $encrypted2 = self::$ably->channel( 'persisted:mismatch3', $options2 );
+        $encrypted2 = $ably->channel( 'persisted:mismatch3', $options2 );
         $messages = $encrypted2->history();
+        $msg = $messages->items[0];
+
+        $this->assertTrue( $errorLogged, 'Expected an error to be logged' );
+        $this->assertEquals( 'utf-8/cipher+aes-128-cbc/base64', $msg->originalEncoding, 'Expected the original message to be encrypted + base64 encoded' );
+        $this->assertEquals( 'utf-8/cipher+aes-128-cbc', $msg->encoding, 'Expected to receive the message still encrypted, but base64 decoded' );
     }
 }
 
 
 class HttpMockMsgCounter extends Http {
-    public $requests = 0;
+    public $requestCount = 0;
     
     public function request($method, $url, $headers = array(), $params = array()) {
 
-        $this->requests++;
+        $this->requestCount++;
 
         return array(
             'headers' => 'HTTP/1.1 200 OK'."\n",
