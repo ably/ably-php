@@ -131,7 +131,7 @@ class AblyRest {
             
             $causedByExpiredToken = $auth
                 && !$this->auth->isUsingBasicAuth()
-                && $e->getAblyCode() == 40140;
+                && $e->code == 40140;
 
             if ( $causedByExpiredToken ) { // renew the token
                 $this->auth->authorise( array(), array(), $force = true );
@@ -167,7 +167,7 @@ class AblyRest {
             return $this->http->request( $method, $server . $path, $headers, $params );
         }
         catch (AblyRequestException $e) {
-            if ( $e->getAblyCode() >= 50000 ) {
+            if ( $e->code >= 50000 ) {
                 if ( $attempt < count( $this->options->fallbackHosts ) ) {
                     return $this->requestWithFallback( $method, $path, $headers, $params, $attempt + 1);
                 } else {

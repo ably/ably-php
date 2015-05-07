@@ -174,8 +174,8 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
         );
 
         $ably = new AblyRest( $opts );
-        $ably->http->errorCode = 401;
-        $ably->http->ablyErrorCode = 40101; // auth error
+        $ably->http->httpErrorCode = 401;
+        $ably->http->errorCode = 40101; // auth error
 
         try {
             $ably->time(); // make a request
@@ -263,7 +263,7 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
         ));
 
         $ably->http->get('https://cdn.ably.io/lib/ably.js'); // should work
-        $this->setExpectedException('Ably\Exceptions\AblyRequestException', '', 500);
+        $this->setExpectedException('Ably\Exceptions\AblyRequestException', '', 50003);
         $ablyTimeout->http->get('https://cdn.ably.io/lib/ably.js'); // guaranteed to take more than 50 ms
     }    
 }
@@ -287,8 +287,8 @@ class HttpMockInitTest extends Http {
 class HttpMockInitTestTimeout extends Http {
     public $failedHosts = array();
     public $failAttempts = 100; // number of attempts to time out before starting to return data
-    public $errorCode = 500;
-    public $ablyErrorCode = 50003; // timeout
+    public $httpErrorCode = 500;
+    public $errorCode = 50003; // timeout
     
     public function request($method, $url, $headers = array(), $params = array()) {
 
@@ -298,12 +298,12 @@ class HttpMockInitTestTimeout extends Http {
             
             $this->failAttempts--;
 
-            throw new AblyRequestException( 'Fake error', $this->errorCode, $this->ablyErrorCode );
+            throw new AblyRequestException( 'Fake error', $this->errorCode, $this->httpErrorCode );
         }
 
         return array(
-            'headers' => '',
-            'body' => array( 999999, 0 )
+            'headers' => 'HTTP/1.1 200 OK'."\n",
+            'body' => array( 999999, 0 ),
         );
     }
 }

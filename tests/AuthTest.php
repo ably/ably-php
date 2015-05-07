@@ -26,7 +26,7 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
      * Init library with a key over unsecure connection
      */
     public function testAuthWithKeyInsecure() {
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 401 );
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40103 );
 
         $ably = new AblyRest( array_merge( self::$defaultOptions, array(
             'key' => self::$testApp->getAppKeyDefault()->string,
@@ -38,7 +38,7 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
      * Init library without any valid auth
      */
     public function testNoAuthParams() {
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 401 );
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40103 );
 
         $ably = new AblyRest( );
     }

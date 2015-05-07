@@ -29,7 +29,7 @@ class Auth {
 
             if ( !$options->tls ) {
                 log::e( 'Auth: trying to use basic key auth over insecure connection' );
-                throw new AblyException ( 'Trying to use basic key auth over insecure connection', 401, 40103 );
+                throw new AblyException ( 'Trying to use basic key auth over insecure connection', 40103, 401 );
             }
             return;
         }
@@ -46,7 +46,7 @@ class Auth {
             Log::d( 'Auth: using token auth with supplied token only' );
         } else {
             Log::e( 'Auth: no authentication parameters supplied' );
-            throw new AblyException ( 'No authentication parameters supplied', 401, 40103 );
+            throw new AblyException ( 'No authentication parameters supplied', 40103, 401 );
         }
 
         $this->tokenDetails = $this->authOptions->tokenDetails;
@@ -93,7 +93,7 @@ class Auth {
             $this->authorise();
             $header = array( 'authorization: Bearer '. base64_encode( $this->tokenDetails->token ) );
         } else {
-            throw new AblyException( 'Unable to provide auth headers. No auth parameters defined.', 401, 40101 );
+            throw new AblyException( 'Unable to provide auth headers. No auth parameters defined.', 40101, 401 );
         }
         return $header;
     }
@@ -173,7 +173,7 @@ class Auth {
             $signedTokenRequest = $this->createTokenRequest( $authOptions->toArray(), $tokenParams->toArray() );
         } else {
             Log::e( 'Auth::requestToken:', 'Unable to request a Token, auth options don\'t provide means to do so' );
-            throw new AblyException( 'Unable to request a Token, auth options don\'t provide means to do so', 401, 40101 );
+            throw new AblyException( 'Unable to request a Token, auth options don\'t provide means to do so', 40101, 401 );
         }
 
         // do the request
@@ -193,7 +193,7 @@ class Auth {
         );
 
         if ( empty( $res->token ) ) { // just in case.. an AblyRequestException should be thrown on the previous step with a 4XX error code on failure
-            throw new AblyException( 'Failed to get a token', 401, 40100 );
+            throw new AblyException( 'Failed to get a token', 40100, 401 );
         }
 
         return new TokenDetails( $res );
@@ -213,7 +213,7 @@ class Auth {
         
         if ( count( $keyParts ) != 2 ) {
             Log::e( 'Auth::createTokenRequest', "Can't create signed token request, invalid key specified" );
-            throw new AblyException( 'Invalid key specified', 401, 40101 );
+            throw new AblyException( 'Invalid key specified', 40101, 401 );
         }
         
         $keyName   = $keyParts[0];
@@ -222,7 +222,7 @@ class Auth {
         $tokenRequest = new TokenRequest( $tokenParams );
         
         if ( !empty( $tokenRequest->keyName ) && $tokenRequest->keyName != $keyName ) {
-            throw new AblyException( 'Incompatible keys specified', 401, 40102 );
+            throw new AblyException( 'Incompatible keys specified', 40102, 401 );
         } else {
             $tokenRequest->keyName = $keyName;
         }

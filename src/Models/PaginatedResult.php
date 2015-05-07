@@ -153,7 +153,7 @@ class PaginatedResult {
             $rel =  $m[2];
 
             if (substr($link, 0, 2) != './') {
-                throw new AblyException( "Server error - only relative URLs are supported in pagination", 400, 40000 );
+                throw new AblyException( "Server error - only relative URLs are supported in pagination" );
             }
 
             $this->paginationHeaders[$rel] = $path.substr($link, 2);

@@ -73,12 +73,8 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         $params = array_merge(self::$tokenParams, array(
             'timestamp' => $requestTime - 30 * 60 * 1000
         ));
-        try {
-            self::$ably->auth->requestToken( array(), $params );
-            $this->fail('Expected token request rejection');
-        } catch (AblyException $e) {
-            $this->assertEquals( 401, $e->getCode(), 'Unexpected error code' );
-        }
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', 'Timestamp not current', 40101 );
+        self::$ably->auth->requestToken( array(), $params );
     }
 
     /**
@@ -174,12 +170,8 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      */
     public function testTokenGenerationWithExcessiveTTL() {
         $tokenParams = array( 'ttl' => 365*24*60*60*1000 );
-        try {
-            self::$ably->auth->requestToken( array(), $tokenParams );
-            $this->fail( 'Expected token request rejection' );
-        } catch (AblyException $e) {
-            $this->assertEquals( 40003, $e->getAblyCode(), 'Unexpected error code' );
-        }
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
+        self::$ably->auth->requestToken( array(), $tokenParams );
     }
 
     /**
@@ -187,12 +179,8 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      */
     public function testTokenGenerationWithInvalidTTL() {
         $tokenParams = array( 'ttl' => -1 * 1000 );
-        try {
-            self::$ably->auth->requestToken( array(), $tokenParams );
-            $this->fail( 'Expected token request rejection' );
-        } catch (AblyException $e) {
-            $this->assertEquals( 40003, $e->getAblyCode(), 'Unexpected error code' );
-        }
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
+        self::$ably->auth->requestToken( array(), $tokenParams );
     }
 
     /**
@@ -252,7 +240,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
 
         sleep(2);
 
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 401 );
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40101 );
         $channel->publish( 'test', 'test' ); // this should fail
     }
 
@@ -313,7 +301,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
 
         sleep(2);
 
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 401 );
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40101 );
         $channel->publish( 'test', 'test' ); // this should fail
     }
 }

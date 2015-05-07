@@ -2,6 +2,7 @@
 namespace tests;
 use Ably\AblyRest;
 use Ably\Log;
+use Ably\Models\ClientOptions;
 use \stdClass;
 
 require_once __DIR__ . '/../../vendor/autoload.php';
@@ -24,16 +25,15 @@ class TestApp {
 
         $settings = array();
 
-        $settings['tls'] = true;
-        $settings['host'] = "staging-rest.ably.io";
-        //$settings['host'] = "sandbox-rest.ably.io";
-        //$settings['host'] = "rest.ably.io";
+        $settings['environment'] = getenv( 'ABLY_ENV' ) ? : 'sandbox';
         //$settings['logLevel'] = Log::DEBUG;
+
+        $clientOpts = new ClientOptions( $settings );
 
         $this->options = $settings;
 
-        $scheme = 'http' . ($settings['tls'] ? 's' : '');
-        $this->server = $scheme .'://'. $settings['host'];
+        $scheme = 'http' . ($clientOpts->tls ? 's' : '');
+        $this->server = $scheme .'://'. $clientOpts->host;
         $this->init();
 
         return $this;

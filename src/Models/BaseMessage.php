@@ -75,7 +75,7 @@ abstract class BaseMessage {
         } else {
             $obj = @json_decode($json);
             if (!$obj) {
-                throw new AblyException( 'Invalid object or JSON encoded object', 400, 40000 );
+                throw new AblyException( 'Invalid object or JSON encoded object' );
             }
         }
 
@@ -122,7 +122,7 @@ abstract class BaseMessage {
             $type = 'utf-8';
             $msg->data = $this->data;
         } else {
-            throw new AblyException( 'Message data must be either, string, string with binary data, or JSON-encodable array or object.' );
+            throw new AblyException( 'Message data must be either, string, string with binary data, or JSON-encodable array or object.', 40003, 400 );
         }
 
         if ($this->cipherParams) {
@@ -152,23 +152,23 @@ abstract class BaseMessage {
                     $this->data = base64_decode( $this->data );
 
                     if ($this->data === false) {
-                        throw new AblyException( 'Could not base64-decode message data', 400, 40000 );
+                        throw new AblyException( 'Could not base64-decode message data' );
                     }
                 } else if ($encoding == 'json') {
                     $this->data = json_decode( $this->data );
 
                     if ($this->data === null) {
-                        throw new AblyException( 'Could not JSON-decode message data', 400, 40000 );
+                        throw new AblyException( 'Could not JSON-decode message data' );
                     }
                 } else if (strpos( $encoding, 'cipher+' ) === 0) {
                     if (!$this->cipherParams) {
-                        throw new AblyEncryptionException( 'Could not decrypt message data, no cipherParams provided', 400, 40000 );
+                        throw new AblyEncryptionException( 'Could not decrypt message data, no cipherParams provided' );
                     }
 
                     $this->data = Crypto::decrypt( $this->data, $this->cipherParams );
                     
                     if ($this->data === false) {
-                        throw new AblyEncryptionException( 'Could not decrypt message data', 400, 40000 );
+                        throw new AblyEncryptionException( 'Could not decrypt message data' );
                     }
                 }
             }

@@ -2,6 +2,7 @@
 namespace tests;
 use Ably\AblyRest;
 use Ably\Channel;
+use Ably\Http;
 use Ably\Models\CipherParams;
 use Ably\Models\Message;
 
@@ -146,6 +147,43 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * Verify that publishing invalid types fails
+     */
+    public function testInvalidTypes() {
+        $channel = self::$ably->channel( 'persisted:unencryptedSingle' );
+        
+        $msg = new Message();
+        $msg->name = 'int';
+        $msg->data = 81403;
+
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
+        $channel->publish( $msg );
+
+        $msg = new Message();
+        $msg->name = 'bool';
+        $msg->data = true;
+
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
+        $channel->publish( $msg );
+
+        $msg = new Message();
+        $msg->name = 'float';
+        $msg->data = 42.23;
+
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
+        $channel->publish( $msg );
+
+        $msg = new Message();
+        $msg->name = 'function';
+        $msg->data = function($param) {
+            return "mock function";
+        };
+
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
+        $channel->publish( $msg );
+    }
+
+    /**
      * Encryption mismatch - publish message over encrypted channel, retrieve history over unencrypted channel
      *
      * @expectedException Ably\Exceptions\AblyEncryptionException
@@ -194,5 +232,19 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $encrypted2 = self::$ably->channel( 'persisted:mismatch3', $options2 );
         $messages = $encrypted2->history();
     }
+}
 
+
+class HttpMockMsgCounter extends Http {
+    public $requests = 0;
+    
+    public function request($method, $url, $headers = array(), $params = array()) {
+
+        $this->requests++;
+
+        return array(
+            'headers' => 'HTTP/1.1 200 OK'."\n",
+            'body' => array(),
+        );
+    }
 }
