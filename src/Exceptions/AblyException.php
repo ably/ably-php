@@ -14,7 +14,7 @@ class AblyException extends Exception {
      */
     public $errorInfo;
 
-    public function __construct( $message, $code = 40000, $statusCode = 400 ) {
+    public function __construct( $message, $code = null, $statusCode = null ) {
         parent::__construct( $message, $code );
         $this->errorInfo = new ErrorInfo();
         $this->errorInfo->message = $message;
