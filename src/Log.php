@@ -39,11 +39,6 @@ class Log {
      */
     public static function setLogCallback( $function = null ) {
         self::$logCallback = $function;
-        if ( $function ) {
-            self::v( 'Set custom logging callback function' );
-        } else {
-            self::v( 'Restored default logging function' );
-        }
     }
 
     /**

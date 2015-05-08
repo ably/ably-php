@@ -2,8 +2,8 @@
 namespace Ably\Models;
 
 use Ably\Exceptions\AblyException;
-use Ably\Exceptions\AblyEncryptionException;
 use Ably\Utils\Crypto;
+use Ably\Log;
 
 /**
  * Base class for messages sent over channels.
@@ -75,7 +75,7 @@ abstract class BaseMessage {
         } else {
             $obj = @json_decode($json);
             if (!$obj) {
-                throw new AblyException( 'Invalid object or JSON encoded object', 400, 40000 );
+                throw new AblyException( 'Invalid object or JSON encoded object' );
             }
         }
 
@@ -104,30 +104,29 @@ abstract class BaseMessage {
             return $msg;
         }
 
-        if (is_array( $this->data ) || is_object( $this->data )) {
-
+        if ( is_array( $this->data ) || $this->data instanceof \stdClass ) {
             $type = 'json/utf-8';
             $msg->data = json_encode($this->data);
-        } else if (!mb_check_encoding( $this->data, 'UTF-8' )) { // non-UTF-8, most likely a binary string
-
-            if (!$this->cipherParams) {
-                $type = 'base64';
-                $msg->data = base64_encode( $this->data );
-            } else {
-                $type = '';
+        } else if ( is_string( $this->data ) ){
+            if ( mb_check_encoding( $this->data, 'UTF-8' ) ) { // it's a UTF-8 string
+                $type = 'utf-8';
                 $msg->data = $this->data;
+            } else { // not UTF-8, assuming it's a binary string
+                if ($this->cipherParams) { // encryption will automatically base64 encode the data
+                    $type = '';
+                    $msg->data = $this->data;
+                } else {
+                    $type = 'base64';
+                    $msg->data = base64_encode( $this->data );
+                }
             }
-        } else if ( is_string( $this->data ) ){ // it's a UTF-8 string
-
-            $type = 'utf-8';
-            $msg->data = $this->data;
         } else {
-            throw new AblyException( 'Message data must be either, string, string with binary data, or JSON-encodable array or object.' );
+            throw new AblyException( 'Message data must be either, string, string with binary data, or JSON-encodable array or object.', 40003, 400 );
         }
 
         if ($this->cipherParams) {
             $msg->data = base64_encode( Crypto::encrypt( $msg->data, $this->cipherParams ) );
-            $msg->encoding = $type . '/cipher+' . $this->cipherParams->algorithm . '/base64';
+            $msg->encoding = ( $type ? $type . '/' : '' ) . 'cipher+' . $this->cipherParams->algorithm . '/base64';
         } else {
             $msg->encoding = $type;
         }
@@ -138,7 +137,6 @@ abstract class BaseMessage {
     /**
      * Decodes message's data field according to encoding
      * @throws AblyException
-     * @throws AblyEncryptionException
      */
     protected function decode() {
         $this->originalData = $this->data;
@@ -152,28 +150,37 @@ abstract class BaseMessage {
                     $this->data = base64_decode( $this->data );
 
                     if ($this->data === false) {
-                        throw new AblyException( 'Could not base64-decode message data', 400, 40000 );
+                        throw new AblyException( 'Could not base64-decode message data' );
                     }
+
+                    array_pop( $encodings );
                 } else if ($encoding == 'json') {
                     $this->data = json_decode( $this->data );
 
                     if ($this->data === null) {
-                        throw new AblyException( 'Could not JSON-decode message data', 400, 40000 );
-                    }
-                } else if (strpos( $encoding, 'cipher+' ) === 0) {
-                    if (!$this->cipherParams) {
-                        throw new AblyEncryptionException( 'Could not decrypt message data, no cipherParams provided', 400, 40000 );
+                        throw new AblyException( 'Could not JSON-decode message data' );
                     }
 
-                    $this->data = Crypto::decrypt( $this->data, $this->cipherParams );
-                    
-                    if ($this->data === false) {
-                        throw new AblyEncryptionException( 'Could not decrypt message data', 400, 40000 );
+                    array_pop( $encodings );
+                } else if (strpos( $encoding, 'cipher+' ) === 0) {
+                    if (!$this->cipherParams) {
+                        Log::e( 'Could not decrypt message data, no cipherParams provided' );
+                        break;
                     }
+
+                    $data = Crypto::decrypt( $this->data, $this->cipherParams );
+                    
+                    if ($data === false) {
+                        Log::e( 'Could not decrypt message data' );
+                        break;
+                    }
+
+                    $this->data = $data;
+                    array_pop( $encodings );
                 }
             }
 
-            $this->encoding = null;
+            $this->encoding = count( $encodings ) ? implode( '/', $encodings ) : null;
         }
     }
 

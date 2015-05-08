@@ -36,7 +36,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         for ( $i = 0; $i < 50; $i++ ) {
             $msg = new Message();
             $msg->name = 'history'.$i;
-            $msg->data = ''.$i;
+            $msg->data = (string) $i;
             $msgsToSend[] = $msg;
         }
         $history1->publish( $msgsToSend );
@@ -65,7 +65,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         for ( $i = 0; $i < 50; $i++ ) {
             $msg = new Message();
             $msg->name = 'history'.$i;
-            $msg->data = ''.$i;
+            $msg->data = (string) $i;
             $msgsToSend[] = $msg;
         }
         $history2->publish( $msgsToSend );
@@ -82,6 +82,31 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in backward order');
     }
 
+    /**
+     * Test default limit (100 messages) and default order (backwards)
+     */
+    public function testDefaults() {
+        $channel = self::$ably->channel('persisted:history_def_limit');
+        
+        $msgsToSend = array();
+        for ( $i = 0; $i < 101; $i++ ) {
+            $msg = new Message();
+            $msg->data = (string) $i;
+            $msgsToSend[] = $msg;
+        }
+        $channel->publish( $msgsToSend );
+
+        $messages = $channel->history();
+        $this->assertEquals( 100, count( $messages->items ), 'Expected 100 messages' );
+
+        # verify message order
+        $actual_message_history = array();
+        foreach ($messages->items as $msg) {
+            array_push( $actual_message_history, $msg->data );
+        }
+        $expected_message_history = range(100, 1, -1);
+        $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in backward order');
+    }
 
     /**
      * Publish events, get limited history, check expected order (forwards) and pagination
@@ -94,7 +119,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         for ( $i = 0; $i < 50; $i++ ) {
             $msg = new Message();
             $msg->name = 'history'.$i;
-            $msg->data = ''.$i;
+            $msg->data = (string) $i;
             $msgsToSend[] = $msg;
         }
         $history3->publish( $msgsToSend );
@@ -158,7 +183,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         for ( $i = 0; $i < 50; $i++ ) {
             $msg = new Message();
             $msg->name = 'history'.$i;
-            $msg->data = ''.$i;
+            $msg->data = (string) $i;
             $msgsToSend[] = $msg;
         }
         $history4->publish( $msgsToSend );
@@ -221,17 +246,17 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
 
         # send batches of messages with short inter-message delay
         for ($i=0; $i<2; $i++) {
-            $history5->publish('history'.$i, sprintf('%s',$i));
+            $history5->publish( 'history'.$i, (string) $i );
             usleep(100000); // sleep for 0.1 of a second
         }
         $interval_start = self::$ably->time();
         for ($i=2; $i<4; $i++) {
-            $history5->publish('history'.$i, sprintf('%s',$i));
+            $history5->publish( 'history'.$i, (string) $i );
             usleep(100000); // sleep for 0.1 of a second
         }
         $interval_end = self::$ably->time();
         for ($i=4; $i<6; $i++) {
-            $history5->publish('history'.$i, sprintf('%s',$i));
+            $history5->publish( 'history'.$i, (string) $i );
             usleep(100000); // sleep for 0.1 of a second
         }
 
@@ -263,17 +288,17 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
 
         # send batches of messages with short inter-message delay
         for ($i=0; $i<2; $i++) {
-            $history6->publish('history'.$i, sprintf('%s',$i));
+            $history6->publish( 'history'.$i, (string) $i );
             usleep(100000); // sleep for 0.1 of a second
         }
         $interval_start = self::$ably->time();
         for ($i=2; $i<4; $i++) {
-            $history6->publish('history'.$i, sprintf('%s',$i));
+            $history6->publish( 'history'.$i, (string) $i );
             usleep(100000); // sleep for 0.1 of a second
         }
         $interval_end = self::$ably->time();
         for ($i=4; $i<6; $i++) {
-            $history6->publish('history'.$i, sprintf('%s',$i));
+            $history6->publish( 'history'.$i, (string) $i );
             usleep(100000); // sleep for 0.1 of a second
         }
 

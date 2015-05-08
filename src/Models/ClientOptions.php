@@ -59,7 +59,7 @@ class ClientOptions extends AuthOptions {
     /**
      * @var integer connection timeout after which a next fallback host is used
      */
-    public $hostTimeout = 10000;
+    public $hostTimeout = 15000;
 
     /**
      * @var string a class that should be used for making HTTP connections

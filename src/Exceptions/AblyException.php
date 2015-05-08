@@ -1,22 +1,38 @@
 <?php
 namespace Ably\Exceptions;
 
-use Exception;
+use Ably\Models\ErrorInfo;
+use \Exception;
 
 /**
- * Generic exception for Ably classes
+ * Generic Ably exception
  */
 class AblyException extends Exception {
 
-	protected $ablyCode;
-    
-    public function __construct($message, $code = 400, $ablyCode = 40000) {
-        parent::__construct($message, $code);
+    /**
+     * @var ErrorInfo
+     */
+    public $errorInfo;
 
-        $this->ablyCode = $ablyCode;
+    public function __construct( $message, $code = null, $statusCode = null ) {
+        parent::__construct( $message, $code );
+        $this->errorInfo = new ErrorInfo();
+        $this->errorInfo->message = $message;
+        $this->errorInfo->code = $code;
+        $this->errorInfo->statusCode = $statusCode;
     }
 
-    public function getAblyCode() {
-    	return $this->ablyCode;
+    public function getStatusCode() {
+        return $this->errorInfo->statusCode;
     }
+
+    // PHP doesn't allow overriding these methods
+
+    // public function getCode() {
+    //     return $this->errorInfo->code;
+    // }
+
+    // public function getMessage() {
+    //     return $this->errorInfo->message;
+    // }
 }

@@ -146,7 +146,7 @@ class Http {
 
         if ($err) { // a connection error has occured (no data received)
             Log::e('cURL error:', $err, $errmsg);
-            throw new AblyRequestException( 'cURL error: ' . $errmsg, 500, 50003 );
+            throw new AblyRequestException( 'cURL error: ' . $errmsg, 50003, 500 );
         }
 
         $response = null;
@@ -160,10 +160,10 @@ class Http {
         Log::v( 'cURL request response:', $info['http_code'], $response );
 
         if ( !in_array( $info['http_code'], array(200,201) ) ) {
-            $ablyCode = empty( $decodedBody->error->code ) ? null : $decodedBody->error->code;
+            $ablyCode = empty( $decodedBody->error->code ) ? $info['http_code'] * 100 : $decodedBody->error->code * 1;
             $errorMessage = empty( $decodedBody->error->message ) ? 'cURL request failed' : $decodedBody->error->message;
 
-            throw new AblyRequestException( $errorMessage, $info['http_code'], $ablyCode, $response );
+            throw new AblyRequestException( $errorMessage, $ablyCode, $info['http_code'], $response );
         }
 
         return $response;

@@ -41,7 +41,7 @@ class Stats {
         } else {
             $obj = @json_decode($json);
             if (!$obj) {
-                throw new AblyException( 'Invalid object or JSON encoded object', 400, 40000 );
+                throw new AblyException( 'Invalid object or JSON encoded object' );
             }
         }
 
