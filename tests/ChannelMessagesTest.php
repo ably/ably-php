@@ -4,6 +4,7 @@ use Ably\AblyRest;
 use Ably\Channel;
 use Ably\Http;
 use Ably\Log;
+use Ably\Exceptions\AblyException;
 use Ably\Models\CipherParams;
 use Ably\Models\Message;
 
@@ -181,22 +182,34 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $msg->name = 'int';
         $msg->data = 81403;
 
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
-        $channel->publish( $msg );
+        try {
+            $channel->publish( $msg );
+            $this->fail( 'Expected an exception' );
+        } catch (AblyException $e) {
+            if ( $e->getCode() != 40003 ) $this->fail('Expected exception error code 40003');
+        }
 
         $msg = new Message();
         $msg->name = 'bool';
         $msg->data = true;
 
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
-        $channel->publish( $msg );
+        try {
+            $channel->publish( $msg );
+            $this->fail( 'Expected an exception' );
+        } catch (AblyException $e) {
+            if ( $e->getCode() != 40003 ) $this->fail('Expected exception error code 40003');
+        }
 
         $msg = new Message();
         $msg->name = 'float';
         $msg->data = 42.23;
 
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
-        $channel->publish( $msg );
+        try {
+            $channel->publish( $msg );
+            $this->fail( 'Expected an exception' );
+        } catch (AblyException $e) {
+            if ( $e->getCode() != 40003 ) $this->fail('Expected exception error code 40003');
+        }
 
         $msg = new Message();
         $msg->name = 'function';
@@ -204,8 +217,22 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
             return "mock function";
         };
 
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
-        $channel->publish( $msg );
+        try {
+            $channel->publish( $msg );
+            $this->fail( 'Expected an exception' );
+        } catch (AblyException $e) {
+            if ( $e->getCode() != 40003 ) $this->fail('Expected exception error code 40003');
+        }
+
+        $msg = new Message();
+        $msg->name = 'null';
+
+        try {
+            $channel->publish( $msg );
+            $this->fail( 'Expected an exception' );
+        } catch (AblyException $e) {
+            if ( $e->getCode() != 40003 ) $this->fail('Expected exception error code 40003');
+        }
     }
 
     /**

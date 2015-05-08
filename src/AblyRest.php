@@ -6,6 +6,9 @@ use Ably\Models\PaginatedResult;
 use Ably\Exceptions\AblyException;
 use Ably\Exceptions\AblyRequestException;
 
+/**
+ * Ably REST client
+ */
 class AblyRest {
 
     private $options;
@@ -25,7 +28,7 @@ class AblyRest {
 
     /**
      * Constructor
-     * @param \Ably\Models\ClientOptions|string options or a string with app key or token
+     * @param \Ably\Models\ClientOptions|string array with options or a string with app key or token
      */
     public function __construct( $options = array() ) {
 
@@ -56,6 +59,7 @@ class AblyRest {
     }
 
     /**
+     * Shorthand to $this->channels->get()
      * @return \Ably\Channel Channel
      */
     public function channel( $name, $options = array() ) {
@@ -72,7 +76,8 @@ class AblyRest {
     }
 
     /**
-     * @return integer server's time
+     * Retrieves server time
+     * @return integer server time in milliseconds
      */
     public function time() {
         $res = $this->get( '/time', $params = array(), $headers = array(), $returnHeaders = false, $authHeaders = false );
@@ -80,7 +85,8 @@ class AblyRest {
     }
 
     /**
-     * @return integer system time
+     * Returns local time
+     * @return integer system time in milliseconds
      */
     public function systemTime() {
         return round( microtime(true) * 1000 );
@@ -133,7 +139,7 @@ class AblyRest {
             
             $causedByExpiredToken = $auth
                 && !$this->auth->isUsingBasicAuth()
-                && $e->code == 40140;
+                && $e->getCode() == 40140;
 
             if ( $causedByExpiredToken ) { // renew the token
                 $this->auth->authorise( array(), array(), $force = true );
@@ -169,7 +175,7 @@ class AblyRest {
             return $this->http->request( $method, $server . $path, $headers, $params );
         }
         catch (AblyRequestException $e) {
-            if ( $e->code >= 50000 ) {
+            if ( $e->getCode() >= 50000 ) {
                 if ( $attempt < count( $this->options->fallbackHosts ) ) {
                     return $this->requestWithFallback( $method, $path, $headers, $params, $attempt + 1);
                 } else {
