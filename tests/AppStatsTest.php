@@ -10,6 +10,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
     protected static $defaultOptions;
     protected static $ably;
     protected static $timestamp;
+    protected static $timestampOlder; // fixtures for limit tests
 
     public static function setUpBeforeClass() {
         self::$testApp = new TestApp();
@@ -18,20 +19,21 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
             'key' => self::$testApp->getAppKeyDefault()->string,
         ) ) );
 
-        self::$timestamp = strtotime('-2 weeks monday') + 14 * 3600 + 5 * 60; // previous monday @ 14:05:00
+        self::$timestamp = strtotime('-2 weeks monday') + 14 * 3600 + 5 * 60; // previous week, monday @ 14:05:00
+        self::$timestampOlder = strtotime('-3 weeks monday') + 14 * 3600 + 5 * 60; // -2 weeks, monday @ 14:05:00
 
-        $fixture = '[
-            {
+        $fixtureEntries = array(
+            '{
                 "intervalId": "' . gmdate( 'Y-m-d:H:i', self::$timestamp ) . '",
                 "inbound":  { "realtime": { "messages": { "count": 50, "data": 5000 } } },
                 "outbound": { "realtime": { "messages": { "count": 20, "data": 2000 } } }
-            },
-            {
+            }',
+            '{
                 "intervalId": "' . gmdate( 'Y-m-d:H:i', self::$timestamp + 60 ) . '",
                 "inbound":  { "realtime": { "messages": { "count": 60, "data": 6000 } } },
                 "outbound": { "realtime": { "messages": { "count": 10, "data": 1000 } } }
-            },
-            {
+            }',
+            '{
                 "intervalId": "' . gmdate( 'Y-m-d:H:i', self::$timestamp + 120 ) . '",
                 "inbound":       { "realtime": { "messages": { "count": 70, "data": 7000 } } },
                 "outbound":      { "realtime": { "messages": { "count": 40, "data": 4000 } } },
@@ -40,10 +42,19 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
                 "channels":      { "peak": 50, "opened": 30 },
                 "apiRequests":   { "succeeded": 50, "failed": 10 },
                 "tokenRequests": { "succeeded": 60, "failed": 20 }
-            }
-        ]';
+            }',
+        );
 
-        self::$ably->post( '/stats', array(), $fixture );
+        for ($i = 0; $i < 101; $i++) {
+            $fixtureEntries[] = '{
+                "intervalId": "' . gmdate( 'Y-m-d:H:i', self::$timestampOlder + $i * 60 ) . '",
+                "channels":      { "peak": ' . ($i + 1) . ', "opened": 1 }
+            }';
+        }
+
+        $fixtureJSON = "[\n" . implode( ",\n", $fixtureEntries ) . "\n]";
+
+        self::$ably->post( '/stats', array(), $fixtureJSON );
     }
 
     public static function tearDownAfterClass() {
@@ -279,5 +290,24 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         $stats = $stats->first();
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
         $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
+    }
+
+    /**
+     * Verify default pagination limit (100), direction (backwards) and unit (minute)
+     */
+    public function testPaginationDefaults () {
+        $stats = self::$ably->stats(array(
+            "start" => self::$timestampOlder * 1000,
+            "end" => self::$timestampOlder * 1000 + 120 * 60 * 1000,
+        ));
+        $this->assertEquals( 100, count( $stats->items ), "Expected 100 records" );
+ 
+        // verify order
+        $actualRecordsPeakData = array();
+        foreach ($stats->items as $minute) {
+            $actualRecordsPeakData[] = $minute->channels->peak * 1;
+        }
+        $expectedData = range( 101, 2, -1 );
+        $this->assertEquals( $expectedData, $actualRecordsPeakData, 'Expected records in backward order' );
     }
 }
