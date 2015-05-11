@@ -1,14 +1,14 @@
 <?php
-//error_reporting(E_ALL ^ E_NOTICE);
+// include the ably library
+require_once __DIR__ . '/../vendor/autoload.php';
+// if not using composer, use this include instead:
+// require_once __DIR__ . '/../ably-loader.php';
 
-# include the ably library
-require_once __DIR__ . '/../ably-loader.php';
+$apiKey = getenv( 'ABLY_KEY' ); // private api key
+$host = getenv( 'ABLY_HOST' ); // ably server
+$wshost = getenv( 'ABLY_WS_HOST' ); // ably websocket server
 
-# private api key
-$apiKey = getenv( 'ABLY_KEY' );
-$host = getenv( 'ABLY_HOST' );
-$wshost = getenv( 'ABLY_WS_HOST' );
-if ( !$apiKey ) {
+if (!$apiKey) {
     die( 'Please provide your Ably key as an environment variable ABLY_KEY.' );
 }
 
@@ -16,14 +16,15 @@ $channelName = isset($_REQUEST['channel']) ? $_REQUEST['channel'] : 'persist:cha
 $eventName = isset($_REQUEST['event']) ? $_REQUEST['event'] : 'guest';
 $settings = array(
     'key'  => $apiKey,
-    'logLevel' => \Ably\Log::VERBOSE,
 );
+
+if ($host) {
+    $settings['host'] = $host;
+}
 
 // instantiate Ably
 $app = new \Ably\AblyRest($settings);
-
 $channel = $app->channel($channelName);
-$messages = array();
 
 if (!empty($_POST)) {
     // publish a message
@@ -47,7 +48,6 @@ $messages = $channel->history( array('direction' => 'backwards') )->items;
         .chat-window { overflow: hidden; border-top: 1px solid #e1e1e1; position: relative; }
         .chat-window-content { overflow: auto; color: #888; height: 500px; }
         .chat-window-content > ul { list-style: none; margin: 25px 0 50px; padding: 0; }
-        /*.chat-window-content > ul > li { border-bottom: 1px solid #e1e1e1; padding: 2px 10px }*/
         .chat-window-shadow { position: absolute; z-index: 100; height: 50px; width: 100%; }
         .chat-window-shadow-top { top: 0; background-image: -webkit-linear-gradient(top, rgba(255,255,255, 1), rgba(255,255,255, 0)) }
         .chat-window-shadow-bottom { bottom: 0; background-image: -webkit-linear-gradient(bottom, rgba(255,255,255, 1), rgba(255,255,255, 0)) }
@@ -59,7 +59,7 @@ $messages = $channel->history( array('direction' => 'backwards') )->items;
 
 <div class="panel panel-default">
     <div class="panel-heading">
-        <h1 class="panel-title">Let's Chat [api_time: <?php echo gmdate('r', $app->time()/1000) ?> | server_time: <?php echo gmdate('r', time()) ?>]</h1>
+        <h1 class="panel-title">Let's Chat <small>[api_time: <?php echo gmdate('r', $app->time()/1000) ?> | server_time: <?php echo gmdate('r', time()) ?>]</small></h1>
     </div>
     <div class="panel-body">
         <form id="message_form" method="post" action="index.php" class="form-inline" role="form">
