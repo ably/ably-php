@@ -104,33 +104,39 @@ abstract class BaseMessage {
             return $msg;
         }
 
+        $isBinary = false;
+        $encodings = array();
+
         if ( is_array( $this->data ) || $this->data instanceof \stdClass ) {
-            $type = 'json/utf-8';
+            $encodings[] = 'json';
             $msg->data = json_encode($this->data);
         } else if ( is_string( $this->data ) ){
             if ( mb_check_encoding( $this->data, 'UTF-8' ) ) { // it's a UTF-8 string
-                $type = 'utf-8';
                 $msg->data = $this->data;
             } else { // not UTF-8, assuming it's a binary string
-                if ($this->cipherParams) { // encryption will automatically base64 encode the data
-                    $type = '';
-                    $msg->data = $this->data;
-                } else {
-                    $type = 'base64';
-                    $msg->data = base64_encode( $this->data );
-                }
+                $msg->data = $this->data;
+                $isBinary = true;
             }
         } else {
             throw new AblyException( 'Message data must be either, string, string with binary data, or JSON-encodable array or object.', 40003, 400 );
         }
 
-        if ($this->cipherParams) {
+        if ( $this->cipherParams ) {
+            if ( !$isBinary ) {
+                $encodings[] = 'utf-8';
+            }
+
             $msg->data = base64_encode( Crypto::encrypt( $msg->data, $this->cipherParams ) );
-            $msg->encoding = ( $type ? $type . '/' : '' ) . 'cipher+' . $this->cipherParams->algorithm . '/base64';
+            $encodings[] = 'cipher+' . $this->cipherParams->algorithm;
+            $encodings[] = 'base64';
         } else {
-            $msg->encoding = $type;
+            if ( $isBinary ) {
+                $msg->data = base64_encode( $this->data );
+                $encodings[] = 'base64';
+            }
         }
 
+        $msg->encoding = implode( '/', $encodings );
         return $msg;
     }
 
