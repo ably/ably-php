@@ -53,6 +53,7 @@ $messages = $channel->history( array('direction' => 'backwards') )->items;
         .chat-window-shadow-bottom { bottom: 0; background-image: -webkit-linear-gradient(bottom, rgba(255,255,255, 1), rgba(255,255,255, 0)) }
         .handle { color: #2f91ff; font-weight: bold }
         .time { float: right; color: #ccc; }
+        h1.panel-title small { font-size: 12px; }
     </style>
 </head>
 <body>
