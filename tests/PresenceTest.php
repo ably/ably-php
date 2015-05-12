@@ -47,11 +47,11 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
     public function testComparePresenceDataWithFixture() {
         $presence = self::$channel->presence->get();
 
-        # verify presence existence and count
+        // verify presence existence and count
         $this->assertNotNull( $presence, 'Expected non-null presence data' );
         $this->assertEquals( 6, count($presence->items), 'Expected 6 presence messages' );
 
-        # verify presence contents
+        // verify presence contents
         $fixturePresenceMap = array();
         foreach (self::$presenceFixture as $entry) {
             $fixturePresenceMap[$entry->clientId] = $entry->data;
@@ -65,8 +65,8 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
             );
         }
 
-        # verify limit / pagination
-        $firstPage = self::$channel->presence->history( array( 'limit' => 3, 'direction' => 'forwards' ) );
+        // verify limit / pagination
+        $firstPage = self::$channel->presence->get( array( 'limit' => 3, 'direction' => 'forwards' ) );
 
         $this->assertTrue( $firstPage->isFirst(), 'Expected the page to be first' );
         $this->assertEquals( 3, count($firstPage->items), 'Expected 3 presence entries on the 1st page' );
@@ -82,11 +82,11 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
     public function testComparePresenceHistoryWithFixture() {
         $history = self::$channel->presence->history();
 
-        # verify history existence and count
+        // verify history existence and count
         $this->assertNotNull( $history, 'Expected non-null history data' );
         $this->assertEquals( 6, count($history->items), 'Expected 6 history entries' );
 
-        # verify history contents
+        // verify history contents
         $fixtureHistoryMap = array();
         foreach (self::$presenceFixture as $entry) {
             $fixtureHistoryMap[$entry->clientId] = $entry->data;
@@ -100,7 +100,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
             );
         }
 
-        # verify limit / pagination - forwards
+        // verify limit / pagination - forwards
         $firstPage = self::$channel->presence->history( array( 'limit' => 3, 'direction' => 'forwards' ) );
         
         $this->assertTrue( $firstPage->isFirst(), 'Expected the page to be first' );
@@ -111,8 +111,8 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( self::$presenceFixture[0]->clientId, $firstPage->items[0]->clientId, 'Expected least recent presence activity to be the first' );
         $this->assertEquals( self::$presenceFixture[5]->clientId, $nextPage->items[2]->clientId, 'Expected most recent presence activity to be the last' );
 
-        # verify limit / pagination - backwards
-        $firstPage = self::$channel->presence->history( array( 'limit' => 3, 'direction' => 'backwards' ) );
+        // verify limit / pagination - backwards (default)
+        $firstPage = self::$channel->presence->history( array( 'limit' => 3 ) );
 
         $this->assertTrue( $firstPage->isFirst(), 'Expected the page to be first' );
         $this->assertEquals( 3, count($firstPage->items), 'Expected 3 presence entries' );
@@ -127,14 +127,14 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
      * Check whether time range queries work properly
      */
     public function testPresenceHistoryTimeRange() {
-        # ensure some time has passed since mock presence data was sent
+        // ensure some time has passed since mock presence data was sent
         $delay = 1000; // sleep for 1000ms
         usleep($delay * 1000); // in microseconds
 
         $timeOffset = self::$ably->time() - self::$ably->systemTime();
         $now = $timeOffset + self::$ably->systemTime();
 
-        # test with start parameter
+        // test with start parameter
         try {
             $history = self::$channel->presence->history( array( 'start' => $now ) );
             $this->assertEquals( 0, count($history->items), 'Expected 0 presence messages' );
@@ -142,7 +142,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
             $this->fail( 'Start parameter - ' . $e->getMessage() . ', HTTP code: ' . $e->getCode() );
         }
 
-        # test with end parameter
+        // test with end parameter
         try {
             $history = self::$channel->presence->history( array( 'end' => $now ) );
             $this->assertEquals( 6, count($history->items), 'Expected 6 presence messages' );
@@ -150,7 +150,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
             $this->fail( 'End parameter - ' . $e->getMessage() . ', HTTP code: ' . $e->getCode() );
         }
 
-        # test with both start and end parameters - time range: ($now - 500ms) ... $now
+        // test with both start and end parameters - time range: ($now - 500ms) ... $now
         try {
             $history = self::$channel->presence->history( array( 'start' => $now - ($delay / 2), 'end' => $now ) );
             $this->assertEquals( 0, count($history->items), 'Expected 0 presence messages' );
@@ -158,7 +158,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
             $this->fail( 'Start + end parameter - ' . $e->getMessage() . ', HTTP code: ' . $e->getCode() );
         }
 
-        # test ISO 8601 date format
+        // test ISO 8601 date format
         try {
             $history = self::$channel->presence->history( array( 'end' => gmdate('c', $now / 1000) ) );
             $this->assertEquals( 6, count($history->items), 'Expected 6 presence messages' );
@@ -173,11 +173,11 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
     public function testComparePresenceDataWithFixtureEncrypted() {
         $presence = self::$channel->presence->get();
 
-        # verify presence existence and count
+        // verify presence existence and count
         $this->assertNotNull( $presence, 'Expected non-null presence data' );
         $this->assertEquals( 6, count($presence->items), 'Expected 6 presence messages' );
 
-        # verify presence contents
+        // verify presence contents
         $messageMap = array();
         foreach ($presence->items as $entry) {
             $messageMap[$entry->clientId] = $entry->data;
