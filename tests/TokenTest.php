@@ -14,7 +14,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
     protected static $errorMarginMs = 10000;
     protected static $capabilityAll;
     protected static $tokenParams = array();
-    protected static $defaultTTLms = 60*60*1000; // 1 hour
+    protected static $defaultTTLms = 3600000; // 1 hour in milliseconds
 
     public static function setUpBeforeClass() {
         self::$testApp = new TestApp();
