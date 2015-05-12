@@ -47,8 +47,8 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
 
         // verify message order
         $actual_message_history = array();
-        for ($i=0; $i<50; $i++) {
-            $actual_message_history[] = $messages->items[$i]->data;
+        foreach ($messages->items as $msg) {
+            $actual_message_history[] = (int) $msg->data;
         }
         $expected_message_history = range(0, 49);
         $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in forward order');
@@ -75,8 +75,8 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
 
         // verify message order
         $actual_message_history = array();
-        for ($i=0; $i<50; $i++) {
-            $actual_message_history[] = $messages->items[$i]->data;
+        foreach ($messages->items as $msg) {
+            $actual_message_history[] = (int) $msg->data;
         }
         $expected_message_history = range(49, 0, -1);
         $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in backward order');
@@ -102,7 +102,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         // verify message order
         $actual_message_history = array();
         foreach ($messages->items as $msg) {
-            $actual_message_history[] = $msg->data ;
+            $actual_message_history[] = (int) $msg->data;
         }
         $expected_message_history = range(100, 1, -1);
         $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in backward order');
@@ -129,8 +129,8 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
 
         // verify message order
         $actual_message_history = array();
-        for ( $i = 0; $i < 25; $i++ ) {
-            $actual_message_history[] = $messages->items[$i]->data * 1;
+        foreach ($messages->items as $msg) {
+            $actual_message_history[] = (int) $msg->data;
         }
         $expected_message_history = range(0, 24);
         $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in forward order');
@@ -147,8 +147,8 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( 25, count($messages2->items), 'Expected 25 messages on 2nd page' );
 
         $actual_message_history2 = array();
-        for ( $i = 0; $i < 25 ; $i++ ) {
-            $actual_message_history2[] = $messages2->items[$i]->data * 1;
+        foreach ($messages2->items as $msg) {
+            $actual_message_history2[] = (int) $msg->data;
         }
         $expected_message_history2 = range(25, 49);
         $this->assertEquals( $expected_message_history2, $actual_message_history2, 'Expect messages in forward order on 2nd page');
@@ -165,8 +165,8 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( 25, count($messages1->items), 'Expected 25 messages on the 1st page' );
 
         $actual_message_history1 = array();
-        for ($i = 0; $i < 25; $i++) {
-            $actual_message_history1[] = $messages1->items[$i]->data * 1;
+        foreach ($messages1->items as $msg) {
+            $actual_message_history1[] = (int) $msg->data;
         }
         $this->assertEquals( $expected_message_history, $actual_message_history1, 'Expect messages to match the first page');
 
@@ -193,8 +193,8 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
 
         // verify message order
         $actual_message_history = array();
-        for ( $i = 0; $i < 25; $i++ ) {
-            $actual_message_history[] = $messages->items[$i]->data * 1;
+        foreach ($messages->items as $msg) {
+            $actual_message_history[] = (int) $msg->data;
         }
         $expected_message_history = range(49, 25, -1);
         $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in backward order');
@@ -211,8 +211,8 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( 25, count($messages2->items), 'Expected 25 messages on 2nd page' );
 
         $actual_message_history2 = array();
-        for ( $i = 0; $i < 25 ; $i++ ) {
-            $actual_message_history2[] = $messages2->items[$i]->data * 1;
+        foreach ($messages2->items as $msg) {
+            $actual_message_history2[] = (int) $msg->data;
         }
         $expected_message_history2 = range(24, 0, -1);
         $this->assertEquals( $expected_message_history2, $actual_message_history2, 'Expect messages in backward order on 2nd page');
@@ -229,8 +229,8 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( 25, count($messages1->items), 'Expected 25 messages on the 1st page' );
 
         $actual_message_history1 = array();
-        for ($i = 0; $i < 25; $i++) {
-            $actual_message_history1[] = $messages1->items[$i]->data * 1;
+        foreach ($messages1->items as $msg) {
+            $actual_message_history1[] = (int) $msg->data;
         }
         $this->assertEquals( $expected_message_history, $actual_message_history1, 'Expect messages to match the first page');
     }
