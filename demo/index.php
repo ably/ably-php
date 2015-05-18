@@ -1,93 +1,96 @@
 <?php
-error_reporting(E_ALL ^ E_NOTICE);
+// include the ably library
+require_once __DIR__ . '/../vendor/autoload.php';
+// if not using composer, use this include instead:
+// require_once __DIR__ . '/../ably-loader.php';
 
-# include the ably library
-require_once dirname(__FILE__) . '/../config.php';
-require_once dirname(__FILE__) . '/../lib/ably.php';
+$apiKey = getenv( 'ABLY_KEY' ); // private api key
+$host = getenv( 'ABLY_HOST' ); // ably server
+$wshost = getenv( 'ABLY_WS_HOST' ); // ably websocket server
 
-# private api key
-$api_key = ABLY_KEY;
-$channel_name = isset($_REQUEST['channel']) ? $_REQUEST['channel'] : 'persist:chat';
-$event_name = isset($_REQUEST['event']) ? $_REQUEST['event'] : 'guest';
+if (!$apiKey) {
+    die( 'Please provide your Ably key as an environment variable ABLY_KEY.' );
+}
+
+$channelName = isset($_REQUEST['channel']) ? $_REQUEST['channel'] : 'persist:chat';
+$eventName = isset($_REQUEST['event']) ? $_REQUEST['event'] : 'guest';
 $settings = array(
-    'key'  => $api_key,
-    'debug' => 'log'
+    'key'  => $apiKey,
 );
-if (defined('ABLY_HOST')) {
-    $settings = array_merge($settings, array(
-        'host' => ABLY_HOST
-    ));
+
+if ($host) {
+    $settings['host'] = $host;
 }
 
-# instantiate Ably
-$app = new AblyRest($settings);
+// instantiate Ably
+$app = new \Ably\AblyRest($settings);
+$channel = $app->channel($channelName);
 
-$channel0 = $app->channel($channel_name);
-$messages = array();
-
-# publish something
 if (!empty($_POST)) {
-    $channel0->publish($event_name, json_encode(array('handle' => $_POST['handle'], 'message' => $_POST['message'])));
+    // publish a message
+    $channel->publish( $eventName, array('handle' => $_POST['handle'], 'message' => $_POST['message']) );
     die();
-} else {
-    $messages = $channel0->history(array('direction' => 'backwards'));
 }
+
+// get a list of recent messages and render the interface
+$messages = $channel->history( array('direction' => 'backwards') )->items;
 
 ?>
 <!DOCTYPE HTML>
 <html lang="en-US">
 <head>
     <meta charset="UTF-8">
-    <meta name="HandheldFriendly" content="True">
-    <meta name="MobileOptimized" content="320">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1; user-scalable=no">
-    <title>Simple Chat</title>
+    <title>Simple Chat Demo</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
     <style>
         body { padding: 10px; overflow: hidden; background: url(//d6i46dwqrtafp.cloudfront.net/images/bg/carbon_fibre.png) }
         .chat-window { overflow: hidden; border-top: 1px solid #e1e1e1; position: relative; }
         .chat-window-content { overflow: auto; color: #888; height: 500px; }
         .chat-window-content > ul { list-style: none; margin: 25px 0 50px; padding: 0; }
-        /*.chat-window-content > ul > li { border-bottom: 1px solid #e1e1e1; padding: 2px 10px }*/
         .chat-window-shadow { position: absolute; z-index: 100; height: 50px; width: 100%; }
         .chat-window-shadow-top { top: 0; background-image: -webkit-linear-gradient(top, rgba(255,255,255, 1), rgba(255,255,255, 0)) }
         .chat-window-shadow-bottom { bottom: 0; background-image: -webkit-linear-gradient(bottom, rgba(255,255,255, 1), rgba(255,255,255, 0)) }
         .handle { color: #2f91ff; font-weight: bold }
-        time { float: right; color: #ccc; }
+        .time { float: right; color: #ccc; }
+        h1.panel-title small { font-size: 12px; }
     </style>
 </head>
 <body>
 
 <div class="panel panel-default">
     <div class="panel-heading">
-        <h1 class="panel-title">Let's Chat [api_time: <?php echo gmdate('r', $app->time()/1000) ?> | server_time: <?php echo gmdate('r', time()) ?>]</h1>
+        <h1 class="panel-title">Let's Chat <small>[api_time: <?php echo gmdate('r', $app->time()/1000) ?> | server_time: <?php echo gmdate('r', time()) ?>]</small></h1>
     </div>
     <div class="panel-body">
-        <form id="message_form" method="post" action="/demo/chat.php" class="form-inline" role="form">
-            <input type="hidden" name="channel" value="<?= $channel_name ?>">
-            <input type="hidden" name="event" value="<?= $event_name ?>">
+        <form id="message_form" method="post" action="index.php" class="form-inline" role="form">
+            <input type="hidden" name="channel" value="<?= $channelName ?>">
+            <input type="hidden" name="event" value="<?= $eventName ?>">
             <div id="form-group-handle" class="form-group">
                 <input type="text" name="handle" class="form-control input-sm" placeholder="Your handle">
             </div>
             <div class="form-group">
                 <input type="text" name="message" class="form-control input-sm" placeholder="Say something">
             </div>
-            <button id="rest" type="button" class="btn btn-default btn-sm">Send REST</button>
-            <button id="realtime" type="button" class="btn btn-default btn-sm">Send REALTIME</button>
+            <button id="rest" type="button" class="btn btn-default btn-sm">Send via PHP REST</button>
+            <button id="realtime" type="button" class="btn btn-default btn-sm">Send via JS realtime</button>
             <button id="resetHandle" type="button" class="btn btn-default btn-sm">Reset Handle</button>
         </form>
     </div>
     <div class="chat-window list-group">
         <div class="chat-window-content">
             <ul id="message_pool">
-                <?php $date_format = 'D jS F, Y'; $stamp = date($date_format) ?>
-                <?php for ($i=0; $i<count($messages); $i++): ?>
-                    <?php if (property_exists($messages[$i], 'data')) : $message = json_decode($messages[$i]->data); $timestamp = strlen($messages[$i]->timestamp) > 10 ? intval($messages[$i]->timestamp)/1000 : $messages[$i]->timestamp; $day = gmdate($date_format, $timestamp); ?>
+                <?php $date_format = 'D jS F, Y'; $stamp = date($date_format, time()); ?>
+                <?php foreach ($messages as $message): ?>
+                    <?php if (property_exists($message, 'data')) :
+                        $timestamp = intval($message->timestamp / 1000);
+                        $day = date($date_format, $timestamp); ?>
                         <?php if ($stamp != $day) : ?>
                             <li class="list-group-item"><h2 class="h4"><?= $day ?></h2></li>
-                            <?php $stamp = $day; endif; ?>
-                        <li class="list-group-item"><time><?= gmdate('h:i a', $timestamp) ?></time> <b class="handle"><?= $message->handle ?>:</b> <?= $message->message ?></li>
-                    <?php endif; endfor; ?>
+                        <?php $stamp = $day; endif; ?>
+                        <li class="list-group-item"><span class="time"><?= gmdate('h:i a', $timestamp) ?></span> 
+                        <b class="handle"><?= $message->data->handle ?>:</b> <?= $message->data->message ?></li>
+                    <?php endif; endforeach; ?>
             </ul>
             <div class="chat-window-shadow chat-window-shadow-top"></div>
             <div class="chat-window-shadow chat-window-shadow-bottom"></div>
@@ -96,33 +99,25 @@ if (!empty($_POST)) {
 </div>
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-<script src="lib/jquery.storageapi.min.js"></script>
 <script src="//cdn.ably.io/lib/ably.js"></script>
 <script type="text/javascript">
 
     (function($) {
 
-        var as = $.initNamespaceStorage('ably_storage');
-        var ls = as.localStorage;
-
         var $handle = $('#form-group-handle input');
 
         var showStoredHandle = function(){
-            if(!ls.isEmpty('handle')){
-                var hv = ls.get('handle');
-                $handle.val(hv).hide();
+            if(localStorage.handle){
+                $handle.val(localStorage.handle).hide();
                 if (!$handle.siblings('label').length) {
-                    $handle.parent().append('<label>'+hv+'</label>');
+                    $handle.parent().append('<label>'+localStorage.handle+'</label>');
                 }
                 
             }
         }
 
         showStoredHandle();
-
         
-
-
         // adjust chat window height
         var $chatWindowContent = $('.chat-window-content');
 
@@ -131,17 +126,17 @@ if (!empty($_POST)) {
         }).resize();
 
         var ably = new Ably.Realtime({
-            key: '<?= $api_key ?>',
+            key: '<?= $apiKey ?>',
             tls: true,
             log: {level:4}
-            <?php if (defined('ABLY_HOST')): ?>,host: '<?= ABLY_HOST ?>'<?php endif; ?>
-            <?php if (defined('ABLY_WS_HOST')): ?>,wsHost: '<?= ABLY_WS_HOST ?>'<?php endif; ?>
+            <?php if ($host): ?>,host: '<?= $host ?>'<?php endif; ?>
+            <?php if ($wshost): ?>,wsHost: '<?= $wshost ?>'<?php endif; ?>
         });
 
-        var channel = ably.channels.get('<?= $channel_name ?>');
+        var channel = ably.channels.get('<?= $channelName ?>');
 
-        channel.subscribe('<?= $event_name ?>', function(response) {
-            var data = JSON.parse(response.data);
+        channel.subscribe('<?= $eventName ?>', function(response) {
+            var data = response.data;
             var timestamp = response.timestamp
             var d = new Date( timestamp.toString().length > 10 ? timestamp : timestamp*1000 );
             var hours = d.getUTCHours();
@@ -150,7 +145,10 @@ if (!empty($_POST)) {
             hours = hours === 0 ? 12 : hours;
             var minutes = ('0'+d.getUTCMinutes()).substr(-2);
             var post_time = [hours, minutes].join(':') + ampm;
-            $('#message_pool').prepend('<li class="list-group-item"><span class="label label-danger">js</span> <time>'+ post_time +'</time> <b class="handle">'+ data.handle +':</b> '+ data.message +'</li>');
+            $('#message_pool').prepend(
+                '<li class="list-group-item"><span class="label label-danger">received</span> <time>'+
+                post_time +'</time> <b class="handle">'+ data.handle +':</b> '+ data.message +'</li>'
+            );
         });
 
         function sendMessage(mode) {
@@ -165,7 +163,7 @@ if (!empty($_POST)) {
                 broadcast = false;
             }
             else {
-                ls.set('handle', $handle.val());
+                localStorage.handle = $handle.val();
                 showStoredHandle();
             }
 
@@ -177,7 +175,7 @@ if (!empty($_POST)) {
 
             if (broadcast) {
                 if (mode === 'realtime') {
-                    channel.publish('<?= $event_name ?>', JSON.stringify({ handle: $handle.val(), message: $message.val() }) );
+                    channel.publish('<?= $eventName ?>', { handle: $handle.val(), message: $message.val() } );
                     $message.val('');
                 } else {
                     $.ajax({
@@ -203,7 +201,7 @@ if (!empty($_POST)) {
             return false;
         });
         $('#resetHandle').on('click', function() {
-            ls.remove('handle');
+            localStorage.removeItem('handle');
             $handle.siblings('label').remove().end().val('').fadeIn();
         });
 

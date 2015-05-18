@@ -22,59 +22,76 @@ class LogTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Test if logger outputs to stdout and uses warning level as default
+     * Test if logger uses warning level as default
      */
-    public function testLog() {
+    public function testLogDefault() {
+        $out = '';
+
         $opts = array(
             'key' => 'fake.key:veryFake',
+            'logHandler' => function( $level, $args ) use ( &$out ) {
+                $out .= $args[0] . "\n";
+            },
         );
         $ably = new AblyRest( $opts );
 
-        $test = $this;
-
-        $this->setOutputCallback(function($out) use($test) {
-            if (strpos($out, 'This is a test warning.') === false) {
-                $test->fail('Expected warning level to be logged.');
-            }
-
-            if (strpos($out, 'This is a test error.') === false) {
-                $test->fail('Expected error level to be logged.');
-            }
-
-            if (strpos($out, 'This is a test verbose message.') !== false) {
-                $test->fail('Expected verbose level NOT to be logged.');
-            }
-
-            if (strpos($out, 'This is a test debug message.') !== false) {
-                $test->fail('Expected debug level NOT to be logged.');
-            }
-        });
-        
         $this->logMessages();
+
+        if (strpos($out, 'This is a test warning.') === false) {
+            $this->fail('Expected warning level to be logged.');
+        }
+
+        if (strpos($out, 'This is a test error.') === false) {
+            $this->fail('Expected error level to be logged.');
+        }
+
+        if (strpos($out, 'This is a test verbose message.') !== false) {
+            $this->fail('Expected verbose level NOT to be logged.');
+        }
+
+        if (strpos($out, 'This is a test debug message.') !== false) {
+            $this->fail('Expected debug level NOT to be logged.');
+        }
     }
 
     /**
-     * Init with log handler; check if called
+     * Test verbose log level with a handler
      */
-    public function testLogHandler() {
-        $called = false;
+    public function testLogVerbose() {
+        $out = '';
+
         $opts = array(
             'key' => 'fake.key:veryFake',
             'logLevel' => Log::VERBOSE,
-            'logHandler' => function( $level, $args ) use ( &$called ) {
-                $called = true;
+            'logHandler' => function( $level, $args ) use ( &$out ) {
+                $out .= $args[0] . "\n";
             },
         );
 
         $ably = new AblyRest( $opts );
         $this->logMessages();
-        $this->assertTrue( $called, 'Log handler not called' );
+        
+        if (strpos($out, 'This is a test warning.') === false) {
+            $this->fail('Expected warning level to be logged.');
+        }
+
+        if (strpos($out, 'This is a test error.') === false) {
+            $this->fail('Expected error level to be logged.');
+        }
+
+        if (strpos($out, 'This is a test verbose message.') === false) {
+            $this->fail('Expected verbose level to be logged.');
+        }
+
+        if (strpos($out, 'This is a test debug message.') === false) {
+            $this->fail('Expected debug level to be logged.');
+        }
     }
 
     /**
-     * Init with log handler; check if not called when logLevel == NONE
+     * Test log level == NONE
      */
-    public function testLoggerNotCalledWithDebugFalse() {
+    public function testLogNone() {
         $called = false;
         $opts = array(
             'key' => 'fake.key:veryFake',

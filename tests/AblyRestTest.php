@@ -84,7 +84,7 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
             'httpClass' => 'tests\HttpMockInitTest',
         ) );
         $ably->time(); // make a request
-        $this->assertRegExp( '/^https?:\/\/sandbox-rest.ably.io\//', $ably->http->lastUrl, 'Unexpected host mismatch' );
+        $this->assertRegExp( '/^https?:\/\/sandbox-rest\.ably\.io\//', $ably->http->lastUrl, 'Unexpected host mismatch' );
     }
 
     /**

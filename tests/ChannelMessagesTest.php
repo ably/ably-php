@@ -7,6 +7,7 @@ use Ably\Log;
 use Ably\Exceptions\AblyException;
 use Ably\Models\CipherParams;
 use Ably\Models\Message;
+use Ably\Utils\Crypto;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -34,7 +35,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      */
     private function executePublishTestOnChannel(Channel $channel) {
        
-        # first publish some messages
+        // first publish some messages
         $data = array(
             'utf' => 'This is a UTF-8 string message payload. äôč ビール',
             'binary' => hex2bin('00102030405060708090a0b0c0d0e0f0ff'),
@@ -56,7 +57,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         foreach ($messages as $msg) {
             if ( $channel->getCipherParams() ) {
-                # check if the messages are encrypted
+                // check if the messages are encrypted
                 $msgJSON = json_decode( $msg->toJSON() );
                 
                 $this->assertTrue(
@@ -65,7 +66,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
                 );
                 $this->assertFalse( $msgJSON->data === $payload, 'Expected encrypted message payload not to match original data' );
             } else {
-                # check if the messages are unencrypted
+                // check if the messages are unencrypted
                 $msgJSON = json_decode( $msg->toJSON() );
                 
                 $this->assertTrue(
@@ -75,23 +76,23 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
             }
         }
 
-        # get the history for this channel
+        // get the history for this channel
         $messages = $channel->history();
         $this->assertNotNull( $messages, 'Expected non-null messages' );
         $this->assertEquals( 4, count($messages->items), 'Expected 4 messages' );
 
         $actual_message_order = array();
 
-        # verify message contents
+        // verify message contents
         foreach ($messages->items as $message) {
             $actual_message_order[] = $message->name;
             
-            # payload must exactly match the one that was sent and must be decrypted automatically
+            // payload must exactly match the one that was sent and must be decrypted automatically
             $originalPayload = $data[$message->name];
             $this->assertEquals( $originalPayload, $message->data, 'Expected retrieved message\'s data to match the original data (' . $message->name . ')' );
         }
 
-        # verify message order
+        // verify message order
         $this->assertEquals( array_reverse( array_keys( $data ) ), $actual_message_order, 'Expected messages in reverse order' );
     }
 
@@ -141,7 +142,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         $channel->publish( $msg );
 
-        # get the history for this channel
+        // get the history for this channel
         $messages = $channel->history();
         $this->assertNotNull( $messages, 'Expected non-null messages' );
         $this->assertEquals( 1, count($messages->items), 'Expected 1 message' );
@@ -326,6 +327,62 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $this->assertTrue( $errorLogged, 'Expected an error to be logged' );
         $this->assertEquals( 'utf-8/cipher+aes-128-cbc/base64', $msg->originalEncoding, 'Expected the original message to be encrypted + base64 encoded' );
         $this->assertEquals( 'utf-8/cipher+aes-128-cbc', $msg->encoding, 'Expected to receive the message still encrypted, but base64 decoded' );
+    }
+
+    /**
+     * Verify if channel caching and releasing works
+     */
+    public function testChannelCaching() {
+        $channel1 = self::$ably->channel( 'cache_test' );
+        $channel2 = self::$ably->channels->get( 'cache_test' );
+
+        $this->assertTrue( $channel1 === $channel2, 'Expected to get the same instance of the channel' );
+
+        self::$ably->channels->release( 'cache_test' );
+
+        $channel3 = self::$ably->channels->get( 'cache_test' );
+        $this->assertTrue( $channel1 !== $channel3, 'Expected to get a new instance of the channel' );
+
+        $this->assertNull( $channel3->getCipherParams(), 'Expected the channel to not have CipherParams' );
+
+        self::$ably->channel( 'cache_test', array(
+            'encrypted' => true,
+            'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' )
+        ) );
+
+        $this->assertNotNull( $channel3->getCipherParams(), 'Expected the channel to have CipherParams even when specified for a new instance' );
+    }
+
+    private function getMessageEncoding( $msg ) {
+        $msgEnc = json_decode( $msg->toJSON() );
+        return $msgEnc->encoding;
+    }
+
+    /**
+     * Check if message encodings are correct, including the default encryption
+     */
+    public function testMessageEncodings() {
+        $msg = new Message();
+
+        $msg->data = 'This is a UTF-8 string message payload. äôč ビール';
+        $this->assertEquals( '', $this->getMessageEncoding( $msg ), 'Expected empty message encoding' );
+
+        $msg->data = (object)array( 'test' => 'This is a JSONObject message payload' );
+        $this->assertEquals( 'json', $this->getMessageEncoding( $msg ), 'Expected empty message encoding' );
+
+        $msg->data = hex2bin( '00102030405060708090a0b0c0d0e0f0ff' );
+        $this->assertEquals( 'base64', $this->getMessageEncoding( $msg ), 'Expected empty message encoding' );
+
+        $msg->setCipherParams( Crypto::getDefaultParams( 'password' ) );
+
+        $msg->data = 'This is a UTF-8 string message payload. äôč ビール';
+        $this->assertEquals( 'utf-8/cipher+aes-128-cbc/base64', $this->getMessageEncoding( $msg ), 'Expected empty message encoding' );
+
+        $msg->data = (object)array( 'test' => 'This is a JSONObject message payload' );
+        $this->assertEquals( 'json/utf-8/cipher+aes-128-cbc/base64', $this->getMessageEncoding( $msg ), 'Expected empty message encoding' );
+
+        $msg->data = hex2bin( '00102030405060708090a0b0c0d0e0f0ff' );
+        $this->assertEquals( 'cipher+aes-128-cbc/base64', $this->getMessageEncoding( $msg ), 'Expected empty message encoding' );
     }
 }
 

@@ -10,6 +10,9 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
     protected static $defaultOptions;
     protected static $ably;
     protected static $timestamp;
+    protected static $timestampOlder;
+    protected static $timestampMs;
+    protected static $timestampOlderMs;
 
     public static function setUpBeforeClass() {
         self::$testApp = new TestApp();
@@ -18,20 +21,23 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
             'key' => self::$testApp->getAppKeyDefault()->string,
         ) ) );
 
-        self::$timestamp = strtotime('-2 weeks monday') + 14 * 3600 + 5 * 60; // previous monday @ 14:05:00
+        self::$timestamp = strtotime( "first day of -1 month 14:00:00" );
+        self::$timestampOlder = strtotime( "first day of -2 month 14:00:00" );
+        self::$timestampMs = self::$timestamp * 1000;
+        self::$timestampOlderMs = self::$timestampOlder * 1000;
 
-        $fixture = '[
-            {
+        $fixtureEntries = array(
+            '{
                 "intervalId": "' . gmdate( 'Y-m-d:H:i', self::$timestamp ) . '",
                 "inbound":  { "realtime": { "messages": { "count": 50, "data": 5000 } } },
                 "outbound": { "realtime": { "messages": { "count": 20, "data": 2000 } } }
-            },
-            {
+            }',
+            '{
                 "intervalId": "' . gmdate( 'Y-m-d:H:i', self::$timestamp + 60 ) . '",
                 "inbound":  { "realtime": { "messages": { "count": 60, "data": 6000 } } },
                 "outbound": { "realtime": { "messages": { "count": 10, "data": 1000 } } }
-            },
-            {
+            }',
+            '{
                 "intervalId": "' . gmdate( 'Y-m-d:H:i', self::$timestamp + 120 ) . '",
                 "inbound":       { "realtime": { "messages": { "count": 70, "data": 7000 } } },
                 "outbound":      { "realtime": { "messages": { "count": 40, "data": 4000 } } },
@@ -40,10 +46,19 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
                 "channels":      { "peak": 50, "opened": 30 },
                 "apiRequests":   { "succeeded": 50, "failed": 10 },
                 "tokenRequests": { "succeeded": 60, "failed": 20 }
-            }
-        ]';
+            }',
+        );
 
-        self::$ably->post( '/stats', array(), $fixture );
+        for ($i = 0; $i < 101; $i++) {
+            $fixtureEntries[] = '{
+                "intervalId": "' . gmdate( 'Y-m-d:H:i', self::$timestampOlder + $i * 60 ) . '",
+                "channels":      { "peak": ' . ($i + 1) . ', "opened": 1 }
+            }';
+        }
+
+        $fixtureJSON = "[\n" . implode( ",\n", $fixtureEntries ) . "\n]";
+
+        self::$ably->post( '/stats', array(), $fixtureJSON );
     }
 
     public static function tearDownAfterClass() {
@@ -55,28 +70,30 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * Check minute-level stats exist (forwards)
      */
     public function testAppstatsMinute0() {
+        $oneMinuteMs = 60 * 1000;
+        $twoMinutesMs = 120 * 1000;
         // get the stats for this channel 
         // note that bounds are inclusive 
         $stats = self::$ably->stats(array(
             "direction" => "forwards",
-            "start" => self::$timestamp * 1000,
-            "end" => self::$timestamp * 1000
+            "start" => self::$timestampMs,
+            "end" => self::$timestampMs
         ));
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
         $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
 
         $stats = self::$ably->stats(array(
             "direction" => "forwards",
-            "start" => self::$timestamp * 1000 + 60000,
-            "end" => self::$timestamp * 1000 + 60000
+            "start" => self::$timestampMs + $oneMinuteMs,
+            "end" => self::$timestampMs + $oneMinuteMs
         ));
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
         $this->assertEquals( 60, $stats->items[0]->inbound->all->all->count, "Expected 60 messages" );
 
         $stats = self::$ably->stats(array(
             "direction" => "forwards",
-            "start" => self::$timestamp * 1000 + 120000,
-            "end" => self::$timestamp * 1000 + 120000
+            "start" => self::$timestampMs + $twoMinutesMs,
+            "end" => self::$timestampMs + $twoMinutesMs
         ));
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
         $this->assertEquals( 70, $stats->items[0]->inbound->all->all->count, "Expected 70 messages" );
@@ -86,28 +103,30 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * Check minute-level stats exist (backwards)
      */
     public function testAppstatsMinute1() {
+        $oneMinuteMs = 60 * 1000;
+        $twoMinutesMs = 120 * 1000;
         // get the stats for this channel 
         // note that bounds are inclusive 
         $stats = self::$ably->stats(array(
             "direction" => "backwards",
-            "start" => self::$timestamp * 1000,
-            "end" => self::$timestamp * 1000
+            "start" => self::$timestampMs,
+            "end" => self::$timestampMs
         ));
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
         $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
 
         $stats = self::$ably->stats(array(
             "direction" => "backwards",
-            "start" => self::$timestamp * 1000 + 60000,
-            "end" => self::$timestamp * 1000 + 60000
+            "start" => self::$timestampMs + $oneMinuteMs,
+            "end" => self::$timestampMs + $oneMinuteMs
         ));
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
         $this->assertEquals( 60, $stats->items[0]->inbound->all->all->count, "Expected 60 messages" );
 
         $stats = self::$ably->stats(array(
             "direction" => "backwards",
-            "start" => self::$timestamp * 1000 + 120000,
-            "end" => self::$timestamp * 1000 + 120000
+            "start" => self::$timestampMs + $twoMinutesMs,
+            "end" => self::$timestampMs + $twoMinutesMs
         ));
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
         $this->assertEquals( 70, $stats->items[0]->inbound->all->all->count, "Expected 70 messages" );
@@ -117,11 +136,11 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * Check hour-level stats exist (forwards)
      */
     public function testAppstatsHour0() {
-        // get the stats for this channel 
+        $twoMinutesMs = 120 * 1000;
         $stats = self::$ably->stats(array(
             "direction" => "forwards",
-            "start" => self::$timestamp * 1000,
-            "end" => self::$timestamp * 1000 + 120000,
+            "start" => self::$timestampMs,
+            "end" => self::$timestampMs + $twoMinutesMs,
             "unit" => "hour"
         ));
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
@@ -132,11 +151,11 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * Check day-level stats exist (forwards)
      */
     public function testAppstatsDay0() {
-        // get the stats for this channel 
+        $twoMinutesMs = 120 * 1000;
         $stats = self::$ably->stats(array(
             "direction" => "forwards",
-            "start" => self::$timestamp * 1000,
-            "end" => self::$timestamp * 1000 + 120000,
+            "start" => self::$timestampMs,
+            "end" => self::$timestampMs + $twoMinutesMs,
             "unit" => "day"
         ));
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
@@ -147,13 +166,14 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * Check month-level stats exist (forwards)
      */
     public function testAppstatsMonth0() {
-        // get the stats for this channel 
+        $twoMinutesMs = 120 * 1000;
         $stats = self::$ably->stats(array(
             "direction" => "forwards",
-            "start" => self::$timestamp * 1000,
-            "end" => self::$timestamp * 1000 + 120000,
+            "start" => self::$timestampMs,
+            "end" => self::$timestampMs + $twoMinutesMs,
             "unit" => "month"
         ));
+
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
         $this->assertEquals( 180, $stats->items[0]->inbound->all->all->count, "Expected 180 messages" );
     }
@@ -162,11 +182,11 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * Publish events and check limit query param (backwards)
      */
     public function testAppstatsLimit0() {
-        // get the stats for this channel 
+        $twoMinutesMs = 120 * 1000;
         $stats = self::$ably->stats(array(
             "direction" => "backwards",
-            "start" => self::$timestamp * 1000,
-            "end" => self::$timestamp * 1000 + 120000,
+            "start" => self::$timestampMs,
+            "end" => self::$timestampMs + $twoMinutesMs,
             "limit" => 1
         ));
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
@@ -177,10 +197,11 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * Check limit query param (forwards)
      */
     public function testAppstatsLimit1() {
+        $twoMinutesMs = 120 * 1000;
         $stats = self::$ably->stats(array(
             "direction" => "forwards",
-            "start" => self::$timestamp * 1000,
-            "end" => self::$timestamp * 1000 + 120000,
+            "start" => self::$timestampMs,
+            "end" => self::$timestampMs + $twoMinutesMs,
             "limit" => 1
         ));
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
@@ -191,10 +212,11 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * Check query pagination (backwards)
      */
     public function testAppstatsPagination0() {
+        $twoMinutesMs = 120 * 1000;
         $stats = self::$ably->stats(array(
             "direction" => "backwards",
-            "start" => self::$timestamp * 1000,
-            "end" => self::$timestamp * 1000 + 120000,
+            "start" => self::$timestampMs,
+            "end" => self::$timestampMs + $twoMinutesMs,
             "limit" => 1
         ));
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
@@ -216,10 +238,11 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * Check query pagination (forwards)
      */
     public function testAppstatsPagination1() {
+        $twoMinutesMs = 120 * 1000;
         $stats = self::$ably->stats(array(
             "direction" => "forwards",
-            "start" => self::$timestamp * 1000,
-            "end" => self::$timestamp * 1000 + 120000,
+            "start" => self::$timestampMs,
+            "end" => self::$timestampMs + $twoMinutesMs,
             "limit" => 1
         ));
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
@@ -241,10 +264,11 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * Check query pagination rel="first" (backwards)
      */
     public function testAppstatsPagination2() {
+        $twoMinutesMs = 120 * 1000;
         $stats = self::$ably->stats(array(
             "direction" => "backwards",
-            "start" => self::$timestamp * 1000,
-            "end" => self::$timestamp * 1000 + 120000,
+            "start" => self::$timestampMs,
+            "end" => self::$timestampMs + $twoMinutesMs,
             "limit" => 1
         ));
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
@@ -263,10 +287,11 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
      * Check query pagination rel="first" (forwards)
      */
     public function testAppstatsPagination3() {
+        $twoMinutesMs = 120 * 1000;
         $stats = self::$ably->stats(array(
             "direction" => "forwards",
-            "start" => self::$timestamp * 1000,
-            "end" => self::$timestamp * 1000 + 120000,
+            "start" => self::$timestampMs,
+            "end" => self::$timestampMs + $twoMinutesMs,
             "limit" => 1
         ));
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
@@ -279,5 +304,25 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         $stats = $stats->first();
         $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
         $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
+    }
+
+    /**
+     * Verify default pagination limit (100), direction (backwards) and unit (minute)
+     */
+    public function testPaginationDefaults () {
+        $twoHoursMs = 120 * 60 * 1000;
+        $stats = self::$ably->stats(array(
+            "start" => self::$timestampOlderMs,
+            "end" => self::$timestampOlderMs + $twoHoursMs,
+        ));
+        $this->assertEquals( 100, count( $stats->items ), "Expected 100 records" );
+ 
+        // verify order
+        $actualRecordsPeakData = array();
+        foreach ($stats->items as $minute) {
+            $actualRecordsPeakData[] = (int) $minute->channels->peak;
+        }
+        $expectedData = range( 101, 2, -1 );
+        $this->assertEquals( $expectedData, $actualRecordsPeakData, 'Expected records in backward order' );
     }
 }

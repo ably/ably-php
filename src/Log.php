@@ -92,21 +92,20 @@ class Log {
     private static function defaultLogCallback( $level, $args ) {
         $last = count($args) - 1;
 
-        echo date( "Y-m-d H:i:s\t" );
+        $timestamp = date( "Y-m-d H:i:s\t" );
 
         foreach ($args as $i => $arg) {
             if (is_string($arg)) {
-                echo $arg . ($i == $last ? "\n" : "\t");
+                file_put_contents( 'php://stdout', $timestamp . $arg . ($i == $last ? "\n" : "\t") );
             }
             else if (is_bool($arg)) {
-                echo ($arg ? 'true' : 'false') . ($i == $last ? "\n" : "\t");
+                file_put_contents( 'php://stdout', $timestamp . ($arg ? 'true' : 'false') . ($i == $last ? "\n" : "\t") );
             }
             else if (is_scalar($arg)) {
-                echo $arg . ($i == $last ? "\n" : "\t");
+                file_put_contents( 'php://stdout', $timestamp . $arg . ($i == $last ? "\n" : "\t") );
             }
             else {
-                print_r( $arg );
-                echo "\n";
+                file_put_contents( 'php://stdout', $timestamp . print_r( $arg, true ). "\n" );
             }
         }
     }
