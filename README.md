@@ -111,9 +111,13 @@ $statsPage->next(); // retrieves the next page => \Ably\Models\PaginatedResult
 $client->time(); // in milliseconds => 1430313364993
 ```
 
-## Support and feedback
+## Support, feedback and troubleshooting
 
-Please visit https://support.ably.io/ for access to our knowledgebase and to ask for any assistance.
+Please visit http://support.ably.io/ for access to our knowledgebase and to ask for any assistance.
+
+You can also view the [community reported Github issues](https://github.com/ably/ably-php/issues).
+
+To see what has changed in recent versions of Bundler, see the [CHANGELOG](CHANGELOG.md).
 
 ## Known limitations
 
@@ -130,4 +134,4 @@ Please visit https://support.ably.io/ for access to our knowledgebase and to ask
 
 ## License
 
-Copyright (c) 2015 Ably, Licensed under an MIT license.  Refer to [LICENSE.txt](LICENSE.txt) for the license terms.
+Copyright (c) 2015 Ably Real-time Ltd, Licensed under the Apache License, Version 2.0.  Refer to [LICENSE](LICENSE) for the license terms.
