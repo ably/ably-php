@@ -42,7 +42,7 @@ class PaginatedResult {
             $transformedArray = array();
 
             foreach ($response['body'] as $data) {
-                
+
                 $instance = new $model;
 
                 if ( !method_exists( $model, 'fromJSON' ) ) {
@@ -108,7 +108,7 @@ class PaginatedResult {
         if (!$this->isPaginated() ) {
             return true;
         }
-        
+
         if ( isset($this->paginationHeaders['first']) && isset($this->paginationHeaders['current'])
             && $this->paginationHeaders['first'] == $this->paginationHeaders['current'] ) {
             return true;
