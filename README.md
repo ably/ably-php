@@ -123,6 +123,15 @@ To see what has changed in recent versions of Bundler, see the [CHANGELOG](CHANG
 
 [msgpack](http://msgpack.org/) support is currently missing in PHP client library, as there is no stable PHP msgpack library available.
 
+## Running the tests
+
+The client library uses the Ably sandbox environment to provision an app and run the tests against that app.  In order to run the tests, you simply need to:
+
+    composer install
+    git submodule init
+    git submodule update
+    vendor/bin/phpunit
+
 ## Contributing
 
 1. Fork it
