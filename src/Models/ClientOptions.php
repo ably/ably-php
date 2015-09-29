@@ -41,9 +41,21 @@ class ClientOptions extends AuthOptions {
 
     /**
      * @var string alternate server domain
-     * For use in development environments only.
+     * For development environments only.
      */
     public $host;
+
+    /**
+     * @var integer Allows a non-default Ably non-TLS port to be used.
+     * For development environments only.
+     */
+    public $port;
+
+    /**
+     * @var integer Allows a non-default Ably TLS port to be used.
+     * For development environments only.
+     */
+    public $tlsPort;
 
     /**
      * @var string optional prefix to be prepended to $host

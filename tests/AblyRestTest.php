@@ -61,7 +61,7 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Init library with specified host
+     * Init library with a specified host
      */
     public function testInitLibWithSpecifiedHost() {
         $opts = array(
@@ -72,6 +72,32 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
         $ably = new AblyRest( $opts );
         $ably->time(); // make a request
         $this->assertRegExp( '/^https?:\/\/some\.other\.host/', $ably->http->lastUrl, 'Unexpected host mismatch' );
+    }
+
+    /**
+     * Init library with a specified port
+     */
+    public function testInitLibWithSpecifiedPort() {
+        $opts = array(
+            'key' => 'fake.key:veryFake',
+            'host'  => 'some.other.host',
+            'tlsPort' => 999,
+            'httpClass' => 'tests\HttpMockInitTest',
+        );
+        $ably = new AblyRest( $opts );
+        $ably->time(); // make a request
+        $this->assertContains( 'https://' . $opts['host'] . ':' . $opts['tlsPort'], $ably->http->lastUrl, 'Unexpected host/port mismatch' );
+
+        $opts = array(
+            'token' => 'fakeToken',
+            'host'  => 'some.other.host',
+            'port' => 999,
+            'tls' => false,
+            'httpClass' => 'tests\HttpMockInitTest',
+        );
+        $ably = new AblyRest( $opts );
+        $ably->time(); // make a request
+        $this->assertContains( 'http://' . $opts['host'] . ':' . $opts['port'], $ably->http->lastUrl, 'Unexpected host/port mismatch' );
     }
 
     /**

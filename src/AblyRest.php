@@ -131,6 +131,14 @@ class AblyRest {
                 $res = $this->requestWithFallback( $method, $path, $mergedHeaders, $params );
             } else {
                 $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->host;
+                
+                if ( $this->options->tls && !empty( $this->options->tlsPort ) ) {
+                    $server .= ':' . $this->options->tlsPort;
+                }
+                if ( !$this->options->tls && !empty( $this->options->port ) ) {
+                    $server .= ':' . $this->options->port;
+                }
+
                 $res = $this->http->request( $method, $server . $path, $mergedHeaders, $params );
             }
         } catch (AblyRequestException $e) {
