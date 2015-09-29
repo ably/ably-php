@@ -88,10 +88,10 @@ class Auth {
     public function getAuthHeaders() {
         $header = array();
         if ( $this->isUsingBasicAuth() ) {
-            $header = array( 'authorization: Basic ' . base64_encode( $this->authOptions->key ) );
+            $header = array( 'Authorization: Basic ' . base64_encode( $this->authOptions->key ) );
         } else if ( !empty( $this->tokenDetails ) ) {
             $this->authorise();
-            $header = array( 'authorization: Bearer '. base64_encode( $this->tokenDetails->token ) );
+            $header = array( 'Authorization: Bearer '. base64_encode( $this->tokenDetails->token ) );
         } else {
             throw new AblyException( 'Unable to provide auth headers. No auth parameters defined.', 40101, 401 );
         }

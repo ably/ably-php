@@ -214,11 +214,22 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
      */
     public function testAuthWithKeyForceToken() {
         $ably = new AblyRest( array(
-            'key' => 'fakeKey',
+            'key' => 'fake.key:totallyFake',
             'useTokenAuth' => true,
         ) );
 
         $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
+    }
+
+    /**
+     * Init library without providing a key or a token, force use of token with useTokenAuth
+     */
+    public function testAuthEmptyForceToken() {
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40103 );
+
+        $ably = new AblyRest( array(
+            'useTokenAuth' => true,
+        ) );
     }
 
     /**
@@ -295,6 +306,36 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         $ably->auth->authorise(array(), array(), $force = true);
         $this->assertFalse( $tokenOriginal->token == $ably->auth->getTokenDetails()->token, 'Expected token to renew' );
     }
+
+    /**
+     * When using Basic Auth, the API key is sent in the `Authorization: Basic` header with a Base64 encoded value
+     */
+    public function testHTTPHeadersKey() {
+        $fakeKey = 'fake.key:totallyFake';
+        $ably = new AblyRest( array(
+            'key' => $fakeKey,
+            'httpClass' => 'tests\HttpMockAuthTest',
+        ) );
+
+        $ably->get("/dummy_test");
+
+        $this->assertRegExp('/Authorization\s*:\s*Basic\s+'.base64_encode($fakeKey).'/i', $ably->http->headers[0]);
+    }
+
+    /**
+     * Verify that the token string is Base64 encoded and used in the `Authorization: Bearer` header
+     */
+    public function testHTTPHeadersToken() {
+        $fakeToken = 'fakeToken';
+        $ably = new AblyRest( array(
+            'token' => $fakeToken,
+            'httpClass' => 'tests\HttpMockAuthTest',
+        ) );
+
+        $ably->get("/dummy_test");
+
+        $this->assertRegExp('/Authorization\s*:\s*Bearer\s+'.base64_encode($fakeToken).'/i', $ably->http->headers[0]);
+    }
 }
 
 class HttpMockAuthTest extends Http {
@@ -359,10 +400,15 @@ class HttpMockAuthTest extends Http {
                 'headers' => 'HTTP/1.1 200 OK'."\n",
                 'body' => json_decode ( $response ),
             );
+        } else {
+            $this->method = $method;
+            $this->headers = $headers;
+            $this->params = $params;
+
+            return array(
+                'headers' => 'HTTP/1.1 200 OK'."\n",
+                'body' => (object) array('defaultRoute' => true),
+            );
         }
-        
-        echo $url."\n";
-        
-        return '?';
     }
 }
