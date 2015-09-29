@@ -182,4 +182,20 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
 
         $this->assertEquals( $messageMap['client_decoded'], $messageMap['client_encoded'], 'Expected decrypted and sample data to match' );
     }
+
+    /**
+     * Ensure clientId and connectionId filters on Presence GET works
+     */
+    public function testFilters() {
+        $presenceClientFilter = self::$channel->presence->get( array( 'clientId' => 'client_string' ) );
+        $this->assertEquals( 1, count($presenceClientFilter->items), 'Expected the clientId filter to return 1 user' );
+
+        $connId = $presenceClientFilter->items[0]->connectionId;
+
+        $presenceConnFilter1 = self::$channel->presence->get( array( 'connectionId' => $connId ) );
+        $this->assertEquals( 6, count($presenceConnFilter1->items), 'Expected the connectionId filter to return 6 users' );
+
+        $presenceConnFilter2 = self::$channel->presence->get( array( 'connectionId' => '*FAKE CONNECTION ID*' ) );
+        $this->assertEquals( 0, count($presenceConnFilter2->items), 'Expected the connectionId filter to return no users' );
+    }
 }
