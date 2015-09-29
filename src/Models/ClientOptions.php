@@ -70,10 +70,6 @@ class ClientOptions extends AuthOptions {
     public function __construct( $options = array() ) {
         parent::__construct( $options );
 
-        if ( empty( $this->environment ) && getenv( 'ABLY_ENV' ) ) {
-            $this->environment = getenv( 'ABLY_ENV' );
-        }
-
         if ( empty( $this->host ) ) {
             $this->host = 'rest.ably.io';
 

@@ -233,7 +233,8 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
         $reportedTime = intval($ably->time());
         $actualTime = intval(microtime(true)*1000);
 
-        $this->assertTrue( abs($reportedTime - $actualTime) < 2000 );
+        $this->assertTrue( abs($reportedTime - $actualTime) < 2000,
+            'The time difference was larger than 2000ms: ' . ($reportedTime - $actualTime) .'. Please check your system clock.' );
     }
 
     /**
