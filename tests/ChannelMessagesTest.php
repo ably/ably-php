@@ -224,16 +224,6 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         } catch (AblyException $e) {
             if ( $e->getCode() != 40003 ) $this->fail('Expected exception error code 40003');
         }
-
-        $msg = new Message();
-        $msg->name = 'null';
-
-        try {
-            $channel->publish( $msg );
-            $this->fail( 'Expected an exception' );
-        } catch (AblyException $e) {
-            if ( $e->getCode() != 40003 ) $this->fail('Expected exception error code 40003');
-        }
     }
 
     /**
@@ -384,13 +374,41 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $msg->data = hex2bin( '00102030405060708090a0b0c0d0e0f0ff' );
         $this->assertEquals( 'cipher+aes-128-cbc/base64', $this->getMessageEncoding( $msg ), 'Expected empty message encoding' );
     }
+
+    /**
+     * Test if null name and data elements are allowed when publishing messages
+     */
+    public function testNullData() {
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+            'httpClass' => 'tests\HttpSaveWrapper',
+        ) ) );
+
+        $channel = $ably->channels->get( 'testChannel' );
+
+        $msg = new Message();
+        $msg->name = 'onlyName';
+        $msg->data = null;
+
+        $channel->publish( $msg );
+
+        $this->assertEquals( (object) array( 'name' => 'onlyName' ), json_decode( $ably->http->lastParams ) );
+
+        $msg = new Message();
+        $msg->name = null;
+        $msg->data = 'onlyData';
+
+        $channel->publish( $msg );
+
+        $this->assertEquals( (object) array( 'data' => 'onlyData' ), json_decode( $ably->http->lastParams ) );
+    }
 }
 
 
 class HttpMockMsgCounter extends Http {
     public $requestCount = 0;
     
-    public function request($method, $url, $headers = array(), $params = array()) {
+    public function request( $method, $url, $headers = array(), $params = array() ) {
 
         $this->requestCount++;
 
@@ -398,5 +416,19 @@ class HttpMockMsgCounter extends Http {
             'headers' => 'HTTP/1.1 200 OK'."\n",
             'body' => array(),
         );
+    }
+}
+
+
+class HttpSaveWrapper extends Http {
+    public $lastResponse;
+    public $lastHeaders;
+    public $lastParams;
+    
+    public function request( $method, $url, $headers = array(), $params = array() ) {
+        $this->lastHeaders = $headers;
+        $this->lastParams = $params;
+        $this->lastResponse = parent::request( $method, $url, $headers, $params );
+        return $lastResponse;
     }
 }

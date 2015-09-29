@@ -11,7 +11,9 @@ class Message extends BaseMessage {
     protected function encode() {
         $msg = parent::encode();
 
-        $msg->name = $this->name;
+        if ( isset( $this->name ) && $this->name ) {
+        	$msg->name = $this->name;
+        }
 
         return $msg;
     }

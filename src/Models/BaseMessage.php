@@ -117,8 +117,10 @@ abstract class BaseMessage {
                 $msg->data = $this->data;
                 $isBinary = true;
             }
+        } else if ( !isset( $this->data ) || $this->data === null ) {
+            return $msg;
         } else {
-            throw new AblyException( 'Message data must be either, string, string with binary data, or JSON-encodable array or object.', 40003, 400 );
+            throw new AblyException( 'Message data must be either, string, string with binary data, JSON-encodable array or object, or null.', 40003, 400 );
         }
 
         if ( $this->cipherParams ) {
@@ -136,7 +138,10 @@ abstract class BaseMessage {
             }
         }
 
-        $msg->encoding = implode( '/', $encodings );
+        if ( count( $encodings ) ) {
+            $msg->encoding = implode( '/', $encodings );
+        }
+        
         return $msg;
     }
 
