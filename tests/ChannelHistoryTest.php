@@ -2,7 +2,6 @@
 namespace tests;
 use Ably\AblyRest;
 use Ably\Channel;
-use Ably\Models\CipherParams;
 use Ably\Models\Message;
 
 require_once __DIR__ . '/factories/TestApp.php';

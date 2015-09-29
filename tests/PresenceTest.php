@@ -27,11 +27,16 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         self::$presenceFixture = $fixture->post_apps->channels[0]->presence;
 
         $key = base64_decode( $fixture->cipher->key );
-        $algorithm = $fixture->cipher->algorithm . '-' . $fixture->cipher->keylength . '-' . $fixture->cipher->mode;
+        
+        $cipherParams = new CipherParams( $key );
+        $cipherParams->algorithm = $fixture->cipher->algorithm;
+        $cipherParams->keyLength = $fixture->cipher->keylength;
+        $cipherParams->mode      = $fixture->cipher->mode;
+        $cipherParams->iv        = base64_decode( $fixture->cipher->iv );
 
         $options = array(
             'encrypted' => true,
-            'cipherParams' => new CipherParams( $key, $algorithm )
+            'cipherParams' => $cipherParams,
         );
 
         self::$channel = self::$ably->channel('persisted:presence_fixtures', $options);

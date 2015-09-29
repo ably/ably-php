@@ -129,7 +129,7 @@ abstract class BaseMessage {
             }
 
             $msg->data = base64_encode( Crypto::encrypt( $msg->data, $this->cipherParams ) );
-            $encodings[] = 'cipher+' . $this->cipherParams->algorithm;
+            $encodings[] = 'cipher+' . $this->cipherParams->getAlgorithmString();
             $encodings[] = 'base64';
         } else {
             if ( $isBinary ) {
@@ -141,7 +141,7 @@ abstract class BaseMessage {
         if ( count( $encodings ) ) {
             $msg->encoding = implode( '/', $encodings );
         }
-        
+
         return $msg;
     }
 

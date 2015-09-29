@@ -20,9 +20,12 @@ class CryptoTest extends \PHPUnit_Framework_TestCase {
 
         foreach ($fixture->items as $example) {
             $key = base64_decode( $fixture->key );
-            $algorithm = $fixture->algorithm . '-' . $fixture->keylength . '-' . $fixture->mode;
-            $iv = base64_decode( $fixture->iv );
-            $cipherParams = new CipherParams( $key, $algorithm, $iv );
+            
+            $cipherParams = new CipherParams( $key );
+            $cipherParams->algorithm = $fixture->algorithm;
+            $cipherParams->keyLength = $fixture->keylength;
+            $cipherParams->mode      = $fixture->mode;
+            $cipherParams->iv        = base64_decode( $fixture->iv );
 
             $decodedExample = new Message();
             $decodedExample->fromJSON( $example->encoded );
@@ -53,9 +56,12 @@ class CryptoTest extends \PHPUnit_Framework_TestCase {
             unset ($example->encrypted->name);
 
             $key = base64_decode( $fixture->key );
-            $algorithm = $fixture->algorithm . '-' . $fixture->keylength . '-' . $fixture->mode;
-            $iv = base64_decode( $fixture->iv );
-            $cipherParams = new CipherParams( $key, $algorithm, $iv );
+            
+            $cipherParams = new CipherParams( $key );
+            $cipherParams->algorithm = $fixture->algorithm;
+            $cipherParams->keyLength = $fixture->keylength;
+            $cipherParams->mode      = $fixture->mode;
+            $cipherParams->iv        = base64_decode( $fixture->iv );
 
             $decodedExample = new PresenceMessage();
             $decodedExample->fromJSON( $example->encoded );

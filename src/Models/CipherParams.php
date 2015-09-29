@@ -8,20 +8,33 @@ namespace Ably\Models;
 class CipherParams {
     /** @var string Key used for encryption, may be a binary string. */
     public $key;
-    /** @var string Algorithm to be used for encryption. Valid values are: 'aes-128-cbc' (default) and 'aes-256-cbc'. */
+    /** @var string Algorithm to be used for encryption. The only supported algorithm is currently 'aes'. */
     public $algorithm;
+    /** @var string Key length of the algorithm. Valid values for 'aes' are 128 or 256. */
+    public $keyLength;
+    /** @var string Algorithm mode. The only supported mode is currenty 'cbc'. */
+    public $mode;
     /** @var string Initialization vector for encryption, may be a binary string. */
     public $iv;
 
     /**
-     * Constructor
+     * Constructor. The encryption algorithm defaults to the only supported algorithm - AES CBC with
+     * a default key length of 128. A random IV is generated.
      * @param string|null $key Encryption key, if not provided a random key is generated.
-     * @param string|null $algorithm Algorithm to be used for encryption. Valid values are: 'aes-128-cbc' (default) and 'aes-256-cbc'.
-     * @param string|null $iv Initialization vector for encryption, if not provided, random IV is generated.
+     * @param string|null $keyLength Cipher key length, defaults to 128.
      */
-    public function __construct( $key = null, $algorithm = null, $iv = null ) {
+    public function __construct( $key = null, $keyLength = 128 ) {
         $this->key = $key ? $key : openssl_random_pseudo_bytes( 16 );
-        $this->algorithm = $algorithm ? $algorithm : 'aes-128-cbc';
-        $this->iv = $iv ? $iv : openssl_random_pseudo_bytes( openssl_cipher_iv_length( $this->algorithm ) );
+        $this->algorithm = 'aes';
+        $this->keyLength = $keyLength;
+        $this->mode = 'cbc';
+        $this->iv = openssl_random_pseudo_bytes( openssl_cipher_iv_length( $this->getAlgorithmString() ) );
+    }
+
+    /**
+     * @return string Algorithm string as required by openssl - for instance `aes-128-cbc`
+     */
+    public function getAlgorithmString() {
+        return $this->algorithm . '-' . $this->keyLength . '-' . $this->mode;
     }
 }

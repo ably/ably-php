@@ -61,7 +61,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
                 $msgJSON = json_decode( $msg->toJSON() );
                 
                 $this->assertTrue(
-                    strpos( $msgJSON->encoding, $channel->getCipherParams()->algorithm ) !== false,
+                    strpos( $msgJSON->encoding, $channel->getCipherParams()->getAlgorithmString() ) !== false,
                     'Expected message encoding to contain a cipher algorithm'
                 );
                 $this->assertFalse( $msgJSON->data === $payload, 'Expected encrypted message payload not to match original data' );
@@ -109,7 +109,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      * Publish events with data of various datatypes to an aes-128-cbc encrypted channel
      */
     public function testPublishMessagesVariousTypesAES128() {
-        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
+        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 128 ));
         $encrypted1 = self::$ably->channels->get( 'persisted:encrypted1', $options );
         
         $this->assertNotNull( $encrypted1->getCipherParams(), 'Expected channel to be encrypted' );
@@ -121,7 +121,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      * Publish events with data of various datatypes to an aes-256-cbc encrypted channel
      */
     public function testPublishMessagesVariousTypesAES256() {
-        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-256-cbc' ));
+        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 256 ));
         $encrypted2 = self::$ably->channels->get( 'persisted:encrypted2', $options );
         
         $this->assertNotNull( $encrypted2->getCipherParams(), 'Expected channel to be encrypted' );
@@ -257,7 +257,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         $payload = 'This is a test message';
 
-        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
+        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 128 ));
         $encrypted1 = $ably->channel( 'persisted:mismatch1', $options );
         $encrypted1->publish( 'test', $payload );
 
@@ -280,7 +280,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $encrypted = self::$ably->channel( 'persisted:mismatch2' );
         $encrypted->publish( 'test', $payload );
 
-        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
+        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 128 ));
         $unencrypted = self::$ably->channel( 'persisted:mismatch2', $options );
         $messages = $unencrypted->history();
         $this->assertNotNull( $messages, 'Expected non-null messages' );
@@ -305,11 +305,11 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         $payload = 'This is a test message';
 
-        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
+        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 128 ));
         $encrypted1 = $ably->channel( 'persisted:mismatch3', $options );
         $encrypted1->publish( 'test', $payload );
 
-        $options2 = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'DIFFERENT PASSWORD', 'aes-128-cbc' ));
+        $options2 = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'DIFFERENT PASSWORD', 128 ));
         $encrypted2 = $ably->channel( 'persisted:mismatch3', $options2 );
         $messages = $encrypted2->history();
         $msg = $messages->items[0];
@@ -337,7 +337,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         self::$ably->channel( 'cache_test', array(
             'encrypted' => true,
-            'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' )
+            'cipherParams' => new CipherParams( 'password', 128 )
         ) );
 
         $this->assertNotNull( $channel3->getCipherParams(), 'Expected the channel to have CipherParams even when specified for a new instance' );
