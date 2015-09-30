@@ -67,6 +67,14 @@ class AuthOptions extends BaseOptions {
      */
     public $authMethod = 'GET';
 
+    /**
+     * @var boolean This may be set in instances that the library is to sign
+     * token requests based on a given key. If true, the library
+     * will query the Ably system for the current time instead of
+     * relying on a locally-available time of day.
+     */
+    public $queryTime;
+
     public function __construct( $options = array() ) {
         parent::__construct( $options );
         

@@ -5,10 +5,6 @@ namespace Ably\Models;
  * Provides parameters of a token request.
  */
 class TokenParams extends BaseOptions {
-    /**
-     * @var string The keyName of the key against which this request is made.
-     */
-    public $keyName;
 
     /**
      * @var integer Requested time to live for the token in milliseconds. If the token request
@@ -37,11 +33,6 @@ class TokenParams extends BaseOptions {
      */
     public $timestamp;
     
-    /**
-     * @var boolean whether timestamp should be obtained from server (true) or local time should be used (false)
-     */
-    public $queryTime;
-
     /**
      * Constructor. Automatically canonicalizes capability, if provided as array or object.
      * If capability is a string, it is assumed that it's already a canonicalized json_encoded string.

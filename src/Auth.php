@@ -236,7 +236,7 @@ class Auth {
             $tokenRequest->keyName = $keyName;
         }
         
-        if ( $tokenRequest->queryTime ) {
+        if ( $authOptions->queryTime ) {
             $tokenRequest->timestamp = $this->ably->time();
         } else if ( empty( $tokenRequest->timestamp ) ) {
             $tokenRequest->timestamp = $this->ably->systemTime();
