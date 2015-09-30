@@ -178,7 +178,7 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Init library with a key and clientId; expect token auth to be chosen
+     * Init library with a key and clientId; expect token auth to be chosen; expect Auth::getClientId to return the id
      */
     public function testAuthWithKeyAndClientId() {
         $ably = new AblyRest( array_merge( self::$defaultOptions, array(
@@ -187,6 +187,9 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         ) ) );
 
         $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
+
+        $ably->auth->authorise();
+        $this->assertEquals( 'testClientId', $ably->auth->getClientId(), 'Expected clientId to match the provided id' );
     }
 
     /**

@@ -113,6 +113,17 @@ class Auth {
     }
 
     /**
+     * @return string|null Library instance's clientId, if instanced with a clientId
+    */
+    public function getClientId() {
+        if ( !empty( $this->tokenDetails ) && !empty( $this->tokenDetails->clientId ) ) {
+            return $this->tokenDetails->clientId;
+        }
+        
+        return null;
+    }
+
+    /**
      * Request a new token.
      * @param array|null $authOptions Overridable auth options, if you don't wish to use the default ones
      * @param array|null $tokenParams Requested token parameters
