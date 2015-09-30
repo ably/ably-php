@@ -1,6 +1,7 @@
 <?php
 namespace tests;
 use Ably\AblyRest;
+use Ably\Auth;
 use Ably\Exceptions\AblyException;
 
 require_once __DIR__ . '/factories/TestApp.php';
@@ -194,7 +195,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
             'authCallback' => function( $tokenParams ) use( &$ablyKeyAuth ) {
                 $capability = array( 'testchannel' => array('publish') );
                 $tokenParams = array(
-                    'ttl' => 2 * 1000, // 2 seconds
+                    'ttl' => 2 * 1000 + Auth::TOKEN_EXPIRY_MARGIN, // 2 seconds + expiry margin
                     'capability' => $capability,
                 );
                 return $ablyKeyAuth->auth->requestToken( array(), $tokenParams );
@@ -227,7 +228,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         $ablyKeyAuth = self::$ably;
 
         $tokenParams = array(
-            'ttl' => 2 * 1000, // 2 seconds
+            'ttl' => 2 * 1000 + Auth::TOKEN_EXPIRY_MARGIN, // 2 seconds + expiry margin
         );
         $tokenDetails = $ablyKeyAuth->auth->requestToken( array(), $tokenParams );
 
@@ -259,7 +260,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
                     'capability' => $capability,
                 );
                 $tokenDetails = $ablyKeyAuth->auth->requestToken( array(), $tokenParams );
-                return $tokenDetails->token;
+                return $tokenDetails->token; // returning just the token string, not TokenDetails => expiry time is unknown
             }
         ) );
 
