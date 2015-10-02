@@ -15,6 +15,9 @@ class Stats {
      * @var stdClass $channels ResourceCount representing the number of channels activated and used;
      * @var stdClass $apiRequests RequestCount representing the number of requests made to the REST API;
      * @var stdClass $tokenRequests RequestCount representing the number of requests made to issue access tokens.
+     * @var stdClass $intervalId The interval that this statistic applies to.
+     * @var stdClass $intervalGranularity The granularity of the interval for the stat. May be one of: minute, hour, day, month
+     * @var stdClass $intervalTime A timestamp representing the start of the interval.
      */
     public $all;
     public $inbound;
@@ -24,9 +27,9 @@ class Stats {
     public $channels;
     public $apiRequests;
     public $tokenRequests;
-    public $count;
-    public $unit;
     public $intervalId;
+    public $intervalGranularity;
+    public $intervalTime;
 
     /**
      * Populates stats from JSON

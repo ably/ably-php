@@ -12,7 +12,11 @@ use Ably\Log;
 abstract class BaseMessage {
 
     /**
-     * @var mixed The message payload.
+     * @var string Unique ID for this message. Populated by the system.
+     */
+    public $id;
+    /**
+     * @var mixed|null The message payload.
      */
     public $data;
     /**

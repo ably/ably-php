@@ -130,7 +130,7 @@ class AblyRest {
             if ( !empty( $this->options->fallbackHosts ) ) {
                 $res = $this->requestWithFallback( $method, $path, $mergedHeaders, $params );
             } else {
-                $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->host;
+                $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->restHost;
                 
                 if ( $this->options->tls && !empty( $this->options->tlsPort ) ) {
                     $server .= ':' . $this->options->tlsPort;
@@ -173,7 +173,7 @@ class AblyRest {
     protected function requestWithFallback( $method, $path, $headers = array(), $params = array(), $attempt = 0 ) {
         try {
             if ( $attempt == 0 ) { // using default host
-                $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->host;
+                $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->restHost;
             } else { // using a fallback host
                 Log::d( 'Connection failed, attempting with fallback server #' . $attempt );
                 // attempt 1 uses fallback host with index 0
