@@ -402,6 +402,67 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         $this->assertEquals( (object) array( 'data' => 'onlyData' ), json_decode( $ably->http->lastParams ) );
     }
+
+    /**
+     * Check if messages can be assigned a clientId with an anonymous lib instance
+     */
+    public function testClientIdMsg() {
+        $ablyKey = self::$ably;
+        $ablyToken = $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+            'useTokenAuth' => true,
+        ) ) );
+
+        $clientId = 'testClientId';
+        $msg = new Message();
+        $msg->data = 'test';
+        $msg->clientId = $clientId;
+
+        $keyChan = $ablyKey->channels->get( 'persisted:clientIdTestKey' );
+        $keyChan->publish( $msg );
+        $retrievedMsg = $keyChan->history()->items[0];
+
+        $this->assertEquals( $clientId, $retrievedMsg->clientId, 'Expected clientIds to match');
+
+        $tokenChan = $ablyToken->channels->get( 'persisted:clientIdTestToken' );
+        $tokenChan->publish( $msg );
+        $retrievedMsg = $tokenChan->history()->items[0];
+
+        $this->assertEquals( $clientId, $retrievedMsg->clientId, 'Expected clientIds to match');
+    }
+
+    /**
+     * Check if messages are assigned a clientID automatically with a non-anonymous lib instance
+     * Verify that clientID mismatch produces an exception within the library
+     */
+    public function testClientIdLib() {
+        $clientId = 'testClientId';
+
+        $ablyCId = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+            'useTokenAuth' => true,
+            'clientId' => 'testClientId',
+        ) ) );
+
+        $ablyCId->auth->authorise(); // obtain a token
+        $this->assertEquals( $clientId, $ablyCId->auth->getClientId(), 'Expected a token with specified clientId to be used' );
+
+        $msg = new Message();
+        $msg->data = 'test';
+
+        $channel = $ablyCId->channels->get( 'persisted:clientIdTestLib' );
+        $channel->publish( $msg );
+        $retrievedMsg = $channel->history()->items[0];
+
+        $this->assertEquals( $clientId, $retrievedMsg->clientId, 'Expected clientIds to match');
+
+        $msg = new Message();
+        $msg->data = 'test';
+        $msg->clientId = 'DIFFERENT_clientId';
+
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40102 );
+        $channel->publish( $msg );
+    }
 }
 
 

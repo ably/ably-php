@@ -14,6 +14,13 @@ class AblyException extends Exception {
      */
     public $errorInfo;
 
+    /**
+     * @param string $message Exception's error message text
+     * @param integer|null $code 5-digit Ably error code
+     *        also used as a PHP exception code
+     *        @see https://github.com/ably/ably-common/blob/master/protocol/errors.json
+     * @param integer|null $statusCode HTTP error code
+     */
     public function __construct( $message, $code = null, $statusCode = null ) {
         parent::__construct( $message, $code );
         $this->errorInfo = new ErrorInfo();

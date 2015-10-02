@@ -103,6 +103,10 @@ abstract class BaseMessage {
 
             return $msg;
         }
+        
+        if ($this->clientId) {
+            $msg->clientId = $this->clientId;
+        }
 
         $isBinary = false;
         $encodings = array();

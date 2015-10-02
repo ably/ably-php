@@ -72,11 +72,11 @@ class Auth {
             if ( empty( $this->tokenDetails->expires ) ) {
                 // using cached token
                 Log::d( 'Auth::authorise: using cached token, unknown expiration time' );
-                return $this;
+                return $this->tokenDetails;
             } else if ( $this->tokenDetails->expires - self::TOKEN_EXPIRY_MARGIN > $this->ably->systemTime() ) {
                 // using cached token
                 Log::d( 'Auth::authorise: using cached token, expires on ' . date( 'Y-m-d H:i:s', $this->tokenDetails->expires / 1000 ) );
-                return $this;
+                return $this->tokenDetails;
             }
         }
         Log::d( 'Auth::authorise: requesting new token' );
@@ -96,12 +96,11 @@ class Auth {
         $header = array();
         if ( $this->isUsingBasicAuth() ) {
             $header = array( 'Authorization: Basic ' . base64_encode( $this->authOptions->key ) );
-        } else if ( !empty( $this->tokenDetails ) ) {
+        } else {
             $this->authorise();
             $header = array( 'Authorization: Bearer '. base64_encode( $this->tokenDetails->token ) );
-        } else {
-            throw new AblyException( 'Unable to provide auth headers. No auth parameters defined.', 40101, 401 );
         }
+        
         return $header;
     }
 
@@ -119,7 +118,7 @@ class Auth {
         if ( !empty( $this->tokenDetails ) && !empty( $this->tokenDetails->clientId ) ) {
             return $this->tokenDetails->clientId;
         }
-        
+
         return null;
     }
 

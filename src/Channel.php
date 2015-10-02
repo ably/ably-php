@@ -60,9 +60,14 @@ class Channel {
 
         $args = func_get_args();
         $json = '';
+        $authClientId = $this->ably->auth->getClientId();
         
         if (count($args) == 1 && is_a( $args[0], 'Ably\Models\Message' )) { // single Message
             $msg = $args[0];
+
+            if ( !empty( $msg->clientId ) && !empty( $authClientId ) && $msg->clientId != $authClientId) {
+                throw new AblyException( 'Message\'s clientId does not match the clientId of the authorisation token.', 40102, 401 );
+            }
 
             if ($this->options->encrypted) {
                 $msg->setCipherParams( $this->options->cipherParams );
@@ -70,10 +75,13 @@ class Channel {
 
             $json = $msg->toJSON();
         } else if (count($args) == 1 && is_array( $args[0] )) { // array of Messages
-            $msg = $args[0];
             $jsonArray = array();
 
             foreach ($args[0] as $msg) {
+                if ( !empty( $msg->clientId ) && !empty( $authClientId ) && $msg->clientId != $authClientId) {
+                    throw new AblyException( 'Message\'s clientId does not match the clientId of the authorisation token.', 40102, 401 );
+                }
+
                 if ($this->options->encrypted) {
                     $msg->setCipherParams( $this->options->cipherParams );
                 }
@@ -93,7 +101,7 @@ class Channel {
 
             $json = $msg->toJSON();
         } else {
-            throw new AblyException( 'Wrong parameters provided, use either Message, array of Messages, or name and data' );
+            throw new AblyException( 'Wrong parameters provided, use either Message, array of Messages, or name and data', 40003, 400 );
         }
 
         $this->ably->post( $this->channelPath . '/messages', $headers = array(), $json );

@@ -222,31 +222,6 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Automatic token renewal on expiration (known time) should fail with no means of renewal
-     */
-    public function testFailingTokenRenewalKnownExpiration() {
-        $ablyKeyAuth = self::$ably;
-
-        $tokenParams = array(
-            'ttl' => 2 * 1000 + Auth::TOKEN_EXPIRY_MARGIN, // 2 seconds + expiry margin
-        );
-        $tokenDetails = $ablyKeyAuth->auth->requestToken( array(), $tokenParams );
-
-        $options = array_merge( self::$defaultOptions, array(
-            'tokenDetails' => $tokenDetails,
-        ) );
-
-        $ablyTokenAuth = new AblyRest( $options );
-        $channel = $ablyTokenAuth->channel( 'testchannel' );
-        $channel->publish( 'test', 'test' ); // this should work
-
-        sleep(2);
-
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40101 );
-        $channel->publish( 'test', 'test' ); // this should fail
-    }
-
-    /**
      * Automatic token renewal on expiration (unknown time)
      */
     public function testTokenRenewalUnknownExpiration() {
