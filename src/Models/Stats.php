@@ -6,18 +6,27 @@ namespace Ably\Models;
  */
 class Stats {
     /**
-     * @var stdClass $all MessageTypes representing the total of all inbound and outbound message traffic.
-     * This is the aggregate number that is considered in applying account message limits.
-     * @var stdClass $inbound MessageTraffic representing inbound messages (ie published by clients and sent inbound to the Ably service) by all transport types;
-     * @var stdClass $outbound MessageTraffic representing outbound messages (ie delivered by the Ably service to connected and subscribed clients);
-     * @var stdClass $persisted MessageTypes representing the aggregate volume of messages persisted;
-     * @var stdClass $connections ConnectionTypes representing the usage of connections;
-     * @var stdClass $channels ResourceCount representing the number of channels activated and used;
-     * @var stdClass $apiRequests RequestCount representing the number of requests made to the REST API;
-     * @var stdClass $tokenRequests RequestCount representing the number of requests made to issue access tokens.
-     * @var stdClass $intervalId The interval that this statistic applies to.
-     * @var stdClass $intervalGranularity The granularity of the interval for the stat. May be one of: minute, hour, day, month
-     * @var stdClass $intervalTime A timestamp representing the start of the interval.
+     * @var \Ably\Models\Stats\MessageTypes $all MessageTypes representing the total of all inbound and
+     *      outbound message traffic. This is the aggregate number that is considered in applying account
+     *      message limits.
+     * @var \Ably\Models\Stats\MessageTraffic $inbound MessageTraffic representing inbound messages
+     *      (ie published by clients and sent inbound to the Ably service) by all transport types.
+     * @var \Ably\Models\Stats\MessageTraffic $outbound MessageTraffic representing outbound messages
+     *      (ie delivered by the Ably service to connected and subscribed clients).
+     * @var \Ably\Models\Stats\MessageTypes $persisted MessageTypes representing the aggregate volume
+     *      of messages persisted.
+     * @var \Ably\Models\Stats\ConnectionTypes $connections ConnectionTypes representing the usage
+     *      of connections.
+     * @var \Ably\Models\Stats\ResourceCount $channels ResourceCount representing the number of channels
+     *       activated and used.
+     * @var \Ably\Models\Stats\RequestCount $apiRequests RequestCount representing the number of requests
+     *      made to the REST API.
+     * @var \Ably\Models\Stats\RequestCount $tokenRequests RequestCount representing the number of requests
+     *      made to issue access tokens.
+     * @var string $intervalId The interval that this statistic applies to.
+     * @var string $intervalGranularity The granularity of the interval for the stat. May be one of values:
+     *      minute, hour, day, month
+     * @var int $intervalTime A timestamp representing the start of the interval.
      */
     public $all;
     public $inbound;
@@ -31,6 +40,9 @@ class Stats {
     public $intervalGranularity;
     public $intervalTime;
 
+    public function __construct() {
+        $this->clearFields();
+    }
     /**
      * Populates stats from JSON
      * @param string|stdClass $json JSON string or an already decoded object.
@@ -53,10 +65,15 @@ class Stats {
             $obj = $obj[0];
         }
 
-        $class = get_class( $this );
-        foreach ($obj as $key => $value) {
-            if (property_exists( $class, $key )) {
-                $this->$key = $value;
+        self::deepCopy( $obj, $this );
+    }
+
+    protected static function deepCopy( $target, $dst ) {
+        foreach ( $target as $key => $value ) {
+            if ( is_object( $value )) {
+                self::deepCopy( $value, $dst->$key );
+            } else {
+                $dst->$key = $value;
             }
         }
     }
@@ -64,12 +81,17 @@ class Stats {
     /**
      * Sets all the public fields to null
      */
-    protected function clearFields() {
-        $fields = get_object_vars( $this );
-        unset( $fields['cipherParams'] );
-
-        foreach ($fields as $key => $value) {
-            $this->$key = null;
-        }
+    public function clearFields() {
+        $this->all                 = new Stats\MessageTypes();
+        $this->inbound             = new Stats\MessageTraffic();
+        $this->outbound            = new Stats\MessageTraffic();
+        $this->persisted           = new Stats\MessageTypes();
+        $this->connections         = new Stats\ConnectionTypes();
+        $this->channels            = new Stats\ResourceCount();
+        $this->apiRequests         = new Stats\RequestCount();
+        $this->tokenRequests       = new Stats\RequestCount();
+        $this->intervalId          = '';
+        $this->intervalGranularity = '';
+        $this->intervalTime        = 0;
     }
 }

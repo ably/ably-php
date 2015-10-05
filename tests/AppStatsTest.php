@@ -67,6 +67,28 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * Check if stats are automatically populated by zeroes
+     */
+    public function testStatsDefaultValues() {
+        $stats = new \Ably\Models\Stats();
+        $this->assertTrue( $this->iterateObjectCheck0( $stats ), 'Expected newly created Stats to have zero values.' );
+    }
+
+    protected function iterateObjectCheck0($obj, $level = 0) {
+        $valid = true;
+
+        foreach ($obj as $key => $value) {
+            if (is_object($value)) {
+                if (!$this->iterateObjectCheck0($value, $level + 1)) $valid = false;
+            } else {
+                if ($level > 0 && $value !== 0) $valid = false;
+            }
+        }
+
+        return $valid;
+    }
+
+    /**
      * Check minute-level stats exist (forwards)
      */
     public function testAppstatsMinute0() {

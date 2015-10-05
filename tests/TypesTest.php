@@ -17,25 +17,30 @@ class TypesTest extends \PHPUnit_Framework_TestCase {
     protected function verifyClassMembers( $class, $expectedMembers ) {
         $valid = true;
         foreach( $expectedMembers as $member ) {
-            if ( !property_exists( $class, $member ) ) {
-                $valid = false;
-                break;
-            }
+            $this->assertTrue( property_exists( $class, $member ), "Expected class `$class` to contain a field named `$member`." );
         }
-
-        $this->assertTrue( $valid, "Expected class `$class` to contain a field named `$member`." );
     }
 
     protected function verifyClassConstants( $class, $expectedMembers ) {
-        $valid = true;
         foreach( $expectedMembers as $member => $value ) {
-            if ( constant( "$class::$member" ) != $value ) {
-                $valid = false;
-                break;
+            $this->assertEquals( $value, constant( "$class::$member" ),
+                "Expected class `$class` to have a constant `$member` with a value of `$value`."
+            );
+        }
+    }
+
+    protected function verifyObjectTypes( $obj, $expectedTypes ) {
+        foreach( $obj as $key => $value ) {
+            if ( gettype( $value ) == 'object' ) {
+                $this->assertEquals( $expectedTypes[$key], get_class( $value ),
+                    "Expected object (".get_class($obj).") to contain a member `$key` of type `".$expectedTypes[$key]."`."
+                );
+            } else {
+                $this->assertEquals( $expectedTypes[$key], gettype( $value ),
+                    "Expected object (".get_class($obj).") to contain a member `$key` of type `".$expectedTypes[$key]."`."
+                );
             }
         }
-
-        $this->assertTrue( $valid, "Expected class `$class` to have a constant `$member` with a value of `$value`." );
     }
 
     public function testMessageType() {
@@ -160,6 +165,67 @@ class TypesTest extends \PHPUnit_Framework_TestCase {
             'algorithm',
             'keyLength',
             'mode'
+        ) );
+    }
+
+    public function testStatsTypes() {
+        $stats = new \Ably\Models\Stats();
+        $this->verifyObjectTypes( $stats, array(
+            'all'                 => 'Ably\Models\Stats\MessageTypes',
+            'inbound'             => 'Ably\Models\Stats\MessageTraffic',
+            'outbound'            => 'Ably\Models\Stats\MessageTraffic',
+            'persisted'           => 'Ably\Models\Stats\MessageTypes',
+            'connections'         => 'Ably\Models\Stats\ConnectionTypes',
+            'channels'            => 'Ably\Models\Stats\ResourceCount',
+            'apiRequests'         => 'Ably\Models\Stats\RequestCount',
+            'tokenRequests'       => 'Ably\Models\Stats\RequestCount',
+            'intervalId'          => 'string',
+            'intervalGranularity' => 'string',
+            'intervalTime'        => 'integer',
+        ) );
+
+        // verify MessageTypes
+        $this->verifyObjectTypes( $stats->all, array(
+            'all'      => 'Ably\Models\Stats\MessageCount',
+            'messages' => 'Ably\Models\Stats\MessageCount',
+            'presence' => 'Ably\Models\Stats\MessageCount',
+        ) );
+
+        // verify MessageCount
+        $this->verifyObjectTypes( $stats->all->all, array(
+            'count' => 'integer',
+            'data'  => 'integer',
+        ) );
+
+        // verify MessageTraffic
+        $this->verifyObjectTypes( $stats->inbound, array(
+            'all'      => 'Ably\Models\Stats\MessageTypes',
+            'realtime' => 'Ably\Models\Stats\MessageTypes',
+            'rest'     => 'Ably\Models\Stats\MessageTypes',
+            'webhook'  => 'Ably\Models\Stats\MessageTypes',
+        ) );
+
+        // verify ConnectionTypes
+        $this->verifyObjectTypes( $stats->connections, array(
+            'all'   => 'Ably\Models\Stats\ResourceCount',
+            'plain' => 'Ably\Models\Stats\ResourceCount',
+            'tls'   => 'Ably\Models\Stats\ResourceCount',
+        ) );
+
+        // verify ResourceCount
+        $this->verifyObjectTypes( $stats->connections->all, array(
+            'mean'    => 'integer',
+            'min'     => 'integer',
+            'opened'  => 'integer',
+            'peak'    => 'integer',
+            'refused' => 'integer',
+        ) );
+
+        // verify RequestCount
+        $this->verifyObjectTypes( $stats->apiRequests, array(
+            'failed'    => 'integer',
+            'refused'   => 'integer',
+            'succeeded' => 'integer',
         ) );
     }
 }
