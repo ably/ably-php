@@ -148,6 +148,8 @@ abstract class BaseMessage {
 
         if ( count( $encodings ) ) {
             $msg->encoding = implode( '/', $encodings );
+        } else {
+            $msg->encoding = '';
         }
 
         return $msg;

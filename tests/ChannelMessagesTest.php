@@ -392,7 +392,10 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         $channel->publish( $msg );
 
-        $this->assertEquals( (object) array( 'name' => 'onlyName' ), json_decode( $ably->http->lastParams ) );
+        $publishedMsg = json_decode( $ably->http->lastParams );
+
+        $this->assertEquals( $msg->name, $publishedMsg->name );
+        $this->assertFalse( isset( $publishedMsg->data ) );
 
         $msg = new Message();
         $msg->name = null;
@@ -400,7 +403,10 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         $channel->publish( $msg );
 
-        $this->assertEquals( (object) array( 'data' => 'onlyData' ), json_decode( $ably->http->lastParams ) );
+        $publishedMsg = json_decode( $ably->http->lastParams );
+
+        $this->assertEquals( $msg->data, $publishedMsg->data );
+        $this->assertFalse( isset( $publishedMsg->name ) );
     }
 
     /**
@@ -490,6 +496,6 @@ class HttpSaveWrapper extends Http {
         $this->lastHeaders = $headers;
         $this->lastParams = $params;
         $this->lastResponse = parent::request( $method, $url, $headers, $params );
-        return $lastResponse;
+        return $this->lastResponse;
     }
 }
