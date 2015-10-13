@@ -20,14 +20,16 @@ class CipherParams {
     /**
      * Constructor. The encryption algorithm defaults to the only supported algorithm - AES CBC with
      * a default key length of 128. A random IV is generated.
-     * @param string|null $key Encryption key, if not provided a random key is generated.
-     * @param string|null $keyLength Cipher key length, defaults to 128.
+     * @param string|null  $key Encryption key, if not provided a random key is generated.
+     * @param string|null  $algorithm Encryption algorithm, defaults to 'aes'.
+     * @param Integer|null $keyLength Cipher key length, defaults to 128.
+     * @param string|null  $mode Algorithm mode, defaults to 'cbc'.
      */
-    public function __construct( $key = null, $keyLength = 128 ) {
+    public function __construct( $key = null, $algorithm = 'aes', $keyLength = 128, $mode = 'cbc' ) {
         $this->key = $key ? $key : openssl_random_pseudo_bytes( 16 );
-        $this->algorithm = 'aes';
+        $this->algorithm = $algorithm;
         $this->keyLength = $keyLength;
-        $this->mode = 'cbc';
+        $this->mode = $mode;
         $this->iv = openssl_random_pseudo_bytes( openssl_cipher_iv_length( $this->getAlgorithmString() ) );
     }
 
