@@ -12,7 +12,11 @@ use Ably\Log;
 abstract class BaseMessage {
 
     /**
-     * @var mixed The message payload.
+     * @var string Unique ID for this message. Populated by the system.
+     */
+    public $id;
+    /**
+     * @var mixed|null The message payload.
      */
     public $data;
     /**
@@ -103,6 +107,10 @@ abstract class BaseMessage {
 
             return $msg;
         }
+        
+        if ($this->clientId) {
+            $msg->clientId = $this->clientId;
+        }
 
         $isBinary = false;
         $encodings = array();
@@ -117,8 +125,10 @@ abstract class BaseMessage {
                 $msg->data = $this->data;
                 $isBinary = true;
             }
+        } else if ( !isset( $this->data ) || $this->data === null ) {
+            return $msg;
         } else {
-            throw new AblyException( 'Message data must be either, string, string with binary data, or JSON-encodable array or object.', 40003, 400 );
+            throw new AblyException( 'Message data must be either, string, string with binary data, JSON-encodable array or object, or null.', 40003, 400 );
         }
 
         if ( $this->cipherParams ) {
@@ -127,7 +137,7 @@ abstract class BaseMessage {
             }
 
             $msg->data = base64_encode( Crypto::encrypt( $msg->data, $this->cipherParams ) );
-            $encodings[] = 'cipher+' . $this->cipherParams->algorithm;
+            $encodings[] = 'cipher+' . $this->cipherParams->getAlgorithmString();
             $encodings[] = 'base64';
         } else {
             if ( $isBinary ) {
@@ -136,7 +146,12 @@ abstract class BaseMessage {
             }
         }
 
-        $msg->encoding = implode( '/', $encodings );
+        if ( count( $encodings ) ) {
+            $msg->encoding = implode( '/', $encodings );
+        } else {
+            $msg->encoding = '';
+        }
+
         return $msg;
     }
 

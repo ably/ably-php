@@ -66,9 +66,7 @@ class PaginatedResult {
      * @return PaginatedResult Returns self if the current page is the first
      */
     public function first() {
-        if ($this->isFirst()) {
-            return this;
-        } else if (isset($this->paginationHeaders['first'])) {
+        if (isset($this->paginationHeaders['first'])) {
             return new PaginatedResult( $this->ably, $this->model, $this->cipherParams, $this->paginationHeaders['first'] );
         } else {
             return null;
@@ -99,22 +97,6 @@ class PaginatedResult {
      */
     public function hasNext() {
         return $this->isPaginated() && isset($this->paginationHeaders['next']);
-    }
-
-    /**
-     * @return boolean Whether the current page is the first, always true for single-page results
-     */
-    public function isFirst() {
-        if (!$this->isPaginated() ) {
-            return true;
-        }
-
-        if ( isset($this->paginationHeaders['first']) && isset($this->paginationHeaders['current'])
-            && $this->paginationHeaders['first'] == $this->paginationHeaders['current'] ) {
-            return true;
-        }
-
-        return false;
     }
 
     /**

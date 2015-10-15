@@ -61,17 +61,43 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Init library with specified host
+     * Init library with a specified host
      */
     public function testInitLibWithSpecifiedHost() {
         $opts = array(
             'key' => 'fake.key:veryFake',
-            'host'  => 'some.other.host',
+            'restHost'  => 'some.other.host',
             'httpClass' => 'tests\HttpMockInitTest',
         );
         $ably = new AblyRest( $opts );
         $ably->time(); // make a request
         $this->assertRegExp( '/^https?:\/\/some\.other\.host/', $ably->http->lastUrl, 'Unexpected host mismatch' );
+    }
+
+    /**
+     * Init library with a specified port
+     */
+    public function testInitLibWithSpecifiedPort() {
+        $opts = array(
+            'key' => 'fake.key:veryFake',
+            'restHost'  => 'some.other.host',
+            'tlsPort' => 999,
+            'httpClass' => 'tests\HttpMockInitTest',
+        );
+        $ably = new AblyRest( $opts );
+        $ably->time(); // make a request
+        $this->assertContains( 'https://' . $opts['restHost'] . ':' . $opts['tlsPort'], $ably->http->lastUrl, 'Unexpected host/port mismatch' );
+
+        $opts = array(
+            'token' => 'fakeToken',
+            'restHost'  => 'some.other.host',
+            'port' => 999,
+            'tls' => false,
+            'httpClass' => 'tests\HttpMockInitTest',
+        );
+        $ably = new AblyRest( $opts );
+        $ably->time(); // make a request
+        $this->assertContains( 'http://' . $opts['restHost'] . ':' . $opts['port'], $ably->http->lastUrl, 'Unexpected host/port mismatch' );
     }
 
     /**
@@ -93,7 +119,7 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
     public function testInitLibWithSpecifiedEnvHost() {
         $ably = new AblyRest( array(
             'key' => 'fake.key:veryFake',
-            'host'  => 'some.other.host',
+            'restHost'  => 'some.other.host',
             'environment'  => 'sandbox',
             'httpClass' => 'tests\HttpMockInitTest',
         ) );
@@ -147,7 +173,7 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
      */
     public function testFallbackHosts() {
         $defaultOpts = new ClientOptions();
-        $hostWithFallbacks = array_merge( array( $defaultOpts->host ), $defaultOpts->fallbackHosts );
+        $hostWithFallbacks = array_merge( array( $defaultOpts->restHost ), $defaultOpts->fallbackHosts );
 
         // reuse default options so that fallback host order is not randomized again
         $opts = array_merge ( $defaultOpts->toArray(), array(
@@ -194,7 +220,7 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
         $opts = array(
             'key' => 'fake.key:veryFake',
             'httpClass' => 'tests\HttpMockInitTestTimeout',
-            'host' => 'custom.host.com',
+            'restHost' => 'custom.host.com',
         );
         $ably = new AblyRest( $opts );
         try {
@@ -233,7 +259,8 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
         $reportedTime = intval($ably->time());
         $actualTime = intval(microtime(true)*1000);
 
-        $this->assertTrue( abs($reportedTime - $actualTime) < 2000 );
+        $this->assertTrue( abs($reportedTime - $actualTime) < 2000,
+            'The time difference was larger than 2000ms: ' . ($reportedTime - $actualTime) .'. Please check your system clock.' );
     }
 
     /**
@@ -242,7 +269,7 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
     public function testTimeFailsWithInvalidHost() {
         $ablyInvalidHost = new AblyRest( array(
             'key' => 'fake.key:veryFake',
-            'host' => 'this.host.does.not.exist',
+            'restHost' => 'this.host.does.not.exist',
         ));
 
         $this->setExpectedException('Ably\Exceptions\AblyRequestException');

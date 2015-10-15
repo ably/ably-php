@@ -2,7 +2,6 @@
 namespace tests;
 use Ably\AblyRest;
 use Ably\Channel;
-use Ably\Models\CipherParams;
 use Ably\Models\Message;
 
 require_once __DIR__ . '/factories/TestApp.php';
@@ -139,7 +138,6 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         $this->assertTrue( $messages->isPaginated(), 'Expected messages to be paginated' );
         $this->assertTrue( $messages->hasFirst(), 'Expected to have first page' );
         $this->assertTrue( $messages->hasNext(), 'Expected to have next page' );
-        $this->assertTrue( $messages->isFirst(), 'Expected to be the first page' );
         $this->assertFalse( $messages->isLast(), 'Expected not to be the last page' );
 
         // next page
@@ -156,7 +154,6 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         $this->assertTrue( $messages2->isPaginated(), 'Expected messages to be paginated' );
         $this->assertTrue( $messages2->hasFirst(), 'Expected to have first page' );
         $this->assertFalse( $messages2->hasNext(), 'Expected not to have next page' );
-        $this->assertFalse( $messages2->isFirst(), 'Expected not to be the first page' );
         $this->assertTrue( $messages2->isLast(), 'Expected to be the last page' );
         $this->assertNull( $messages2->next(), 'Expected the 3rd page to be null' );
 
@@ -203,7 +200,6 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         $this->assertTrue( $messages->isPaginated(), 'Expected messages to be paginated' );
         $this->assertTrue( $messages->hasFirst(), 'Expected to have first page' );
         $this->assertTrue( $messages->hasNext(), 'Expected to have next page' );
-        $this->assertTrue( $messages->isFirst(), 'Expected to be the first page' );
         $this->assertFalse( $messages->isLast(), 'Expected not to be the last page' );
 
         // next page
@@ -220,7 +216,6 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         $this->assertTrue( $messages2->isPaginated(), 'Expected messages to be paginated' );
         $this->assertTrue( $messages2->hasFirst(), 'Expected to have first page' );
         $this->assertFalse( $messages2->hasNext(), 'Expected not to have next page' );
-        $this->assertFalse( $messages2->isFirst(), 'Expected not to be the first page' );
         $this->assertTrue( $messages2->isLast(), 'Expected to be the last page' );
         $this->assertNull( $messages2->next(), 'Expected the 3rd page to be null' );
 

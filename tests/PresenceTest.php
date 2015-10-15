@@ -27,11 +27,16 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         self::$presenceFixture = $fixture->post_apps->channels[0]->presence;
 
         $key = base64_decode( $fixture->cipher->key );
-        $algorithm = $fixture->cipher->algorithm . '-' . $fixture->cipher->keylength . '-' . $fixture->cipher->mode;
+        
+        $cipherParams = new CipherParams( $key );
+        $cipherParams->algorithm = $fixture->cipher->algorithm;
+        $cipherParams->keyLength = $fixture->cipher->keylength;
+        $cipherParams->mode      = $fixture->cipher->mode;
+        $cipherParams->iv        = base64_decode( $fixture->cipher->iv );
 
         $options = array(
             'encrypted' => true,
-            'cipherParams' => new CipherParams( $key, $algorithm )
+            'cipherParams' => $cipherParams,
         );
 
         self::$channel = self::$ably->channel('persisted:presence_fixtures', $options);
@@ -73,11 +78,6 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         $nextPage = $firstPage->next();
         $this->assertEquals( 3, count($nextPage->items), 'Expected 3 presence entries on the 2nd page' );
         $this->assertTrue( $nextPage->isLast(), 'Expected last page' );
-
-        $this->markTestIncomplete(
-          'Ignore `isFirst` for presence pagination as we have no proper way of determining this yet'
-        );
-        $this->assertTrue( $firstPage->isFirst(), 'Expected the page to be first' );
     }
 
     /**
@@ -107,7 +107,6 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         // verify limit / pagination - forwards
         $firstPage = self::$channel->presence->history( array( 'limit' => 3, 'direction' => 'forwards' ) );
 
-        $this->assertTrue( $firstPage->isFirst(), 'Expected the page to be first' );
         $this->assertEquals( 3, count($firstPage->items), 'Expected 3 presence entries' );
 
         $nextPage = $firstPage->next();
@@ -118,7 +117,6 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         // verify limit / pagination - backwards (default)
         $firstPage = self::$channel->presence->history( array( 'limit' => 3 ) );
 
-        $this->assertTrue( $firstPage->isFirst(), 'Expected the page to be first' );
         $this->assertEquals( 3, count($firstPage->items), 'Expected 3 presence entries' );
 
         $nextPage = $firstPage->next();
@@ -188,5 +186,21 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         }
 
         $this->assertEquals( $messageMap['client_decoded'], $messageMap['client_encoded'], 'Expected decrypted and sample data to match' );
+    }
+
+    /**
+     * Ensure clientId and connectionId filters on Presence GET works
+     */
+    public function testFilters() {
+        $presenceClientFilter = self::$channel->presence->get( array( 'clientId' => 'client_string' ) );
+        $this->assertEquals( 1, count($presenceClientFilter->items), 'Expected the clientId filter to return 1 user' );
+
+        $connId = $presenceClientFilter->items[0]->connectionId;
+
+        $presenceConnFilter1 = self::$channel->presence->get( array( 'connectionId' => $connId ) );
+        $this->assertEquals( 6, count($presenceConnFilter1->items), 'Expected the connectionId filter to return 6 users' );
+
+        $presenceConnFilter2 = self::$channel->presence->get( array( 'connectionId' => '*FAKE CONNECTION ID*' ) );
+        $this->assertEquals( 0, count($presenceConnFilter2->items), 'Expected the connectionId filter to return no users' );
     }
 }

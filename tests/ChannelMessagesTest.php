@@ -61,7 +61,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
                 $msgJSON = json_decode( $msg->toJSON() );
                 
                 $this->assertTrue(
-                    strpos( $msgJSON->encoding, $channel->getCipherParams()->algorithm ) !== false,
+                    strpos( $msgJSON->encoding, $channel->getCipherParams()->getAlgorithmString() ) !== false,
                     'Expected message encoding to contain a cipher algorithm'
                 );
                 $this->assertFalse( $msgJSON->data === $payload, 'Expected encrypted message payload not to match original data' );
@@ -109,7 +109,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      * Publish events with data of various datatypes to an aes-128-cbc encrypted channel
      */
     public function testPublishMessagesVariousTypesAES128() {
-        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
+        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes', 128 ));
         $encrypted1 = self::$ably->channels->get( 'persisted:encrypted1', $options );
         
         $this->assertNotNull( $encrypted1->getCipherParams(), 'Expected channel to be encrypted' );
@@ -121,7 +121,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      * Publish events with data of various datatypes to an aes-256-cbc encrypted channel
      */
     public function testPublishMessagesVariousTypesAES256() {
-        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-256-cbc' ));
+        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes', 256 ));
         $encrypted2 = self::$ably->channels->get( 'persisted:encrypted2', $options );
         
         $this->assertNotNull( $encrypted2->getCipherParams(), 'Expected channel to be encrypted' );
@@ -224,16 +224,6 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         } catch (AblyException $e) {
             if ( $e->getCode() != 40003 ) $this->fail('Expected exception error code 40003');
         }
-
-        $msg = new Message();
-        $msg->name = 'null';
-
-        try {
-            $channel->publish( $msg );
-            $this->fail( 'Expected an exception' );
-        } catch (AblyException $e) {
-            if ( $e->getCode() != 40003 ) $this->fail('Expected exception error code 40003');
-        }
     }
 
     /**
@@ -267,7 +257,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         $payload = 'This is a test message';
 
-        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
+        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes', 128 ));
         $encrypted1 = $ably->channel( 'persisted:mismatch1', $options );
         $encrypted1->publish( 'test', $payload );
 
@@ -290,7 +280,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $encrypted = self::$ably->channel( 'persisted:mismatch2' );
         $encrypted->publish( 'test', $payload );
 
-        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
+        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes', 128 ));
         $unencrypted = self::$ably->channel( 'persisted:mismatch2', $options );
         $messages = $unencrypted->history();
         $this->assertNotNull( $messages, 'Expected non-null messages' );
@@ -315,11 +305,11 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         $payload = 'This is a test message';
 
-        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' ));
+        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes', 128 ));
         $encrypted1 = $ably->channel( 'persisted:mismatch3', $options );
         $encrypted1->publish( 'test', $payload );
 
-        $options2 = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'DIFFERENT PASSWORD', 'aes-128-cbc' ));
+        $options2 = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'DIFFERENT PASSWORD', 'aes', 128 ));
         $encrypted2 = $ably->channel( 'persisted:mismatch3', $options2 );
         $messages = $encrypted2->history();
         $msg = $messages->items[0];
@@ -347,7 +337,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         self::$ably->channel( 'cache_test', array(
             'encrypted' => true,
-            'cipherParams' => new CipherParams( 'password', 'aes-128-cbc' )
+            'cipherParams' => new CipherParams( 'password', 'aes', 128 )
         ) );
 
         $this->assertNotNull( $channel3->getCipherParams(), 'Expected the channel to have CipherParams even when specified for a new instance' );
@@ -384,13 +374,108 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $msg->data = hex2bin( '00102030405060708090a0b0c0d0e0f0ff' );
         $this->assertEquals( 'cipher+aes-128-cbc/base64', $this->getMessageEncoding( $msg ), 'Expected empty message encoding' );
     }
+
+    /**
+     * Test if null name and data elements are allowed when publishing messages
+     */
+    public function testNullData() {
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+            'httpClass' => 'tests\HttpSaveWrapper',
+        ) ) );
+
+        $channel = $ably->channels->get( 'testChannel' );
+
+        $msg = new Message();
+        $msg->name = 'onlyName';
+        $msg->data = null;
+
+        $channel->publish( $msg );
+
+        $publishedMsg = json_decode( $ably->http->lastParams );
+
+        $this->assertEquals( $msg->name, $publishedMsg->name );
+        $this->assertFalse( isset( $publishedMsg->data ) );
+
+        $msg = new Message();
+        $msg->name = null;
+        $msg->data = 'onlyData';
+
+        $channel->publish( $msg );
+
+        $publishedMsg = json_decode( $ably->http->lastParams );
+
+        $this->assertEquals( $msg->data, $publishedMsg->data );
+        $this->assertFalse( isset( $publishedMsg->name ) );
+    }
+
+    /**
+     * Check if messages can be assigned a clientId with an anonymous lib instance
+     */
+    public function testClientIdMsg() {
+        $ablyKey = self::$ably;
+        $ablyToken = $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+            'useTokenAuth' => true,
+        ) ) );
+
+        $clientId = 'testClientId';
+        $msg = new Message();
+        $msg->data = 'test';
+        $msg->clientId = $clientId;
+
+        $keyChan = $ablyKey->channels->get( 'persisted:clientIdTestKey' );
+        $keyChan->publish( $msg );
+        $retrievedMsg = $keyChan->history()->items[0];
+
+        $this->assertEquals( $clientId, $retrievedMsg->clientId, 'Expected clientIds to match');
+
+        $tokenChan = $ablyToken->channels->get( 'persisted:clientIdTestToken' );
+        $tokenChan->publish( $msg );
+        $retrievedMsg = $tokenChan->history()->items[0];
+
+        $this->assertEquals( $clientId, $retrievedMsg->clientId, 'Expected clientIds to match');
+    }
+
+    /**
+     * Check if messages are assigned a clientID automatically with a non-anonymous lib instance
+     * Verify that clientID mismatch produces an exception within the library
+     */
+    public function testClientIdLib() {
+        $clientId = 'testClientId';
+
+        $ablyCId = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+            'useTokenAuth' => true,
+            'clientId' => 'testClientId',
+        ) ) );
+
+        $ablyCId->auth->authorise(); // obtain a token
+        $this->assertEquals( $clientId, $ablyCId->auth->getClientId(), 'Expected a token with specified clientId to be used' );
+
+        $msg = new Message();
+        $msg->data = 'test';
+
+        $channel = $ablyCId->channels->get( 'persisted:clientIdTestLib' );
+        $channel->publish( $msg );
+        $retrievedMsg = $channel->history()->items[0];
+
+        $this->assertEquals( $clientId, $retrievedMsg->clientId, 'Expected clientIds to match');
+
+        $msg = new Message();
+        $msg->data = 'test';
+        $msg->clientId = 'DIFFERENT_clientId';
+
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40102 );
+        $channel->publish( $msg );
+    }
 }
 
 
 class HttpMockMsgCounter extends Http {
     public $requestCount = 0;
     
-    public function request($method, $url, $headers = array(), $params = array()) {
+    public function request( $method, $url, $headers = array(), $params = array() ) {
 
         $this->requestCount++;
 
@@ -398,5 +483,19 @@ class HttpMockMsgCounter extends Http {
             'headers' => 'HTTP/1.1 200 OK'."\n",
             'body' => array(),
         );
+    }
+}
+
+
+class HttpSaveWrapper extends Http {
+    public $lastResponse;
+    public $lastHeaders;
+    public $lastParams;
+    
+    public function request( $method, $url, $headers = array(), $params = array() ) {
+        $this->lastHeaders = $headers;
+        $this->lastParams = $params;
+        $this->lastResponse = parent::request( $method, $url, $headers, $params );
+        return $this->lastResponse;
     }
 }

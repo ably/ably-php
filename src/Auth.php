@@ -18,6 +18,7 @@ class Auth {
     private $basicAuth;
     private $tokenDetails;
     private $ably;
+    const TOKEN_EXPIRY_MARGIN = 15000; // a token is considered expired a bit earlier to prevent race conditions
 
     public function __construct( AblyRest $ably, ClientOptions $options ) {
         $this->authOptions = new AuthOptions($options);
@@ -57,20 +58,25 @@ class Auth {
     }
 
     /**
-     * Ensures valid auth credentials are present for the library instance. This may rely on an already-known and valid token, and will obtain a new token if necessary.
+     * Ensures that a valid token is present for the library instance. This may rely on an already-known and valid token,
+     * and will obtain a new token if necessary.
      * In the event that a new token request is made, the specified options are used.
      * If not already using token based auth, this will enable it.
+     * @param array|null $authOptions Overridable auth options, if you don't wish to use the default ones
+     * @param array|null $tokenParams Requested token parameters
+     * @param boolean|null $force Forces generation of a fresh token
+     * @return \Ably\Models\TokenDetails The new token
      */
     public function authorise( $authOptions = array(), $tokenParams = array(), $force = false ) {
         if ( !$force && !empty( $this->tokenDetails ) ) {
             if ( empty( $this->tokenDetails->expires ) ) {
                 // using cached token
                 Log::d( 'Auth::authorise: using cached token, unknown expiration time' );
-                return $this;
-            } else if ( $this->tokenDetails->expires > $this->ably->systemTime() ) {
+                return $this->tokenDetails;
+            } else if ( $this->tokenDetails->expires - self::TOKEN_EXPIRY_MARGIN > $this->ably->systemTime() ) {
                 // using cached token
                 Log::d( 'Auth::authorise: using cached token, expires on ' . date( 'Y-m-d H:i:s', $this->tokenDetails->expires / 1000 ) );
-                return $this;
+                return $this->tokenDetails;
             }
         }
         Log::d( 'Auth::authorise: requesting new token' );
@@ -84,17 +90,17 @@ class Auth {
     /**
      * Get HTTP headers with authentication data
      * Automatically attempts to authorise token requests
+     * @return Array Array of HTTP headers containing an `Authorization` header
      */
     public function getAuthHeaders() {
         $header = array();
         if ( $this->isUsingBasicAuth() ) {
-            $header = array( 'authorization: Basic ' . base64_encode( $this->authOptions->key ) );
-        } else if ( !empty( $this->tokenDetails ) ) {
-            $this->authorise();
-            $header = array( 'authorization: Bearer '. base64_encode( $this->tokenDetails->token ) );
+            $header = array( 'Authorization: Basic ' . base64_encode( $this->authOptions->key ) );
         } else {
-            throw new AblyException( 'Unable to provide auth headers. No auth parameters defined.', 40101, 401 );
+            $this->authorise();
+            $header = array( 'Authorization: Bearer '. base64_encode( $this->tokenDetails->token ) );
         }
+        
         return $header;
     }
 
@@ -106,11 +112,23 @@ class Auth {
     }
 
     /**
-     * Request a new Token
+     * @return string|null Library instance's clientId, if instanced with a clientId
+    */
+    public function getClientId() {
+        if ( !empty( $this->tokenDetails ) && !empty( $this->tokenDetails->clientId ) ) {
+            return $this->tokenDetails->clientId;
+        }
+
+        return null;
+    }
+
+    /**
+     * Request a new token.
      * @param array|null $authOptions Overridable auth options, if you don't wish to use the default ones
      * @param array|null $tokenParams Requested token parameters
      * @param \Ably\Models\ClientOptions|array $options
      * @throws \Ably\Exceptions\AblyException
+     * @return \Ably\Models\TokenDetails The new token
      */
     public function requestToken( $authOptions = array(), $tokenParams = array() ) {
 
@@ -205,6 +223,7 @@ class Auth {
      * signed requests for submission by another client.
      * @param \Ably\Models\AuthOptions $authOptions
      * @param \Ably\Models\TokenParams $tokenParams
+     * @return \Ably\Models\TokenRequest A signed token request
      */
     public function createTokenRequest( $authOptions = array(), $tokenParams = array() ) {
         $authOptions = new AuthOptions( array_merge( $this->authOptions->toArray(), $authOptions ) );
@@ -227,7 +246,7 @@ class Auth {
             $tokenRequest->keyName = $keyName;
         }
         
-        if ( $tokenRequest->queryTime ) {
+        if ( $authOptions->queryTime ) {
             $tokenRequest->timestamp = $this->ably->time();
         } else if ( empty( $tokenRequest->timestamp ) ) {
             $tokenRequest->timestamp = $this->ably->systemTime();

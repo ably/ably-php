@@ -1,6 +1,7 @@
 <?php
 namespace tests;
 use Ably\AblyRest;
+use Ably\Auth;
 use Ably\Exceptions\AblyException;
 
 require_once __DIR__ . '/factories/TestApp.php';
@@ -194,7 +195,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
             'authCallback' => function( $tokenParams ) use( &$ablyKeyAuth ) {
                 $capability = array( 'testchannel' => array('publish') );
                 $tokenParams = array(
-                    'ttl' => 2 * 1000, // 2 seconds
+                    'ttl' => 2 * 1000 + Auth::TOKEN_EXPIRY_MARGIN, // 2 seconds + expiry margin
                     'capability' => $capability,
                 );
                 return $ablyKeyAuth->auth->requestToken( array(), $tokenParams );
@@ -221,31 +222,6 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Automatic token renewal on expiration (known time) should fail with no means of renewal
-     */
-    public function testFailingTokenRenewalKnownExpiration() {
-        $ablyKeyAuth = self::$ably;
-
-        $tokenParams = array(
-            'ttl' => 2 * 1000, // 2 seconds
-        );
-        $tokenDetails = $ablyKeyAuth->auth->requestToken( array(), $tokenParams );
-
-        $options = array_merge( self::$defaultOptions, array(
-            'tokenDetails' => $tokenDetails,
-        ) );
-
-        $ablyTokenAuth = new AblyRest( $options );
-        $channel = $ablyTokenAuth->channel( 'testchannel' );
-        $channel->publish( 'test', 'test' ); // this should work
-
-        sleep(2);
-
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40101 );
-        $channel->publish( 'test', 'test' ); // this should fail
-    }
-
-    /**
      * Automatic token renewal on expiration (unknown time)
      */
     public function testTokenRenewalUnknownExpiration() {
@@ -259,7 +235,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
                     'capability' => $capability,
                 );
                 $tokenDetails = $ablyKeyAuth->auth->requestToken( array(), $tokenParams );
-                return $tokenDetails->token;
+                return $tokenDetails->token; // returning just the token string, not TokenDetails => expiry time is unknown
             }
         ) );
 

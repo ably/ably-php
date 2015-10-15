@@ -41,12 +41,24 @@ class ClientOptions extends AuthOptions {
 
     /**
      * @var string alternate server domain
-     * For use in development environments only.
+     * For development environments only.
      */
-    public $host;
+    public $restHost;
 
     /**
-     * @var string optional prefix to be prepended to $host
+     * @var integer Allows a non-default Ably non-TLS port to be used.
+     * For development environments only.
+     */
+    public $port;
+
+    /**
+     * @var integer Allows a non-default Ably TLS port to be used.
+     * For development environments only.
+     */
+    public $tlsPort;
+
+    /**
+     * @var string optional prefix to be prepended to $restHost
      * Example: 'sandbox' -> 'sandbox-rest.ably.io'
      */
     public $environment;
@@ -70,12 +82,8 @@ class ClientOptions extends AuthOptions {
     public function __construct( $options = array() ) {
         parent::__construct( $options );
 
-        if ( empty( $this->environment ) && getenv( 'ABLY_ENV' ) ) {
-            $this->environment = getenv( 'ABLY_ENV' );
-        }
-
-        if ( empty( $this->host ) ) {
-            $this->host = 'rest.ably.io';
+        if ( empty( $this->restHost ) ) {
+            $this->restHost = 'rest.ably.io';
 
             if ( empty( $this->environment ) ) {
                 $this->fallbackHosts = array(
@@ -91,7 +99,7 @@ class ClientOptions extends AuthOptions {
         }
 
         if ( !empty( $this->environment ) ) {
-            $this->host = $this->environment . '-' . $this->host;
+            $this->restHost = $this->environment . '-' . $this->restHost;
         }
     }
 }
