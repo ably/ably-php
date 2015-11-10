@@ -14,13 +14,6 @@ class ClientOptions extends AuthOptions {
     public $tls = true;
     
     /**
-     * @var string|null A client id, used for identifying this client for presence purposes.
-     * The clientId can be any string. This option is primarily intended to be used in situations where the library is instanced with a key;
-     * note that a clientId may also be implicit in a token used to instance the library; an error will be raised if a clientId specified here conflicts with the clientId implicit in the token.
-     */
-    //public $clientId; // should be in authoptions
-    
-    /**
      * integer a number controlling the verbosity of the output from 1 (minimum, errors only) to 4 (most verbose);
      * @see \Ably\Log
      */

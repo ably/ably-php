@@ -117,30 +117,21 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( 'mock_tokenString', $ably->auth->getTokenDetails()->token, 'Expected mock token to be used' );
         $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
     }
-    
+
     /**
      * Init library with an authUrl that returns a signed TokenRequest
      */
     public function testAuthWithAuthUrlTokenRequest() {
-        $headers = array( 'Test header: yes', 'Another one: no' );
-        $params = array( 'keyName' => 'fakeKeyName', 'test' => 1 );
-        $method = 'PUT';
+        $method = 'POST';
 
         $ably = new AblyRest( array_merge( self::$defaultOptions, array(
             'authUrl' => 'TEST/tokenRequest',
-            'authHeaders' => $headers,
-            'authParams' => $params,
-            'authMethod' => $method,
             'httpClass' => 'tests\HttpMockAuthTest',
         ) ) );
         
         // make a call to trigger a token request
         $ably->auth->authorise();
         
-        $this->assertTrue( is_a( $ably->http, '\tests\HttpMockAuthTest' ) , 'Expected HttpMock class to be used' );
-        $this->assertEquals( $headers, $ably->http->headers, 'Expected authHeaders to match' );
-        $this->assertEquals( $params, $ably->http->params, 'Expected authParams to match' );
-        $this->assertEquals( $method, $ably->http->method, 'Expected authMethod to match' );
         $this->assertEquals( 'mock_token_requestToken', $ably->auth->getTokenDetails()->token, 'Expected mock token to be used' );
         $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
     }
@@ -178,6 +169,47 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * Verify that parameter overriding works properly when using authUrl
+     */
+    public function testAuthWithAuthUrlParams() {
+        $headers = array( 'Test header: yes', 'Another one: no' );
+        $authParams = array( 'param1' => 'value1', 'test' => 1, 'ttl' => 720000 );
+        $overridenTokenParams = array( 'ttl' => 360000 );
+        // authParams and tokenParams should be merged, and since we aren't specifying any clientId when instancing the library,
+        // a special wildcard clientId should be assigned to tokenParams automatically;
+        // `ttl` should be overwritten by $overridenTokenParams
+        $expectedAuthParams = array( 'param1' => 'value1', 'test' => 1, 'clientId' => '*', 'ttl' => 360000 );
+        $method = 'POST';
+
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'authUrl' => 'TEST/tokenRequest',
+            'authHeaders' => $headers,
+            'authParams' => $authParams,
+            'authMethod' => $method,
+            'httpClass' => 'tests\HttpMockAuthTest',
+        ) ) );
+        
+        $ably->auth->authorise( array(), $overridenTokenParams ); // make a call to trigger a token request
+        
+        $this->assertTrue( is_a( $ably->http, '\tests\HttpMockAuthTest' ) , 'Expected HttpMock class to be used' );
+        $this->assertEquals( $headers, $ably->http->headers, 'Expected authHeaders to match' );
+        $this->assertEquals( $expectedAuthParams, $ably->http->params, 'Expected authParams to match' );
+        $this->assertEquals( $method, $ably->http->method, 'Expected authMethod to match' );
+
+        $overridenAuthParams = array(
+            'authHeaders' => array( 'CompletelyNewHeaders: true' ),
+            'authParams' => array( 'completelyNewParams' => 'yes' ),
+        );
+        $expectedAuthParams = array( 'completelyNewParams' => 'yes', 'clientId' => '*', 'ttl' => 360000 );
+        $forceReauth = true;
+
+        $ably->auth->authorise( $overridenAuthParams, $overridenTokenParams, $forceReauth ); // make a call to trigger a token request
+
+        $this->assertEquals( $overridenAuthParams['authHeaders'], $ably->http->headers, 'Expected authHeaders to be completely replaced' );
+        $this->assertEquals( $expectedAuthParams, $ably->http->params, 'Expected authParams to be completely replaced' );
+    }
+
+    /**
      * Init library with a key and clientId; expect token auth to be chosen; expect Auth::getClientId to return the id
      */
     public function testAuthWithKeyAndClientId() {
@@ -190,6 +222,18 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
 
         $ably->auth->authorise();
         $this->assertEquals( 'testClientId', $ably->auth->getClientId(), 'Expected clientId to match the provided id' );
+    }
+
+    /**
+     * Init library with a key and a wildcard clientId; this should throw an exception as wildcard is not allowed here
+     */
+    public function testAuthWithKeyAndClientId() {
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
+
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key'      => self::$testApp->getAppKeyDefault()->string,
+            'clientId' => '*',
+        ) ) );
     }
 
     /**
@@ -351,10 +395,10 @@ class HttpMockAuthTest extends Http {
             $this->method = $method;
             $this->headers = $headers;
             $this->params = $params;
-            
+
             $tokenRequest = new TokenRequest( array(
                 'timestamp' => time()*1000,
-                'keyName' => $params['keyName'],
+                'keyName' => 'fakeKeyName',
                 'mac' => 'not_really_hmac',
             ) );
             
@@ -391,6 +435,8 @@ class HttpMockAuthTest extends Http {
                 'body' => 'mock_token_authurl_tokenString',
             );
         } else if ( preg_match( '/\/keys\/[^\/]*\/requestToken$/', $url ) ) {
+            // token-generating ably endpoint simulation
+
             $tokenDetails = new TokenDetails( array(
                 'token' => 'mock_token_requestToken',
                 'issued' => time()*1000,

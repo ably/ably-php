@@ -51,6 +51,10 @@ class Auth {
         }
 
         $this->tokenDetails = $this->authOptions->tokenDetails;
+
+        if ( $this->authOptions->clientId == '*' ) {
+            throw new AblyException ( 'Reserved name `*` used as a clientId. If you wish to use anonymous auth, please leave the clientId unset.', 40003, 400 );
+        }
     }
 
     public function isUsingBasicAuth() {
@@ -79,6 +83,7 @@ class Auth {
                 return $this->tokenDetails;
             }
         }
+
         Log::d( 'Auth::authorise: requesting new token' );
         $this->tokenDetails = $this->requestToken( $authOptions, $tokenParams );
         $this->authOptions->tokenDetails = $this->tokenDetails;
@@ -115,7 +120,7 @@ class Auth {
      * @return string|null Library instance's clientId, if instanced with a clientId
     */
     public function getClientId() {
-        if ( !empty( $this->tokenDetails ) && !empty( $this->tokenDetails->clientId ) ) {
+        if ( !empty( $this->tokenDetails ) && !empty( $this->tokenDetails->clientId ) && $this->tokenDetails->clientId != '*' ) {
             return $this->tokenDetails->clientId;
         }
 
@@ -138,6 +143,8 @@ class Auth {
 
         if ( empty( $tokenParams->clientId ) ) {
             $tokenParams->clientId = $authOptions->clientId;
+
+            if ( empty( $tokenParams->clientId ) ) $tokenParams->clientId = '*';
         }
 
         // get a signed token request

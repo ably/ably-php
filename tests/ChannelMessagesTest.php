@@ -414,7 +414,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      */
     public function testClientIdMsg() {
         $ablyKey = self::$ably;
-        $ablyToken = $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyToken = new AblyRest( array_merge( self::$defaultOptions, array(
             'key' => self::$testApp->getAppKeyDefault()->string,
             'useTokenAuth' => true,
         ) ) );
@@ -429,7 +429,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $retrievedMsg = $keyChan->history()->items[0];
 
         $this->assertEquals( $clientId, $retrievedMsg->clientId, 'Expected clientIds to match');
-
+        
         $tokenChan = $ablyToken->channels->get( 'persisted:clientIdTestToken' );
         $tokenChan->publish( $msg );
         $retrievedMsg = $tokenChan->history()->items[0];
