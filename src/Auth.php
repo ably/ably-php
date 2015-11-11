@@ -142,16 +142,18 @@ class Auth {
      * @return \Ably\Models\TokenDetails The new token
      */
     public function requestToken( $authOptions = array(), $tokenParams = array() ) {
+        // infer the clientId from default authOptions - if null, use '*'
+        $tokenClientId = empty( $this->authOptions->clientId ) ? '*' : $this->authOptions->clientId;
+        // provided authOptions may override inferred clientId, even with a null value
+        if ( array_key_exists( 'clientId', $authOptions ) ) $tokenClientId = $authOptions['clientId'];
+        // provided tokenParams may override inferred as well as authOptions clientId, even with a null value
+        if ( array_key_exists( 'clientId', $tokenParams ) ) $tokenClientId = $tokenParams['clientId'];
 
         // merge provided auth options with defaults
         $authOptions = new AuthOptions( array_merge( $this->authOptions->toArray(), $authOptions ) );
         $tokenParams = new TokenParams( $tokenParams );
-
-        if ( empty( $tokenParams->clientId ) ) {
-            $tokenParams->clientId = $authOptions->clientId;
-
-            if ( empty( $tokenParams->clientId ) ) $tokenParams->clientId = '*';
-        }
+        
+        $tokenParams->clientId = $tokenClientId;
 
         // get a signed token request
         $signedTokenRequest = null;

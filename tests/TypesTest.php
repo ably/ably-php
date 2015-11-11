@@ -48,6 +48,7 @@ class TypesTest extends \PHPUnit_Framework_TestCase {
             'id',
             'clientId',
             'connectionId',
+            'name',
             'data',
             'encoding',
             'timestamp',
