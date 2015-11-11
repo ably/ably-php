@@ -52,8 +52,7 @@ class Channel {
 
     /**
      * Posts a message to this channel
-     * @param mixed ... Either a Message, array of Messages, or name and data
-     * @param string $data Message data
+     * @param mixed ... Either a Message, array of Message-s, or (string eventName, string data, [string clientId])
      * @throws \Ably\Exceptions\AblyException
      */
     public function publish() {
@@ -62,27 +61,27 @@ class Channel {
         $json = '';
         $authClientId = $this->ably->auth->getClientId();
         
-        if (count($args) == 1 && is_a( $args[0], 'Ably\Models\Message' )) { // single Message
+        if ( count($args) == 1 && is_a( $args[0], 'Ably\Models\Message' ) ) { // single Message
             $msg = $args[0];
 
             if ( !empty( $msg->clientId ) && !empty( $authClientId ) && $msg->clientId != $authClientId) {
                 throw new AblyException( 'Message\'s clientId does not match the clientId of the authorisation token.', 40102, 401 );
             }
 
-            if ($this->options->encrypted) {
+            if ( $this->options->encrypted ) {
                 $msg->setCipherParams( $this->options->cipherParams );
             }
 
             $json = $msg->toJSON();
-        } else if (count($args) == 1 && is_array( $args[0] )) { // array of Messages
+        } else if ( count($args) == 1 && is_array( $args[0] ) ) { // array of Messages
             $jsonArray = array();
 
-            foreach ($args[0] as $msg) {
+            foreach ( $args[0] as $msg ) {
                 if ( !empty( $msg->clientId ) && !empty( $authClientId ) && $msg->clientId != $authClientId) {
                     throw new AblyException( 'Message\'s clientId does not match the clientId of the authorisation token.', 40102, 401 );
                 }
 
-                if ($this->options->encrypted) {
+                if ( $this->options->encrypted ) {
                     $msg->setCipherParams( $this->options->cipherParams );
                 }
 
@@ -90,12 +89,13 @@ class Channel {
             }
             
             $json = '[' . implode( ',', $jsonArray ) . ']';
-        } else if (count($args) == 2) { // name and data
+        } else if ( count($args) >= 2 && count($args) <= 3 ) { // eventName, data[, clientId]
             $msg = new Message();
             $msg->name = $args[0];
             $msg->data = $args[1];
+            if ( count($args) == 3 ) $msg->clientId = $args[2];
 
-            if ($this->options->encrypted) {
+            if ( $this->options->encrypted ) {
                 $msg->setCipherParams( $this->options->cipherParams );
             }
 

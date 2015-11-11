@@ -130,7 +130,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Publish single Message
+     * Publish a single Message
      */
     public function testPublishSingleMessageUnencrypted() {
         $channel = self::$ably->channel( 'persisted:unencryptedSingle' );
@@ -147,6 +147,22 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $this->assertNotNull( $messages, 'Expected non-null messages' );
         $this->assertEquals( 1, count($messages->items), 'Expected 1 message' );
         $this->assertEquals( $data, $messages->items[0]->data, 'Expected message contents to match' );
+    }
+
+    /**
+     * Publish a single message by passing data to Channel::publish() directly
+     */
+    public function testPublishSingleMessageUnencryptedParams() {
+        $channel = self::$ably->channel( 'persisted:unencryptedSingleParams' );
+
+        $channel->publish( 'testEvent', 'testPayload', 'testClientId' );
+
+        $messages = $channel->history();
+        $this->assertNotNull( $messages, 'Expected non-null messages' );
+        $this->assertEquals( 1, count($messages->items), 'Expected 1 message' );
+        $this->assertEquals( 'testEvent',    $messages->items[0]->name,     'Expected message event name to match' );
+        $this->assertEquals( 'testPayload',  $messages->items[0]->data,     'Expected message payload to match' );
+        $this->assertEquals( 'testClientId', $messages->items[0]->clientId, 'Expected message clientId to match' );
     }
 
     /**
@@ -464,10 +480,17 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         $msg = new Message();
         $msg->data = 'test';
+        $msg->clientId = 'testClientId';
+
+        $channel = $ablyCId->channels->get( 'persisted:clientIdTestLib' );
+        $channel->publish( $msg ); // matching clientIds, this should work
+
+        $msg = new Message();
+        $msg->data = 'test';
         $msg->clientId = 'DIFFERENT_clientId';
 
         $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40102 );
-        $channel->publish( $msg );
+        $channel->publish( $msg ); // mismatched clientIds, should throw an exception
     }
 }
 
