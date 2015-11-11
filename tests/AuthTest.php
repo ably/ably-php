@@ -227,7 +227,7 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
     /**
      * Init library with a key and a wildcard clientId; this should throw an exception as wildcard is not allowed here
      */
-    public function testAuthWithKeyAndClientId() {
+    public function testAuthWithWildcardClientId() {
         $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
 
         $ably = new AblyRest( array_merge( self::$defaultOptions, array(
@@ -382,6 +382,37 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         $ably->get("/dummy_test");
 
         $this->assertRegExp('/Authorization\s*:\s*Bearer\s+'.base64_encode($fakeToken).'/i', $ably->http->headers[0]);
+    }
+
+    /**
+     * Check is Auth::getClientId is returning expected values
+     */
+    public function testClientIdBehavior() {
+        // test null clientId + a wildcard in an actual generated token
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+        ) ) );
+
+        $ably->auth->authorise(); // get a token
+
+        $this->assertEquals( '*', $ably->auth->getTokenDetails()->clientId, 'Expected tokenDetails clientId to be a wildcard *' );
+        $this->assertNull( $ably->auth->getClientId(), 'Expected clientId to be null' );
+
+        // test specified clientId
+        $ablyCid = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+            'clientId' => 'testClientId',
+        ) ) );
+
+        $this->assertEquals( 'testClientId', $ablyCid->auth->getClientId() );
+
+        // test clientId overridden by authOptions
+        $ablyCid->auth->authorise( array( 'clientId' => 'overriddenClientId_authOptions' ), array() );
+        $this->assertEquals( 'overriddenClientId_authOptions', $ablyCid->auth->getClientId() );
+
+        // test clientId overridden by tokenParams
+        $ablyCid->auth->authorise( array(), array( 'clientId' => 'overriddenClientId_tokenParams' ), $force = true );
+        $this->assertEquals( 'overriddenClientId_tokenParams', $ablyCid->auth->getClientId() );
     }
 }
 

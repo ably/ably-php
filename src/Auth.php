@@ -120,8 +120,14 @@ class Auth {
      * @return string|null Library instance's clientId, if instanced with a clientId
     */
     public function getClientId() {
-        if ( !empty( $this->tokenDetails ) && !empty( $this->tokenDetails->clientId ) && $this->tokenDetails->clientId != '*' ) {
-            return $this->tokenDetails->clientId;
+        if ( empty( $this->tokenDetails ) ) {
+            if ( !empty( $this->authOptions->clientId ) ) {
+                return $this->authOptions->clientId;
+            }
+        } else {
+            if ( !empty( $this->tokenDetails->clientId ) && $this->tokenDetails->clientId != '*' ) {
+                return $this->tokenDetails->clientId;
+            }
         }
 
         return null;
