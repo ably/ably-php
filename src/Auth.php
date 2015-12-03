@@ -66,12 +66,12 @@ class Auth {
      * and will obtain a new token if necessary.
      * In the event that a new token request is made, the specified options are used.
      * If not already using token based auth, this will enable it.
-     * @param array|null $authOptions Overridable auth options, if you don't wish to use the default ones
      * @param array|null $tokenParams Requested token parameters
+     * @param array|null $authOptions Overridable auth options, if you don't wish to use the default ones
      * @param boolean|null $force Forces generation of a fresh token
      * @return \Ably\Models\TokenDetails The new token
      */
-    public function authorise( $authOptions = array(), $tokenParams = array(), $force = false ) {
+    public function authorise( $tokenParams = array(), $authOptions = array(), $force = false ) {
         if ( !$force && !empty( $this->tokenDetails ) ) {
             if ( empty( $this->tokenDetails->expires ) ) {
                 // using cached token
@@ -85,7 +85,7 @@ class Auth {
         }
 
         Log::d( 'Auth::authorise: requesting new token' );
-        $this->tokenDetails = $this->requestToken( $authOptions, $tokenParams );
+        $this->tokenDetails = $this->requestToken( $tokenParams, $authOptions );
         $this->authOptions->tokenDetails = $this->tokenDetails;
         $this->basicAuth = false;
 
@@ -135,13 +135,13 @@ class Auth {
 
     /**
      * Request a new token.
-     * @param array|null $authOptions Overridable auth options, if you don't wish to use the default ones
      * @param array|null $tokenParams Requested token parameters
+     * @param array|null $authOptions Overridable auth options, if you don't wish to use the default ones
      * @param \Ably\Models\ClientOptions|array $options
      * @throws \Ably\Exceptions\AblyException
      * @return \Ably\Models\TokenDetails The new token
      */
-    public function requestToken( $authOptions = array(), $tokenParams = array() ) {
+    public function requestToken( $tokenParams = array(), $authOptions = array() ) {
         // infer the clientId from default authOptions - if null, use '*'
         $tokenClientId = empty( $this->authOptions->clientId ) ? '*' : $this->authOptions->clientId;
         // provided authOptions may override inferred clientId, even with a null value

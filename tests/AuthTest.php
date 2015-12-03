@@ -189,7 +189,7 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
             'httpClass' => 'tests\HttpMockAuthTest',
         ) ) );
         
-        $ably->auth->authorise( array(), $overridenTokenParams ); // make a call to trigger a token request
+        $ably->auth->authorise( $overridenTokenParams ); // make a call to trigger a token request
         
         $this->assertTrue( is_a( $ably->http, '\tests\HttpMockAuthTest' ) , 'Expected HttpMock class to be used' );
         $this->assertEquals( $headers, $ably->http->headers, 'Expected authHeaders to match' );
@@ -203,7 +203,7 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         $expectedAuthParams = array( 'completelyNewParams' => 'yes', 'clientId' => '*', 'ttl' => 360000 );
         $forceReauth = true;
 
-        $ably->auth->authorise( $overridenAuthParams, $overridenTokenParams, $forceReauth ); // make a call to trigger a token request
+        $ably->auth->authorise( $overridenTokenParams, $overridenAuthParams, $forceReauth ); // make a call to trigger a token request
 
         $this->assertEquals( $overridenAuthParams['authHeaders'], $ably->http->headers, 'Expected authHeaders to be completely replaced' );
         $this->assertEquals( $expectedAuthParams, $ably->http->params, 'Expected authParams to be completely replaced' );
@@ -407,11 +407,11 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( 'testClientId', $ablyCid->auth->getClientId() );
 
         // test clientId overridden by authOptions
-        $ablyCid->auth->authorise( array( 'clientId' => 'overriddenClientId_authOptions' ), array() );
+        $ablyCid->auth->authorise( array(), array( 'clientId' => 'overriddenClientId_authOptions' ) );
         $this->assertEquals( 'overriddenClientId_authOptions', $ablyCid->auth->getClientId() );
 
         // test clientId overridden by tokenParams
-        $ablyCid->auth->authorise( array(), array( 'clientId' => 'overriddenClientId_tokenParams' ), $force = true );
+        $ablyCid->auth->authorise( array( 'clientId' => 'overriddenClientId_tokenParams' ), array(), $force = true );
         $this->assertEquals( 'overriddenClientId_tokenParams', $ablyCid->auth->getClientId() );
     }
 }

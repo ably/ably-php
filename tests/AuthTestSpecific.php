@@ -28,7 +28,7 @@ class AuthTestSpecific extends \PHPUnit_Framework_TestCase {
             'key' => self::$testApp->getAppKeyDefault()->string,
         ) ) );
 
-        $tokenDetails = $ablyMain->auth->requestToken( array(), array( 'clientId' => null ) ); // this will override the implicit '*'
+        $tokenDetails = $ablyMain->auth->requestToken( array( 'clientId' => null ) ); // this will override the implicit '*'
 
         $ablyClient = new AblyRest( array_merge( self::$defaultOptions, array(
             'tokenDetails' => $tokenDetails,
@@ -51,7 +51,7 @@ class AuthTestSpecific extends \PHPUnit_Framework_TestCase {
             'key' => self::$testApp->getAppKeyDefault()->string,
         ) ) );
 
-        $tokenDetails = $ablyMain->auth->requestToken( array(), array( 'clientId' => null ) ); // this will override the implicit '*'
+        $tokenDetails = $ablyMain->auth->requestToken( array( 'clientId' => null ) ); // this will override the implicit '*'
 
         $ablyClient = new AblyRest( array_merge( self::$defaultOptions, array(
             'tokenDetails' => $tokenDetails,
@@ -73,7 +73,7 @@ class AuthTestSpecific extends \PHPUnit_Framework_TestCase {
             'key' => self::$testApp->getAppKeyDefault()->string,
         ) ) );
 
-        $tokenDetails = $ablyMain->auth->requestToken( array(), array( 'clientId' => '*' ) );
+        $tokenDetails = $ablyMain->auth->requestToken( array( 'clientId' => '*' ) );
 
         $ablyClient = new AblyRest( array_merge( self::$defaultOptions, array(
             'tokenDetails' => $tokenDetails,
@@ -97,7 +97,7 @@ class AuthTestSpecific extends \PHPUnit_Framework_TestCase {
             'key' => self::$testApp->getAppKeyDefault()->string,
         ) ) );
 
-        $tokenDetails = $ablyMain->auth->requestToken( array(), array( 'clientId' => '*' ) );
+        $tokenDetails = $ablyMain->auth->requestToken( array( 'clientId' => '*' ) );
 
         $ablyClient = new AblyRest( array_merge( self::$defaultOptions, array(
             'tokenDetails' => $tokenDetails,
