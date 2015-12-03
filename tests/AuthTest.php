@@ -308,11 +308,11 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
             'key' => self::$testApp->getAppKeyDefault()->string,
         ) ) );
 
-        $tokenRequest = $ablyKey->auth->createTokenRequest(array(
+        $tokenRequest = $ablyKey->auth->createTokenRequest( array(), array(
             'ttl' => 60 * 1000,
         ));
 
-        $tokenRequest2 = $ablyKey->auth->createTokenRequest(array(
+        $tokenRequest2 = $ablyKey->auth->createTokenRequest( array(), array(
             'ttl' => 60 * 1000,
         ));
 

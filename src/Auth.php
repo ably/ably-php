@@ -203,7 +203,7 @@ class Auth {
             }
         } elseif ( !empty( $authOptions->key ) ) {
             Log::d( 'Auth::requestToken:', 'using token auth with client-side signing' );
-            $signedTokenRequest = $this->createTokenRequest( $authOptions->toArray(), $tokenParams->toArray() );
+            $signedTokenRequest = $this->createTokenRequest( $tokenParams->toArray(), $authOptions->toArray() );
         } else {
             Log::e( 'Auth::requestToken:', 'Unable to request a Token, auth options don\'t provide means to do so' );
             throw new AblyException( 'Unable to request a Token, auth options don\'t provide means to do so', 40101, 401 );
@@ -236,11 +236,11 @@ class Auth {
      * Create a signed token request based on known credentials
      * and the given token params. This would typically be used if creating
      * signed requests for submission by another client.
-     * @param \Ably\Models\AuthOptions $authOptions
      * @param \Ably\Models\TokenParams $tokenParams
+     * @param \Ably\Models\AuthOptions $authOptions
      * @return \Ably\Models\TokenRequest A signed token request
      */
-    public function createTokenRequest( $authOptions = array(), $tokenParams = array() ) {
+    public function createTokenRequest( $tokenParams = array(), $authOptions = array() ) {
         $authOptions = new AuthOptions( array_merge( $this->authOptions->toArray(), $authOptions ) );
         $tokenParams = new TokenParams( $tokenParams );
         $keyParts = explode( ':', $authOptions->key );
