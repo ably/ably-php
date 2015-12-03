@@ -11,18 +11,20 @@ use Ably\Exceptions\AblyRequestException;
  */
 class AblyRest {
 
+    const API_VERSION = '0.8';
+
     private $options;
 
     /**
-     * @var \Ably\Http $http Class for making HTTP requests
+     * @var \Ably\Http $http object for making HTTP requests
      */
     public $http;
     /**
-     * @var \Ably\Auth $auth Class providing authorisation functionality
+     * @var \Ably\Auth $auth object providing authorisation functionality
      */
     public $auth;
     /**
-     * @var \Ably\Channels $channels Class for creating and releasing channels
+     * @var \Ably\Channels $channels object for creating and releasing channels
      */
     public $channels;
 
