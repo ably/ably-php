@@ -286,7 +286,7 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
 
         $ablyTimeout = new AblyRest( array(
             'key' => 'fake.key:veryFake',
-            'hostTimeout' => 50, // 50 ms
+            'httpRequestTimeout' => 50, // 50 ms
         ));
 
         $ably->http->get('https://cdn.ably.io/lib/ably.js'); // should work

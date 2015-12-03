@@ -53,7 +53,7 @@ class AblyRest {
         }
 
         $httpClass = $this->options->httpClass;
-        $this->http = new $httpClass( $this->options->hostTimeout );
+        $this->http = new $httpClass( $this->options->httpRequestTimeout );
         $this->auth = new Auth( $this, $this->options );
         $this->channels = new Channels( $this );
         

@@ -141,7 +141,20 @@ class TypesTest extends \PHPUnit_Framework_TestCase {
             'environment',
             'restHost',
             'port',
-            'tlsPort'
+            'tlsPort',
+            'httpRequestTimeout',
+        ) );
+    }
+
+    public function testAuthOptionsType() {
+        $this->verifyClassMembers( '\Ably\Models\ClientOptions', array(
+            'key',
+            'authCallback',
+            'authUrl',
+            'authMethod',
+            'authHeaders',
+            'authParams',
+            'queryTime',
         ) );
     }
 

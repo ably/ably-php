@@ -15,6 +15,7 @@ use Ably\Exceptions\AblyException;
  */
 class Auth {
     private $authOptions;
+    private $defaultTokenParams;
     private $basicAuth;
     private $tokenDetails;
     private $ably;
@@ -22,6 +23,7 @@ class Auth {
 
     public function __construct( AblyRest $ably, ClientOptions $options ) {
         $this->authOptions = new AuthOptions($options);
+        $this->defaultTokenParams = $options->defaultTokenParams;
         $this->ably = $ably;
 
         if ( empty( $this->authOptions->useTokenAuth ) && $this->authOptions->key && empty( $this->authOptions->clientId ) ) {
@@ -151,7 +153,7 @@ class Auth {
 
         // merge provided auth options with defaults
         $authOptions = new AuthOptions( array_merge( $this->authOptions->toArray(), $authOptions ) );
-        $tokenParams = new TokenParams( $tokenParams );
+        $tokenParams = new TokenParams( array_merge( $this->defaultTokenParams->toArray(), $tokenParams ) );
         
         $tokenParams->clientId = $tokenClientId;
 
@@ -242,7 +244,7 @@ class Auth {
      */
     public function createTokenRequest( $tokenParams = array(), $authOptions = array() ) {
         $authOptions = new AuthOptions( array_merge( $this->authOptions->toArray(), $authOptions ) );
-        $tokenParams = new TokenParams( $tokenParams );
+        $tokenParams = new TokenParams( array_merge( $this->defaultTokenParams->toArray(), $tokenParams ) );
         $keyParts = explode( ':', $authOptions->key );
         
         if ( count( $keyParts ) != 2 ) {

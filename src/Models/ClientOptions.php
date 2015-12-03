@@ -62,9 +62,14 @@ class ClientOptions extends AuthOptions {
     public $fallbackHosts;
 
     /**
+     * @var \Ably\Models\TokenParams defaultTokenParams – overrides the client library defaults described in TokenParams
+     */
+    public $defaultTokenParams;
+
+    /**
      * @var integer connection timeout after which a next fallback host is used
      */
-    public $hostTimeout = 15000;
+    public $httpRequestTimeout = 15000;
 
     /**
      * @var string a class that should be used for making HTTP connections
@@ -89,6 +94,10 @@ class ClientOptions extends AuthOptions {
 
                 shuffle( $this->fallbackHosts );
             }
+        }
+
+        if ( empty( $this->defaultTokenParams ) ) {
+            $this->defaultTokenParams = new TokenParams();
         }
 
         if ( !empty( $this->environment ) ) {
