@@ -153,11 +153,9 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
 
         $ablyCId = new AblyRest( array_merge( self::$defaultOptions, array(
             'key' => self::$testApp->getAppKeyDefault()->string,
-            'useTokenAuth' => true,
-            'clientId' => 'testClientId',
+            'clientId' => $clientId,
         ) ) );
 
-        $ablyCId->auth->authorise(); // obtain a token
         $this->assertEquals( $clientId, $ablyCId->auth->getClientId(), 'Expected a token with specified clientId to be used' );
 
         $msg = new Message();
@@ -168,6 +166,8 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
         $retrievedMsg = $channel->history()->items[0];
 
         $this->assertEquals( $clientId, $retrievedMsg->clientId, 'Expected clientIds to match');
+        $this->assertFalse( $ablyCId->auth->isUsingBasicAuth(), 'Expected library to switch to token auth');
+        $this->assertEquals( $clientId, $ablyCId->auth->getTokenDetails()->clientId, 'Expected auth token to be bound to the provided clientId');
 
         $msg = new Message();
         $msg->data = 'test';
