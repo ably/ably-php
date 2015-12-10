@@ -74,6 +74,14 @@ class Auth {
      * @return \Ably\Models\TokenDetails The new token
      */
     public function authorise( $tokenParams = array(), $authOptions = array(), $force = false ) {
+
+        if ( !empty( $tokenParams ) ) {
+            $this->defaultTokenParams = new TokenParams( array_merge( $this->defaultTokenParams->toArray(), $tokenParams ) );
+        }
+        if ( !empty( $authOptions ) ) {
+            $this->defaultAuthOptions =  new AuthOptions( array_merge( $this->defaultAuthOptions->toArray(), $authOptions ) );
+        }
+
         if ( !$force && !empty( $this->tokenDetails ) ) {
             if ( empty( $this->tokenDetails->expires ) ) {
                 // using cached token
@@ -87,8 +95,7 @@ class Auth {
         }
 
         Log::d( 'Auth::authorise: requesting new token' );
-        $this->tokenDetails = $this->requestToken( $tokenParams, $authOptions );
-        // $this->defaultAuthOptions->tokenDetails = $this->tokenDetails;
+        $this->tokenDetails = $this->requestToken(); // parameters omitted as they get merged into defaults (see above)
         $this->basicAuth = false;
 
         return $this->tokenDetails;

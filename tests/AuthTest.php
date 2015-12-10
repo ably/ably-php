@@ -319,12 +319,36 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         $tokenOriginal = $ably->auth->authorise();
 
         $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
+        $this->assertInstanceOf( 'Ably\Models\TokenDetails', $tokenOriginal, 'Expected authorise to return a TokenDetails object' );
 
         $ably->auth->authorise();
         $this->assertEquals( $tokenOriginal->token, $ably->auth->getTokenDetails()->token, 'Expected token not to renew' );
 
         $ably->auth->authorise(array(), array(), $force = true);
         $this->assertFalse( $tokenOriginal->token == $ably->auth->getTokenDetails()->token, 'Expected token to renew' );
+    }
+
+    /**
+     * Verify that authorise() stores the provided parameters and uses them as defaults from then on
+     */
+    public function testAuthoriseRememberDefaults() {
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+            'clientId' => 'originalClientId',
+        ) ) );
+
+        $token1 = $ably->auth->authorise(array(
+            'ttl' => 10000,
+        ), array(
+            'clientId' => 'overridenClientId',
+        ));
+
+        $forceReauth = true;
+        $token2 = $ably->auth->authorise( array(), array(), $forceReauth );
+
+        $this->assertFalse( $token1 == $token2, 'Expected different tokens to be issued') ;
+        $this->assertEquals( 'overridenClientId', $ably->auth->getClientId(), 'Expected to use a new clientId as a default' );
+        $this->assertLessThan( $ably->systemTime() + 20000, $token2->expires, 'Expected to use a new ttl as a default' );
     }
 
     /**
