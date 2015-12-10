@@ -10,7 +10,7 @@ class CurlWrapper {
 
     public function init( $url = null ) {
         $handle = curl_init( $url );
-        $commands[$handle] = array(
+        $this->commands[(int) $handle] = array(
             'prefix' => 'curl',
             'command' => ' ',
             'url' => $url ? : '',
@@ -20,13 +20,13 @@ class CurlWrapper {
     }
 
     public function setOpt( $handle, $option, $value ) {
-        if ( $option == CURLOPT_URL ) $commands[$handle]['url'] = $value;
-        else if ( $option == CURLOPT_POST && $value ) $commands[$handle]['command'] .= '-X POST ';
-        else if ( $option == CURLOPT_CUSTOMREQUEST ) $commands[$handle]['command'] .= '-X ' . $value . ' ';
-        else if ( $option == CURLOPT_POSTFIELDS ) $commands[$handle]['command'] .= '--data "'. str_replace( '"', '\"', $value ) .'" ';
+        if ( $option == CURLOPT_URL ) $this->commands[(int) $handle]['url'] = $value;
+        else if ( $option == CURLOPT_POST && $value ) $this->commands[(int) $handle]['command'] .= '-X POST ';
+        else if ( $option == CURLOPT_CUSTOMREQUEST ) $this->commands[(int) $handle]['command'] .= '-X ' . $value . ' ';
+        else if ( $option == CURLOPT_POSTFIELDS ) $this->commands[(int) $handle]['command'] .= '--data "'. str_replace( '"', '\"', $value ) .'" ';
         else if ( $option == CURLOPT_HTTPHEADER ) {
             foreach($value as $header) {
-                $commands[$handle]['command'] .= '-H "' . str_replace( '"', '\"', $header ).'" ';
+                $this->commands[(int) $handle]['command'] .= '-H "' . str_replace( '"', '\"', $header ).'" ';
             }
         }
 
@@ -38,7 +38,7 @@ class CurlWrapper {
     }
 
     public function close( $handle ) {
-        unset( $commands[$handle] );
+        unset( $this->commands[(int) $handle] );
 
         return curl_close( $handle );
     }
@@ -59,6 +59,6 @@ class CurlWrapper {
      * Retrieve a command pastable to terminal for a handle
      */
     public function getCommand( $handle ) {
-        return $commands[$handle]['prefix'] . $commands[$handle]['command'] . $commands[$handle]['url'];
+        return $this->commands[(int) $handle]['prefix'] . $this->commands[(int) $handle]['command'] . $this->commands[(int) $handle]['url'];
     }
 }
