@@ -128,7 +128,7 @@ class CurlWrapperMock extends CurlWrapper {
 
 class HttpMock extends Http {
     public function __construct() {
-        parent::__construct();
+        parent::__construct(new \Ably\Models\ClientOptions());
         $this->curl = new CurlWrapperMock();
     }
 

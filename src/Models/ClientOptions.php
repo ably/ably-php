@@ -67,9 +67,19 @@ class ClientOptions extends AuthOptions {
     public $defaultTokenParams;
 
     /**
+     * @var integer Timeout for opening the connection
+     */
+    public $httpOpenTimeout = 4000;
+
+    /**
      * @var integer connection timeout after which a next fallback host is used
      */
     public $httpRequestTimeout = 15000;
+
+    /**
+     * @var integer Max number of fallback host retries for HTTP requests that fail due to network issues or server problems
+     */
+    public $httpMaxRetryCount = 3;
 
     /**
      * @var string a class that should be used for making HTTP connections

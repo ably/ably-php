@@ -17,12 +17,16 @@ class Http {
      * Default: 'json'. 'msgpack' support may be added in future
      */
     protected $postDataFormat;
+
     /**
-     * @var integer $timeout Timeout for a cURL request in seconds.
-     * Note that the same value is used both for connection and waiting for data, which means that
-     * in worst case scenario, the total time for request could be almost double the specified value.
+     * @var integer $timeout Timeout for a cURL connection in ms.
      */
-    protected $timeout;
+    protected $connectTimeout;
+    
+    /**
+     * @var integer $timeout Timeout for a cURL request in ms.
+     */
+    protected $requestTimeout;
 
     /**
      * @var \Ably\Utils\CurlWrapper $curl Holds a CurlWrapper instance used for building requests.
@@ -32,9 +36,10 @@ class Http {
     /**
      * Constructor
      */
-    public function __construct( $timeout = 10000, $postDataFormat = 'json' ) {
-        $this->postDataFormat = $postDataFormat;
-        $this->timeout = $timeout;
+    public function __construct( $clientOptions ) {
+        $this->postDataFormat = $clientOptions->useBinaryProtocol ? 'msgpack' : 'json';
+        $this->connectTimeout = $clientOptions->httpOpenTimeout;
+        $this->requestTimeout = $clientOptions->httpRequestTimeout;
         $this->curl = new CurlWrapper();
     }
 
@@ -84,8 +89,8 @@ class Http {
 
         $ch = $this->curl->init($url);
 
-        $this->curl->setOpt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->timeout); 
-        $this->curl->setOpt($ch, CURLOPT_TIMEOUT_MS, $this->timeout);
+        $this->curl->setOpt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeout); 
+        $this->curl->setOpt($ch, CURLOPT_TIMEOUT_MS, $this->requestTimeout);
 
         if (!isset( $headers['X-Ably-Version'] )) {
             $headers['X-Ably-Version'] = AblyRest::API_VERSION;

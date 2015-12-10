@@ -142,8 +142,15 @@ class TypesTest extends \PHPUnit_Framework_TestCase {
             'restHost',
             'port',
             'tlsPort',
+            'httpOpenTimeout',
             'httpRequestTimeout',
+            'httpMaxRetryCount',
         ) );
+
+        $co = new \Ably\Models\ClientOptions();
+        $this->assertEquals( 4000, $co->httpOpenTimeout );
+        $this->assertEquals( 15000, $co->httpRequestTimeout );
+        $this->assertEquals( 3, $co->httpMaxRetryCount );
     }
 
     public function testAuthOptionsType() {

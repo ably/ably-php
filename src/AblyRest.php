@@ -53,7 +53,7 @@ class AblyRest {
         }
 
         $httpClass = $this->options->httpClass;
-        $this->http = new $httpClass( $this->options->httpRequestTimeout );
+        $this->http = new $httpClass( $this->options );
         $this->auth = new Auth( $this, $this->options );
         $this->channels = new Channels( $this );
         
@@ -186,7 +186,7 @@ class AblyRest {
         }
         catch (AblyRequestException $e) {
             if ( $e->getCode() >= 50000 ) {
-                if ( $attempt < count( $this->options->fallbackHosts ) ) {
+                if ( $attempt < min( $this->options->httpMaxRetryCount, count( $this->options->fallbackHosts ) ) ) {
                     return $this->requestWithFallback( $method, $path, $headers, $params, $attempt + 1);
                 } else {
                     Log::e( 'Failed to connect to server and all of the fallback servers.' );
