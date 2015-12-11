@@ -298,7 +298,8 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Verify that custom timeout works
+     * Verify that custom request timeout works.
+     * Connection/open timeout not reliably testable.
      */
     public function testHttpTimeout() {
         $ably = new AblyRest( array(

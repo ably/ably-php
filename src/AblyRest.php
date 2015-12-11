@@ -54,7 +54,8 @@ class AblyRest {
 
         $httpClass = $this->options->httpClass;
         $this->http = new $httpClass( $this->options );
-        $this->auth = new Auth( $this, $this->options );
+        $authClass = $this->options->authClass;
+        $this->auth = new $authClass( $this, $this->options );
         $this->channels = new Channels( $this );
         
         return $this;

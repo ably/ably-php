@@ -2,6 +2,7 @@
 namespace tests;
 use Ably\AblyRest;
 use Ably\Http;
+use Ably\Auth;
 use Ably\Models\TokenDetails;
 use Ably\Models\TokenRequest;
 use Ably\Exceptions\AblyRequestException;
@@ -307,16 +308,21 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Verify that authorise() switches to token auth, keeps using the same token, and renews it when forced
+     * Verify that authorise() switches to token auth, calls requestToken, keeps using the same token, and renews it when forced
      */
     public function testAuthorise() {
         $ably = new AblyRest( array_merge( self::$defaultOptions, array(
             'key' => self::$testApp->getAppKeyDefault()->string,
+            'authClass' => 'tests\AuthMockAuthTest'
         ) ) );
 
         $this->assertTrue( $ably->auth->isUsingBasicAuth(), 'Expected basic auth to be used' );
+        
+        $this->assertFalse( $ably->auth->requestTokenCalled, 'Expected requestToken not to be called before using authorise()' );
 
         $tokenOriginal = $ably->auth->authorise();
+
+        $this->assertTrue( $ably->auth->requestTokenCalled, 'Expected authorise() to call requestToken()' );
 
         $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
         $this->assertInstanceOf( 'Ably\Models\TokenDetails', $tokenOriginal, 'Expected authorise to return a TokenDetails object' );
@@ -456,5 +462,16 @@ class HttpMockAuthTest extends Http {
                 'body' => (object) array('defaultRoute' => true),
             );
         }
+    }
+}
+
+class AuthMockAuthTest extends Auth {
+    public $requestTokenCalled = false;
+
+    public function requestToken( $tokenParams = array(), $authOptions = array() ) {
+        $this->requestTokenCalled = true;
+
+        $args = func_get_args();
+        return call_user_func_array( array( 'parent', __FUNCTION__ ), $args ); // passthru
     }
 }

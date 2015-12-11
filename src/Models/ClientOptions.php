@@ -68,6 +68,7 @@ class ClientOptions extends AuthOptions {
 
     /**
      * @var integer Timeout for opening the connection
+     * Warning: may be rounded down on some OSes and values < 1000 will always fail in that case.
      */
     public $httpOpenTimeout = 4000;
 
@@ -83,9 +84,15 @@ class ClientOptions extends AuthOptions {
 
     /**
      * @var string a class that should be used for making HTTP connections
-     * For use in development environments only.
+     * To allow mocking in tests.
      */
     public $httpClass = 'Ably\Http';
+
+    /**
+     * @var string a class that should be used for Auth
+     * To allow mocking in tests.
+     */
+    public $authClass = 'Ably\Auth';
 
     public function __construct( $options = array() ) {
         parent::__construct( $options );
