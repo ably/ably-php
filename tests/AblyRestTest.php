@@ -179,6 +179,7 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
         $opts = array_merge ( $defaultOpts->toArray(), array(
             'key' => 'fake.key:veryFake',
             'httpClass' => 'tests\HttpMockInitTestTimeout',
+            'httpMaxRetryCount' => 5,
         ) );
         $ably = new AblyRest( $opts );
         try {
@@ -238,6 +239,7 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
         $opts = array(
             'key' => 'fake.key:veryFake',
             'httpClass' => 'tests\HttpMockInitTestTimeout',
+            'httpMaxRetryCount' => 5,
         );
         $ably = new AblyRest( $opts );
         $ably->http->failAttempts = 3;
@@ -245,6 +247,25 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
         
         $this->assertEquals( 999999, $data, 'Expected to receive test data' );
         $this->assertEquals( 3, count( $ably->http->failedHosts ), 'Expected 3 hosts to fail' );
+    }
+
+    /**
+     * Verify that the httpMaxRetryCount option is honored
+     */
+    public function testMaxRetryCount() {
+        $opts = array(
+            'key' => 'fake.key:veryFake',
+            'httpClass' => 'tests\HttpMockInitTestTimeout',
+            'httpMaxRetryCount' => 2,
+        );
+
+        $ably = new AblyRest( $opts );
+        try {
+            $ably->time(); // make a request
+            $this->fail('Expected the request to fail');
+        } catch(AblyRequestException $e) {
+            $this->assertEquals( 3, count($ably->http->failedHosts), 'Expected to have tried main host and 2 fallback hosts' );
+        }
     }
 
     /**
@@ -277,7 +298,8 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Verify that custom timeout works
+     * Verify that custom request timeout works.
+     * Connection/open timeout not reliably testable.
      */
     public function testHttpTimeout() {
         $ably = new AblyRest( array(
@@ -286,7 +308,7 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
 
         $ablyTimeout = new AblyRest( array(
             'key' => 'fake.key:veryFake',
-            'hostTimeout' => 50, // 50 ms
+            'httpRequestTimeout' => 50, // 50 ms
         ));
 
         $ably->http->get('https://cdn.ably.io/lib/ably.js'); // should work

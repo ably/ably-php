@@ -1,9 +1,11 @@
 <?php
 namespace Ably;
 
+use Ably\AblyRest;
 use Ably\Log;
 use Ably\Exceptions\AblyException;
 use Ably\Exceptions\AblyRequestException;
+use Ably\Utils\CurlWrapper;
 
 /**
  * Makes HTTP requests using cURL
@@ -11,23 +13,34 @@ use Ably\Exceptions\AblyRequestException;
 class Http {
 
     /**
-     * @var string $postDataFormat How $params is interpreted when sent as a string
+     * @var string $postDataFormat How $params is interpreted when sent as a string.
      * Default: 'json'. 'msgpack' support may be added in future
      */
     protected $postDataFormat;
+
     /**
-     * @var integer $timeout Timeout for a cURL request in seconds.
-     * Note that the same value is used both for connection and waiting for data, which means that
-     * in worst case scenario, the total time for request could be almost double the specified value.
+     * @var integer $timeout Timeout for a cURL connection in ms.
      */
-    protected $timeout;
+    protected $connectTimeout;
+    
+    /**
+     * @var integer $timeout Timeout for a cURL request in ms.
+     */
+    protected $requestTimeout;
+
+    /**
+     * @var \Ably\Utils\CurlWrapper $curl Holds a CurlWrapper instance used for building requests.
+     */
+    protected $curl;
 
     /**
      * Constructor
      */
-    public function __construct( $timeout = 10000, $postDataFormat = 'json' ) {
-        $this->postDataFormat = $postDataFormat;
-        $this->timeout = $timeout;
+    public function __construct( $clientOptions ) {
+        $this->postDataFormat = $clientOptions->useBinaryProtocol ? 'msgpack' : 'json';
+        $this->connectTimeout = $clientOptions->httpOpenTimeout;
+        $this->requestTimeout = $clientOptions->httpRequestTimeout;
+        $this->curl = new CurlWrapper();
     }
 
     /**
@@ -74,11 +87,14 @@ class Http {
      */
     public function request( $method, $url, $headers = array(), $params = array() ) {
 
-        $curlCmd = 'curl ';
-        $ch = curl_init($url);
+        $ch = $this->curl->init($url);
 
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->timeout); 
-        curl_setopt($ch, CURLOPT_TIMEOUT_MS, $this->timeout);
+        $this->curl->setOpt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeout); 
+        $this->curl->setOpt($ch, CURLOPT_TIMEOUT_MS, $this->requestTimeout);
+
+        if (!isset( $headers['X-Ably-Version'] )) {
+            $headers['X-Ably-Version'] = AblyRest::API_VERSION;
+        }
 
         if (!empty($params)) {
             if (is_array( $params )) {
@@ -86,33 +102,26 @@ class Http {
 
                 if ($method == 'GET') {
                     $url .= '?' . $paramsQuery;
-                    curl_setopt( $ch, CURLOPT_URL, $url );
+                    $this->curl->setOpt( $ch, CURLOPT_URL, $url );
                 } else if ($method == 'POST') {
-                    curl_setopt( $ch, CURLOPT_POST, true );
-                    curl_setopt( $ch, CURLOPT_POSTFIELDS, $paramsQuery );
-                    $curlCmd .= '-X POST ';
-                    $curlCmd .= '--data "'. str_replace( '"', '\"', $paramsQuery ) .'" ';
+                    $this->curl->setOpt( $ch, CURLOPT_POST, true );
+                    $this->curl->setOpt( $ch, CURLOPT_POSTFIELDS, $paramsQuery );
                 } else {
-                    curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, $method );
-                    curl_setopt( $ch, CURLOPT_POSTFIELDS, $paramsQuery );
-                    $curlCmd .= '-X ' . $method . ' ';
-                    $curlCmd .= '--data "'. str_replace( '"', '\"', $paramsQuery ) .'" ';
+                    $this->curl->setOpt( $ch, CURLOPT_CUSTOMREQUEST, $method );
+                    $this->curl->setOpt( $ch, CURLOPT_POSTFIELDS, $paramsQuery );
                 }
             } else if (is_string( $params )) { // json or msgpack
                 if ($method == 'GET') {
                 } else if ($method == 'POST') {
-                    curl_setopt( $ch, CURLOPT_POST, true );
-                    $curlCmd .= '-X POST ';
+                    $this->curl->setOpt( $ch, CURLOPT_POST, true );
                 } else {
-                    curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, $method );
-                    $curlCmd .= '-X ' . $method . ' ';
+                    $this->curl->setOpt( $ch, CURLOPT_CUSTOMREQUEST, $method );
                 }
 
-                curl_setopt( $ch, CURLOPT_POSTFIELDS, $params );
+                $this->curl->setOpt( $ch, CURLOPT_POSTFIELDS, $params );
 
                 if ($this->postDataFormat == 'json') {
                     array_push( $headers, 'Accept: application/json', 'Content-Type: application/json' );
-                    $curlCmd .= '--data "'.str_replace( '"', '\"', $params ).'" ';
                 }
             } else {
                 throw new AblyRequestException( 'Unknown $params format' );
@@ -120,39 +129,33 @@ class Http {
         }
 
         if (!empty($headers)) {
-            curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
-
-            foreach($headers as $header) {
-                $curlCmd .= '-H "' . str_replace( '"', '\"', $header ).'" ';
-            }
+            $this->curl->setOpt( $ch, CURLOPT_HTTPHEADER, $headers );
         }
 
-        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+        $this->curl->setOpt( $ch, CURLOPT_RETURNTRANSFER, true );
         if ( Log::getLogLevel() >= Log::VERBOSE ) {
-            curl_setopt( $ch, CURLOPT_VERBOSE, true );
+            $this->curl->setOpt( $ch, CURLOPT_VERBOSE, true );
         }
-        curl_setopt( $ch, CURLOPT_HEADER, true ); // return response headers
+        $this->curl->setOpt( $ch, CURLOPT_HEADER, true ); // return response headers
 
-        $curlCmd .= $url;
+        Log::d( 'cURL command:', $this->curl->getCommand( $ch ) );
 
-        Log::d( 'cURL request:', $curlCmd );
-
-        $raw = curl_exec($ch);
-        $info = curl_getinfo($ch);
-        $err = curl_errno($ch);
-        $errmsg = $err ? curl_error($ch) : '';
+        $raw = $this->curl->exec( $ch );
+        $info = $this->curl->getInfo( $ch );
+        $err = $this->curl->getErrNo( $ch );
+        $errmsg = $err ? $this->curl->getError( $ch ) : '';
         
-        curl_close ($ch);
+        $this->curl->close( $ch );
 
-        if ($err) { // a connection error has occured (no data received)
-            Log::e('cURL error:', $err, $errmsg);
+        if ( $err ) { // a connection error has occured (no data received)
+            Log::e( 'cURL error:', $err, $errmsg );
             throw new AblyRequestException( 'cURL error: ' . $errmsg, 50003, 500 );
         }
 
         $response = null;
 
-        $headers = substr($raw, 0, $info['header_size']);
-        $body = substr($raw, $info['header_size']);
+        $headers = substr( $raw, 0, $info['header_size'] );
+        $body = substr( $raw, $info['header_size'] );
         $decodedBody = json_decode( $body );
 
         $response = array( 'headers' => $headers, 'body' => $decodedBody ? $decodedBody : $body );

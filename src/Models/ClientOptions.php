@@ -14,13 +14,6 @@ class ClientOptions extends AuthOptions {
     public $tls = true;
     
     /**
-     * @var string|null A client id, used for identifying this client for presence purposes.
-     * The clientId can be any string. This option is primarily intended to be used in situations where the library is instanced with a key;
-     * note that a clientId may also be implicit in a token used to instance the library; an error will be raised if a clientId specified here conflicts with the clientId implicit in the token.
-     */
-    //public $clientId; // should be in authoptions
-    
-    /**
      * integer a number controlling the verbosity of the output from 1 (minimum, errors only) to 4 (most verbose);
      * @see \Ably\Log
      */
@@ -69,15 +62,37 @@ class ClientOptions extends AuthOptions {
     public $fallbackHosts;
 
     /**
+     * @var \Ably\Models\TokenParams defaultTokenParams – overrides the client library defaults described in TokenParams
+     */
+    public $defaultTokenParams;
+
+    /**
+     * @var integer Timeout for opening the connection
+     * Warning: may be rounded down on some OSes and values < 1000 will always fail in that case.
+     */
+    public $httpOpenTimeout = 4000;
+
+    /**
      * @var integer connection timeout after which a next fallback host is used
      */
-    public $hostTimeout = 15000;
+    public $httpRequestTimeout = 15000;
+
+    /**
+     * @var integer Max number of fallback host retries for HTTP requests that fail due to network issues or server problems
+     */
+    public $httpMaxRetryCount = 3;
 
     /**
      * @var string a class that should be used for making HTTP connections
-     * For use in development environments only.
+     * To allow mocking in tests.
      */
     public $httpClass = 'Ably\Http';
+
+    /**
+     * @var string a class that should be used for Auth
+     * To allow mocking in tests.
+     */
+    public $authClass = 'Ably\Auth';
 
     public function __construct( $options = array() ) {
         parent::__construct( $options );
@@ -96,6 +111,10 @@ class ClientOptions extends AuthOptions {
 
                 shuffle( $this->fallbackHosts );
             }
+        }
+
+        if ( empty( $this->defaultTokenParams ) ) {
+            $this->defaultTokenParams = new TokenParams();
         }
 
         if ( !empty( $this->environment ) ) {

@@ -52,10 +52,10 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      */
     public function testRequestTokenWithExplicitTimestamp() {
         $requestTime = self::$ably->time();
-        $params = array_merge(self::$tokenParams, array(
+        $tokenParams = array_merge(self::$tokenParams, array(
             'timestamp' => $requestTime
         ));
-        $tokenDetails = self::$ably->auth->requestToken( array(), $params );
+        $tokenDetails = self::$ably->auth->requestToken( $tokenParams );
         $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
         $this->assertTrue(
             ($tokenDetails->issued >= $requestTime - self::$errorMarginMs)
@@ -71,11 +71,11 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      */
     public function testRequestTokenWithExplicitInvalidTimestamp() {
         $requestTime = self::$ably->time();
-        $params = array_merge(self::$tokenParams, array(
+        $tokenParams = array_merge(self::$tokenParams, array(
             'timestamp' => $requestTime - 30 * 60 * 1000 // half an hour ago
         ));
         $this->setExpectedException( 'Ably\Exceptions\AblyException', 'Timestamp not current', 40101 );
-        self::$ably->auth->requestToken( array(), $params );
+        self::$ably->auth->requestToken( $tokenParams );
     }
 
     /**
@@ -84,7 +84,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
     public function testRequestWithSystemTimestamp() {
         $requestTime = time() * 1000;
         $authOptions = array('query' => true);
-        $tokenDetails = self::$ably->auth->requestToken( $authOptions );
+        $tokenDetails = self::$ably->auth->requestToken( array(), $authOptions );
         $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
         $this->assertTrue(
             ($tokenDetails->issued >= $requestTime - self::$errorMarginMs)
@@ -103,7 +103,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         $tokenParams = array(
             'clientId' => 'test client id',
         );
-        $tokenDetails = self::$ably->auth->requestToken( array(), $tokenParams );
+        $tokenDetails = self::$ably->auth->requestToken( $tokenParams );
         $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
         $this->assertTrue(
             ($tokenDetails->issued >= $requestTime - self::$errorMarginMs)
@@ -121,7 +121,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
     public function testTokenGenerationWithCapabilityKey() {
         $capability = array( 'onlythischannel' => array('subscribe') );
         $tokenParams = array( 'capability' => $capability );
-        $tokenDetails = self::$ably->auth->requestToken( array(), $tokenParams );
+        $tokenDetails = self::$ably->auth->requestToken( $tokenParams );
         $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
         $this->assertEquals( $capability, (array) json_decode($tokenDetails->capability), 'Unexpected capability' );
     }
@@ -140,7 +140,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
             'key' => 'fake.key:veryFake',
         ) ) );
 
-        $tokenDetails = $ably->auth->requestToken( $authOptions ); // fake key should get overridden with the real key
+        $tokenDetails = $ably->auth->requestToken( array(), $authOptions ); // fake key should get overridden with the real key
         $capability_obj = json_decode( $key->capability, false );
 
         $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
@@ -152,7 +152,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      */
     public function testTokenGenerationWithSpecifiedTTL() {
         $tokenParams = array( 'ttl' => 60 * 1000 );
-        $tokenDetails = self::$ably->auth->requestToken( array(), $tokenParams );
+        $tokenDetails = self::$ably->auth->requestToken( $tokenParams );
         $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
         $this->assertEquals( $tokenDetails->issued + 60 * 1000, $tokenDetails->expires, 'Unexpected expires time' );
     }
@@ -161,7 +161,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      * Token generation with default ttl
      */
     public function testTokenGenerationWithDefaultTTL() {
-        $tokenDetails = self::$ably->auth->requestToken( array(), array() );
+        $tokenDetails = self::$ably->auth->requestToken();
         $this->assertNotNull( $tokenDetails->token, 'Expected token id' );
         $this->assertEquals( $tokenDetails->issued + self::$defaultTTLms, $tokenDetails->expires, 'Expected the default expire time to be 1 hour' );
     }
@@ -173,7 +173,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         $oneYearMs = 365*24*3600*1000;
         $tokenParams = array( 'ttl' => $oneYearMs );
         $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
-        self::$ably->auth->requestToken( array(), $tokenParams );
+        self::$ably->auth->requestToken( $tokenParams );
     }
 
     /**
@@ -182,7 +182,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
     public function testTokenGenerationWithInvalidTTL() {
         $tokenParams = array( 'ttl' => -1 * 1000 );
         $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
-        self::$ably->auth->requestToken( array(), $tokenParams );
+        self::$ably->auth->requestToken( $tokenParams );
     }
 
     /**
@@ -198,7 +198,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
                     'ttl' => 2 * 1000 + Auth::TOKEN_EXPIRY_MARGIN, // 2 seconds + expiry margin
                     'capability' => $capability,
                 );
-                return $ablyKeyAuth->auth->requestToken( array(), $tokenParams );
+                return $ablyKeyAuth->auth->requestToken( $tokenParams );
             }
         ) );
 
@@ -234,7 +234,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
                     'ttl' => 2 * 1000, // 2 seconds
                     'capability' => $capability,
                 );
-                $tokenDetails = $ablyKeyAuth->auth->requestToken( array(), $tokenParams );
+                $tokenDetails = $ablyKeyAuth->auth->requestToken( $tokenParams );
                 return $tokenDetails->token; // returning just the token string, not TokenDetails => expiry time is unknown
             }
         ) );
@@ -267,7 +267,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         $tokenParams = array(
             'ttl' => 2 * 1000, // 2 seconds
         );
-        $tokenDetails = $ablyKeyAuth->auth->requestToken( array(), $tokenParams );
+        $tokenDetails = $ablyKeyAuth->auth->requestToken( $tokenParams );
 
         $options = array_merge( self::$defaultOptions, array(
             'token' => $tokenDetails->token,

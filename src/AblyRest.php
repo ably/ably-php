@@ -11,18 +11,20 @@ use Ably\Exceptions\AblyRequestException;
  */
 class AblyRest {
 
+    const API_VERSION = '0.8';
+
     private $options;
 
     /**
-     * @var \Ably\Http $http Class for making HTTP requests
+     * @var \Ably\Http $http object for making HTTP requests
      */
     public $http;
     /**
-     * @var \Ably\Auth $auth Class providing authorisation functionality
+     * @var \Ably\Auth $auth object providing authorisation functionality
      */
     public $auth;
     /**
-     * @var \Ably\Channels $channels Class for creating and releasing channels
+     * @var \Ably\Channels $channels object for creating and releasing channels
      */
     public $channels;
 
@@ -51,8 +53,9 @@ class AblyRest {
         }
 
         $httpClass = $this->options->httpClass;
-        $this->http = new $httpClass( $this->options->hostTimeout );
-        $this->auth = new Auth( $this, $this->options );
+        $this->http = new $httpClass( $this->options );
+        $authClass = $this->options->authClass;
+        $this->auth = new $authClass( $this, $this->options );
         $this->channels = new Channels( $this );
         
         return $this;
@@ -184,7 +187,7 @@ class AblyRest {
         }
         catch (AblyRequestException $e) {
             if ( $e->getCode() >= 50000 ) {
-                if ( $attempt < count( $this->options->fallbackHosts ) ) {
+                if ( $attempt < min( $this->options->httpMaxRetryCount, count( $this->options->fallbackHosts ) ) ) {
                     return $this->requestWithFallback( $method, $path, $headers, $params, $attempt + 1);
                 } else {
                     Log::e( 'Failed to connect to server and all of the fallback servers.' );
