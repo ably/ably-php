@@ -469,7 +469,7 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         $token2 = $ably->auth->authorise( array(), array(), $forceReauth );
 
         $this->assertFalse( $token1 == $token2, 'Expected different tokens to be issued') ;
-        $this->assertEquals( 'overridenClientId', $ably->auth->getClientId(), 'Expected to use a new clientId as a default' );
+        $this->assertEquals( 'overridenClientId', $ably->auth->clientId, 'Expected to use a new clientId as a default' );
         $this->assertLessThan( $ably->systemTime() + 20000, $token2->expires, 'Expected to use a new ttl as a default' );
     }
 

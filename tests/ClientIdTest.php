@@ -21,7 +21,7 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Init library with a key and clientId; expect token auth to be chosen; expect Auth::getClientId to return the id
+     * Init library with a key and clientId; expect token auth to be chosen; expect Auth::clientId to return the id
      */
     public function testInitWithKeyAndClientId() {
         $ably = new AblyRest( array_merge( self::$defaultOptions, array(
@@ -32,7 +32,7 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
         $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
 
         $ably->auth->authorise();
-        $this->assertEquals( 'testClientId', $ably->auth->getClientId(), 'Expected getClientId() result to match the provided id' );
+        $this->assertEquals( 'testClientId', $ably->auth->clientId, 'Expected clientId result to match the provided id' );
         $this->assertEquals( 'testClientId', $ably->auth->getTokenDetails()->clientId, 'Expected clientId in tokenDetails to match the provided id' );
     }
 
@@ -49,7 +49,7 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Check is Auth::getClientId is returning expected null values
+     * Check is Auth::clientId is returning expected null values
      */
     public function testGetClientIdNull() {
         // no clientId provided anywhere, should be null
@@ -60,7 +60,7 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
         $ably->auth->authorise(); // switch to token based auth
 
         $this->assertNull( $ably->auth->getTokenDetails()->clientId, 'Expected tokenDetails clientId to be null' );
-        $this->assertNull( $ably->auth->getClientId(), 'Expected clientId to be null' );
+        $this->assertNull( $ably->auth->clientId, 'Expected clientId to be null' );
 
         // test not yet authorised lib without a clientId specified on ClientOptions
         $ablyImplicitCId = new AblyRest( array_merge( self::$defaultOptions, array(
@@ -70,15 +70,15 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
             ) ),
         ) ) );
 
-        $this->assertNull( $ablyImplicitCId->auth->getClientId(), 'Expected clientId to be null prior to authorising' );
+        $this->assertNull( $ablyImplicitCId->auth->clientId, 'Expected clientId to be null prior to authorising' );
 
         $ablyImplicitCId->auth->authorise();
 
-        $this->assertEquals( 'testClientId', $ablyImplicitCId->auth->getClientId(), 'Expected clientId to match after authorising' );
+        $this->assertEquals( 'testClientId', $ablyImplicitCId->auth->clientId, 'Expected clientId to match after authorising' );
     }
 
     /**
-     * Check is Auth::getClientId is returning expected non null values
+     * Check is Auth::clientId is returning expected non null values
      */
     public function testGetClientIdNonNull() {
         // test wildcard clientId provided via tokenDetails
@@ -93,7 +93,7 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
         ) ) );
 
         $this->assertEquals( '*', $ablyWildcard->auth->getTokenDetails()->clientId, 'Expected tokenDetails clientId to be *' );
-        $this->assertEquals( '*', $ablyWildcard->auth->getClientId(), 'Expected clientId to be *' );
+        $this->assertEquals( '*', $ablyWildcard->auth->clientId, 'Expected clientId to be *' );
 
         // test specified clientId specified in ClientOptions
         $ablyCid = new AblyRest( array_merge( self::$defaultOptions, array(
@@ -101,15 +101,15 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
             'clientId' => 'testClientId',
         ) ) );
 
-        $this->assertEquals( 'testClientId', $ablyCid->auth->getClientId() );
+        $this->assertEquals( 'testClientId', $ablyCid->auth->clientId );
 
         // test clientId overridden by authOptions
         $ablyCid->auth->authorise( array(), array( 'clientId' => 'overriddenClientId_authOptions' ) );
-        $this->assertEquals( 'overriddenClientId_authOptions', $ablyCid->auth->getClientId() );
+        $this->assertEquals( 'overriddenClientId_authOptions', $ablyCid->auth->clientId );
 
         // test clientId overridden by tokenParams
         $ablyCid->auth->authorise( array( 'clientId' => 'overriddenClientId_tokenParams' ), array(), $force = true );
-        $this->assertEquals( 'overriddenClientId_tokenParams', $ablyCid->auth->getClientId() );
+        $this->assertEquals( 'overriddenClientId_tokenParams', $ablyCid->auth->clientId );
     }
 
     /**
@@ -156,7 +156,7 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
             'clientId' => $clientId,
         ) ) );
 
-        $this->assertEquals( $clientId, $ablyCId->auth->getClientId(), 'Expected a token with specified clientId to be used' );
+        $this->assertEquals( $clientId, $ablyCId->auth->clientId, 'Expected a token with specified clientId to be used' );
 
         $msg = new Message();
         $msg->data = 'test';
@@ -201,7 +201,7 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
         ) ) );
 
         $ablyCId->auth->authorise(); // obtain a token
-        $this->assertEquals( 'overridenClientId', $ablyCId->auth->getClientId(), 'Expected defaultTokenParams to override provided clientId' );
+        $this->assertEquals( 'overridenClientId', $ablyCId->auth->clientId, 'Expected defaultTokenParams to override provided clientId' );
 
         $channel = $ablyCId->channels->get( 'persisted:testClientIdPrecedence' );
         $channel->publish( 'testEvent', 'testData' );
@@ -228,7 +228,7 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
         $channel = $ablyClient->channels->get( 'persisted:RSA8f1' );
         $channel->publish( 'testEvent', 'testData' );
 
-        $this->assertNull( $ablyClient->auth->getClientId(), 'Expected clientId to be null' );
+        $this->assertNull( $ablyClient->auth->clientId, 'Expected clientId to be null' );
         $this->assertNull( $channel->history()->items[0]->clientId, 'Expected message not to have a clientId' );
         $this->assertEquals( 'testData', $channel->history()->items[0]->data, 'Expected message payload to match' );
     }
@@ -273,7 +273,7 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
         $channel = $ablyClient->channels->get( 'persisted:RSA8f3' );
         $channel->publish( 'testEvent', 'testData' );
 
-        $this->assertEquals( '*', $ablyClient->auth->getClientId(), 'Expected clientId to be null' );
+        $this->assertEquals( '*', $ablyClient->auth->clientId, 'Expected clientId to be null' );
         $this->assertNull( $channel->history()->items[0]->clientId, 'Expected message not to have a clientId' );
         $this->assertEquals( 'testData', $channel->history()->items[0]->data, 'Expected message payload to match' );
     }
