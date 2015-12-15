@@ -14,11 +14,11 @@ use Ably\Exceptions\AblyException;
  * Provides authentification methods for AblyRest instances
  */
 class Auth {
-    private $defaultAuthOptions;
-    private $defaultTokenParams;
-    private $basicAuth;
-    private $tokenDetails;
-    private $ably;
+    protected $defaultAuthOptions;
+    protected $defaultTokenParams;
+    protected $basicAuth;
+    protected $tokenDetails;
+    protected $ably;
     const TOKEN_EXPIRY_MARGIN = 15000; // a token is considered expired a bit earlier to prevent race conditions
 
     public function __construct( AblyRest $ably, ClientOptions $options ) {

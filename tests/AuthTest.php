@@ -272,19 +272,22 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Verify that createTokenRequest() creates valid signed token requests
+     * Verify that createTokenRequest() creates valid signed token requests (unique nonce > 16B, valid HMAC)
+     * and checks if ttl can be left blank
      */
     public function testCreateTokenRequestValidity() {
-        $ablyKey = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
             'key' => self::$testApp->getAppKeyDefault()->string,
         ) ) );
 
-        $tokenRequest = $ablyKey->auth->createTokenRequest();
-        $tokenRequest2 = $ablyKey->auth->createTokenRequest();
+        $tokenRequest = $ably->auth->createTokenRequest();
+        $tokenRequest2 = $ably->auth->createTokenRequest();
 
         $this->assertTrue( strlen( $tokenRequest->nonce ) >= 16, 'Expected nonce to be at least 16 bytes long' );
         $this->assertFalse( $tokenRequest->nonce == $tokenRequest2->nonce, 'Expected nonces to be unique' );
         $this->assertNotNull( $tokenRequest->mac, 'Expected hmac to be generated' );
+
+        $timestamp = $ably->time();
 
         $ably = new AblyRest( array_merge( self::$defaultOptions, array(
             'authCallback' => function( $tokenParams ) use( $tokenRequest ) {
@@ -295,8 +298,10 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         $ably->auth->authorise();
 
         $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
+        $this->assertGreaterThanOrEqual( $timestamp, $ably->auth->getTokenDetails()->issued,
+            'Expected token issued timestamp to be greater than or equal to the time of the request' );
 
-        $ably->stats(); // authorized request, should pass
+        $ably->stats(); // requires valid token, throws exception if invalid
     }
 
     private function stripTokenRequestVariableParams($tokenRequest) {
@@ -406,6 +411,43 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
 
         $ably->auth->authorise(array(), array(), $force = true);
         $this->assertFalse( $tokenOriginal->token == $ably->auth->getTokenDetails()->token, 'Expected token to renew' );
+    }
+
+    /**
+     * Verify that all the parameters are supported and saved as defaults
+     */
+    public function testAuthoriseParams() {
+        $tokenParams = array(
+            'clientId' => 'tokenParamsClientId',
+            'ttl' => 2000000,
+            'capability' => '{"test":"tp"}',
+        );
+
+        $authOptions = array(
+            'clientId' => 'authOptionsClientId',
+            'key' => 'testKey.Name:testKeySecret',
+            'token' => 'testToken',
+            'tokenDetails' => new TokenDetails( 'testToken' ),
+            'useTokenAuth' => true,
+            'authCallback' => 'not a callback',
+            'authUrl' =>  'not a url',
+            'authHeaders' => array( 'blah' => 'yes' ),
+            'authParams' => array( 'param' => 'yep' ),
+            'authMethod' => 'TEST',
+            'queryTime' => true,
+        );
+
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+            'authClass' => 'authTest\AuthMock'
+        ) ) );
+        $ably->auth->fakeRequestToken = true;
+        $ably->auth->authorise($tokenParams, $authOptions);
+
+        $this->assertTrue( $ably->auth->requestTokenCalled, 'Expected authorise() to call requestToken()' );
+
+        $this->assertArraySubset( $tokenParams, $ably->auth->getDefaultTokenParams()->toArray(), 'Expected authorise() to use all provided tokenParams');
+        $this->assertArraySubset( $authOptions, $ably->auth->getDefaultAuthOptions()->toArray(), 'Expected authorise() to use all provided authOptions');
     }
 
     /**
@@ -549,9 +591,20 @@ class HttpMock extends Http {
 
 class AuthMock extends Auth {
     public $requestTokenCalled = false;
+    public $fakeRequestToken = false;
+
+    public function getDefaultAuthOptions() {
+        return $this->defaultAuthOptions;;
+    }
+
+    public function getDefaultTokenParams() {
+        return $this->defaultTokenParams;
+    }
 
     public function requestToken( $tokenParams = array(), $authOptions = array() ) {
         $this->requestTokenCalled = true;
+
+        if ( $this->fakeRequestToken ) return new TokenDetails( 'FAKE' );
 
         $args = func_get_args();
         return call_user_func_array( array( 'parent', __FUNCTION__ ), $args ); // passthru
