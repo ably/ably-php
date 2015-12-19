@@ -17,6 +17,8 @@ use Ably\Exceptions\AblyException;
 class Auth {
     protected $defaultAuthOptions;
     protected $defaultTokenParams;
+    protected $defaultAuthoriseAuthOptions = array();
+    protected $defaultAuthoriseTokenParams = array();
     protected $basicAuth;
     protected $tokenDetails;
     protected $ably;
@@ -88,6 +90,7 @@ class Auth {
      * and will obtain a new token if necessary.
      * In the event that a new token request is made, the specified options are used.
      * If not already using token based auth, this will enable it.
+     * Stores the AuthOptions and TokenParams arguments as defaults for subsequent authorisations.
      * @param array|null $tokenParams Requested token parameters
      * @param array|null $authOptions Overridable auth options, if you don't wish to use the default ones
      * @param boolean|null $force Forces generation of a fresh token
@@ -96,12 +99,12 @@ class Auth {
     public function authorise( $tokenParams = array(), $authOptions = array(), $force = false ) {
 
         if ( !empty( $tokenParams ) ) {
-            $this->defaultTokenParams = new TokenParams( array_merge( $this->defaultTokenParams->toArray(), $tokenParams ) );
+            $this->defaultAuthoriseTokenParams = $tokenParams;
         }
         if ( !empty( $authOptions ) ) {
-            $this->defaultAuthOptions =  new AuthOptions( array_merge( $this->defaultAuthOptions->toArray(), $authOptions ) );
+            $this->defaultAuthoriseAuthOptions = $authOptions;
         }
-
+        
         if ( !$force && !empty( $this->tokenDetails ) ) {
             if ( empty( $this->tokenDetails->expires ) ) {
                 // using cached token
@@ -115,7 +118,7 @@ class Auth {
         }
 
         Log::d( 'Auth::authorise: requesting new token' );
-        $this->tokenDetails = $this->requestToken(); // parameters omitted as they get merged into defaults (see above)
+        $this->tokenDetails = $this->requestToken( $this->defaultAuthoriseTokenParams, $this->defaultAuthoriseAuthOptions );
         $this->basicAuth = false;
 
         return $this->tokenDetails;
@@ -155,9 +158,9 @@ class Auth {
      */
     public function requestToken( $tokenParams = array(), $authOptions = array() ) {
         // token clientId priority:
-        // $tokenParams->clientId overrides $authOptions->tokenId overrides $this->defaultTokenParams->clientId overrides $this->defaultAuthOptions->clientId
-        $tokenClientId = $this->defaultAuthOptions->clientId;
-        if ( !empty( $this->defaultTokenParams->clientId ) ) $tokenClientId = $this->defaultTokenParams->clientId;
+        // $tokenParams->clientId overrides $authOptions->tokenId overrides $this->defaultAuthOptions->clientId overrides $this->defaultTokenParams->clientId
+        $tokenClientId = $this->defaultTokenParams->clientId;
+        if ( !empty( $this->defaultAuthOptions->clientId ) ) $tokenClientId = $this->defaultAuthOptions->clientId;
         // provided authOptions may override clientId, even with a null value
         if ( array_key_exists( 'clientId', $authOptions ) ) $tokenClientId = $authOptions['clientId'];
         // provided tokenParams may override clientId, even with a null value
@@ -255,8 +258,8 @@ class Auth {
      * @return \Ably\Models\TokenRequest A signed token request
      */
     public function createTokenRequest( $tokenParams = array(), $authOptions = array() ) {
-        $tokenClientId = $this->defaultAuthOptions->clientId;
-        if ( !empty( $this->defaultTokenParams->clientId ) ) $tokenClientId = $this->defaultTokenParams->clientId;
+        $tokenClientId = $this->defaultTokenParams->clientId;
+        if ( !empty( $this->defaultAuthOptions->clientId ) ) $tokenClientId = $this->defaultAuthOptions->clientId;
         if ( array_key_exists( 'clientId', $authOptions ) ) $tokenClientId = $authOptions['clientId'];
         if ( array_key_exists( 'clientId', $tokenParams ) ) $tokenClientId = $tokenParams['clientId'];
 

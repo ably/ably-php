@@ -344,7 +344,7 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals(array(
             'ttl' => 1000000,
             'capability' => '{"test":"dtp"}',
-            'clientId' =>  'dtpClientId',
+            'clientId' =>  'libClientId',
             'keyName' => self::$testApp->getAppKeyDefault()->name,
         ), $this->stripTokenRequestVariableParams($tokenReqLib), 'Unexpected values in TokenRequest built from ClientOptions');
         $this->assertNotNull( $tokenReqLib->mac, 'Expected hmac to be generated' );
@@ -442,12 +442,18 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
             'authClass' => 'authTest\AuthMock'
         ) ) );
         $ably->auth->fakeRequestToken = true;
-        $ably->auth->authorise($tokenParams, $authOptions);
+        $ably->auth->authorise( $tokenParams, $authOptions );
 
         $this->assertTrue( $ably->auth->requestTokenCalled, 'Expected authorise() to call requestToken()' );
+        $this->assertEquals( $tokenParams, $ably->auth->lastTokenParams, 'Expected authorise() to pass provided tokenParams to requestToken');
+        $this->assertEquals( $authOptions, $ably->auth->lastAuthOptions, 'Expected authorise() to pass provided authOptions to requestToken');
 
-        $this->assertArraySubset( $tokenParams, $ably->auth->getDefaultTokenParams()->toArray(), 'Expected authorise() to use all provided tokenParams');
-        $this->assertArraySubset( $authOptions, $ably->auth->getDefaultAuthOptions()->toArray(), 'Expected authorise() to use all provided authOptions');
+        $ably->auth->requestTokenCalled = $ably->auth->lastTokenParams = $ably->auth->lastAuthOptions = null;
+        $ably->auth->authorise( array(), array(), $force = true );
+
+        $this->assertTrue( $ably->auth->requestTokenCalled, 'Expected authorise() to call requestToken()' );
+        $this->assertEquals( $tokenParams, $ably->auth->lastTokenParams, 'Expected authorise() to pass saved tokenParams to requestToken');
+        $this->assertEquals( $authOptions, $ably->auth->lastAuthOptions, 'Expected authorise() to pass saved authOptions to requestToken');
     }
 
     /**
@@ -592,17 +598,13 @@ class HttpMock extends Http {
 class AuthMock extends Auth {
     public $requestTokenCalled = false;
     public $fakeRequestToken = false;
-
-    public function getDefaultAuthOptions() {
-        return $this->defaultAuthOptions;;
-    }
-
-    public function getDefaultTokenParams() {
-        return $this->defaultTokenParams;
-    }
+    public $lastTokenParams;
+    public $lastAuthOptions;
 
     public function requestToken( $tokenParams = array(), $authOptions = array() ) {
         $this->requestTokenCalled = true;
+        $this->lastTokenParams = $tokenParams;
+        $this->lastAuthOptions = $authOptions;
 
         if ( $this->fakeRequestToken ) return new TokenDetails( 'FAKE' );
 
