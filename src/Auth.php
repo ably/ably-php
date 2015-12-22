@@ -99,10 +99,10 @@ class Auth {
     public function authorise( $tokenParams = array(), $authOptions = array(), $force = false ) {
 
         if ( !empty( $tokenParams ) ) {
-            $this->defaultAuthoriseTokenParams = $tokenParams;
+            $this->defaultAuthoriseTokenParams = array_merge( $this->defaultAuthoriseTokenParams, $tokenParams );
         }
         if ( !empty( $authOptions ) ) {
-            $this->defaultAuthoriseAuthOptions = $authOptions;
+            $this->defaultAuthoriseAuthOptions = array_merge( $this->defaultAuthoriseAuthOptions, $authOptions );
         }
         
         if ( !$force && !empty( $this->tokenDetails ) ) {

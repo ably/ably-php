@@ -442,18 +442,35 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
             'authClass' => 'authTest\AuthMock'
         ) ) );
         $ably->auth->fakeRequestToken = true;
-        $ably->auth->authorise( $tokenParams, $authOptions );
-
+        
+        // test with empty params first
+        $ably->auth->authorise();
         $this->assertTrue( $ably->auth->requestTokenCalled, 'Expected authorise() to call requestToken()' );
-        $this->assertEquals( $tokenParams, $ably->auth->lastTokenParams, 'Expected authorise() to pass provided tokenParams to requestToken');
-        $this->assertEquals( $authOptions, $ably->auth->lastAuthOptions, 'Expected authorise() to pass provided authOptions to requestToken');
+        $this->assertEmpty( $ably->auth->lastTokenParams, 'Expected authorise() to pass empty tokenParams to requestToken()');
+        $this->assertEmpty( $ably->auth->lastAuthOptions, 'Expected authorise() to pass empty authOptions to requestToken()');
+        $ably->auth->lastTokenParams = $ably->auth->lastAuthOptions = null;
 
-        $ably->auth->requestTokenCalled = $ably->auth->lastTokenParams = $ably->auth->lastAuthOptions = null;
+        // provide both tokenParams and authOptions and see if they get passed to requestToken
+        $ably->auth->authorise( $tokenParams, $authOptions, $force = true );
+        $this->assertEquals( $tokenParams, $ably->auth->lastTokenParams, 'Expected authorise() to pass provided tokenParams to requestToken()');
+        $this->assertEquals( $authOptions, $ably->auth->lastAuthOptions, 'Expected authorise() to pass provided authOptions to requestToken()');
+        $ably->auth->lastTokenParams = $ably->auth->lastAuthOptions = null;
+
+        // provide no tokenParams or authOptions and see if previously saved params get passed to requestToken
         $ably->auth->authorise( array(), array(), $force = true );
+        $this->assertEquals( $tokenParams, $ably->auth->lastTokenParams, 'Expected authorise() to pass saved tokenParams to requestToken()');
+        $this->assertEquals( $authOptions, $ably->auth->lastAuthOptions, 'Expected authorise() to pass saved authOptions to requestToken()');
+        $ably->auth->lastTokenParams = $ably->auth->lastAuthOptions = null;
 
-        $this->assertTrue( $ably->auth->requestTokenCalled, 'Expected authorise() to call requestToken()' );
-        $this->assertEquals( $tokenParams, $ably->auth->lastTokenParams, 'Expected authorise() to pass saved tokenParams to requestToken');
-        $this->assertEquals( $authOptions, $ably->auth->lastAuthOptions, 'Expected authorise() to pass saved authOptions to requestToken');
+        // check if parameter overriding works correctly
+        $ably->auth->authorise( array( 'ttl' => 99999 ), array( 'queryTime' => false ), $force = true );
+        
+        $expectedTokenParams = $tokenParams; // arrays are copied by value in PHP
+        $expectedTokenParams['ttl'] = 99999;
+        $expectedAuthOptions = $authOptions;
+        $expectedAuthOptions['queryTime'] = false;
+        $this->assertEquals( $expectedTokenParams, $ably->auth->lastTokenParams, 'Expected authorise() to pass combined tokenParams to requestToken()');
+        $this->assertEquals( $expectedAuthOptions, $ably->auth->lastAuthOptions, 'Expected authorise() to pass combined authOptions to requestToken()');
     }
 
     /**
