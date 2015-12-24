@@ -237,9 +237,9 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
     public function testTokenRequestWithAuthUrlParams() {
         $headers = array( 'Test header: yes', 'Another one: no' );
         $authParams = array( 'param1' => 'value1', 'test' => 1, 'ttl' => 720000 );
-        $overridenTokenParams = array( 'ttl' => 360000 );
+        $overriddenTokenParams = array( 'ttl' => 360000 );
         // authParams and tokenParams should be merged
-        // `ttl` should be overwritten by $overridenTokenParams
+        // `ttl` should be overwritten by $overriddenTokenParams
         $expectedAuthParams = array( 'param1' => 'value1', 'test' => 1, 'ttl' => 360000 );
         $method = 'POST';
 
@@ -251,23 +251,23 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
             'httpClass' => 'authTest\HttpMock',
         ) ) );
         
-        $ably->auth->requestToken( $overridenTokenParams );
+        $ably->auth->requestToken( $overriddenTokenParams );
         
         $this->assertTrue( is_a( $ably->http, '\authTest\HttpMock' ) , 'Expected HttpMock class to be used' );
         $this->assertEquals( $headers, $ably->http->headers, 'Expected authHeaders to match' );
         $this->assertEquals( $expectedAuthParams, $ably->http->params, 'Expected authParams to match' );
         $this->assertEquals( $method, $ably->http->method, 'Expected authMethod to match' );
 
-        $overridenAuthParams = array(
+        $overriddenAuthParams = array(
             'authHeaders' => array( 'CompletelyNewHeaders: true' ),
             'authParams' => array( 'completelyNewParams' => 'yes' ),
         );
         $expectedAuthParams = array( 'completelyNewParams' => 'yes', 'ttl' => 360000 );
         $forceReauth = true;
 
-        $ably->auth->requestToken( $overridenTokenParams, $overridenAuthParams );
+        $ably->auth->requestToken( $overriddenTokenParams, $overriddenAuthParams );
 
-        $this->assertEquals( $overridenAuthParams['authHeaders'], $ably->http->headers, 'Expected authHeaders to be completely replaced' );
+        $this->assertEquals( $overriddenAuthParams['authHeaders'], $ably->http->headers, 'Expected authHeaders to be completely replaced' );
         $this->assertEquals( $expectedAuthParams, $ably->http->params, 'Expected authParams to be completely replaced' );
     }
 
@@ -344,7 +344,7 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals(array(
             'ttl' => 1000000,
             'capability' => '{"test":"dtp"}',
-            'clientId' =>  'dtpClientId',
+            'clientId' =>  'libClientId',
             'keyName' => self::$testApp->getAppKeyDefault()->name,
         ), $this->stripTokenRequestVariableParams($tokenReqLib), 'Unexpected values in TokenRequest built from ClientOptions');
         $this->assertNotNull( $tokenReqLib->mac, 'Expected hmac to be generated' );
@@ -442,12 +442,35 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
             'authClass' => 'authTest\AuthMock'
         ) ) );
         $ably->auth->fakeRequestToken = true;
-        $ably->auth->authorise($tokenParams, $authOptions);
-
+        
+        // test with empty params first
+        $ably->auth->authorise();
         $this->assertTrue( $ably->auth->requestTokenCalled, 'Expected authorise() to call requestToken()' );
+        $this->assertEmpty( $ably->auth->lastTokenParams, 'Expected authorise() to pass empty tokenParams to requestToken()');
+        $this->assertEmpty( $ably->auth->lastAuthOptions, 'Expected authorise() to pass empty authOptions to requestToken()');
+        $ably->auth->lastTokenParams = $ably->auth->lastAuthOptions = null;
 
-        $this->assertArraySubset( $tokenParams, $ably->auth->getDefaultTokenParams()->toArray(), 'Expected authorise() to use all provided tokenParams');
-        $this->assertArraySubset( $authOptions, $ably->auth->getDefaultAuthOptions()->toArray(), 'Expected authorise() to use all provided authOptions');
+        // provide both tokenParams and authOptions and see if they get passed to requestToken
+        $ably->auth->authorise( $tokenParams, $authOptions, $force = true );
+        $this->assertEquals( $tokenParams, $ably->auth->lastTokenParams, 'Expected authorise() to pass provided tokenParams to requestToken()');
+        $this->assertEquals( $authOptions, $ably->auth->lastAuthOptions, 'Expected authorise() to pass provided authOptions to requestToken()');
+        $ably->auth->lastTokenParams = $ably->auth->lastAuthOptions = null;
+
+        // provide no tokenParams or authOptions and see if previously saved params get passed to requestToken
+        $ably->auth->authorise( array(), array(), $force = true );
+        $this->assertEquals( $tokenParams, $ably->auth->lastTokenParams, 'Expected authorise() to pass saved tokenParams to requestToken()');
+        $this->assertEquals( $authOptions, $ably->auth->lastAuthOptions, 'Expected authorise() to pass saved authOptions to requestToken()');
+        $ably->auth->lastTokenParams = $ably->auth->lastAuthOptions = null;
+
+        // check if parameter overriding works correctly
+        $ably->auth->authorise( array( 'ttl' => 99999 ), array( 'queryTime' => false ), $force = true );
+        
+        $expectedTokenParams = $tokenParams; // arrays are copied by value in PHP
+        $expectedTokenParams['ttl'] = 99999;
+        $expectedAuthOptions = $authOptions;
+        $expectedAuthOptions['queryTime'] = false;
+        $this->assertEquals( $expectedTokenParams, $ably->auth->lastTokenParams, 'Expected authorise() to pass combined tokenParams to requestToken()');
+        $this->assertEquals( $expectedAuthOptions, $ably->auth->lastAuthOptions, 'Expected authorise() to pass combined authOptions to requestToken()');
     }
 
     /**
@@ -462,14 +485,14 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         $token1 = $ably->auth->authorise(array(
             'ttl' => 10000,
         ), array(
-            'clientId' => 'overridenClientId',
+            'clientId' => 'overriddenClientId',
         ));
 
         $forceReauth = true;
         $token2 = $ably->auth->authorise( array(), array(), $forceReauth );
 
         $this->assertFalse( $token1 == $token2, 'Expected different tokens to be issued') ;
-        $this->assertEquals( 'overridenClientId', $ably->auth->clientId, 'Expected to use a new clientId as a default' );
+        $this->assertEquals( 'overriddenClientId', $ably->auth->clientId, 'Expected to use a new clientId as a default' );
         $this->assertLessThan( $ably->systemTime() + 20000, $token2->expires, 'Expected to use a new ttl as a default' );
     }
 
@@ -592,17 +615,13 @@ class HttpMock extends Http {
 class AuthMock extends Auth {
     public $requestTokenCalled = false;
     public $fakeRequestToken = false;
-
-    public function getDefaultAuthOptions() {
-        return $this->defaultAuthOptions;;
-    }
-
-    public function getDefaultTokenParams() {
-        return $this->defaultTokenParams;
-    }
+    public $lastTokenParams;
+    public $lastAuthOptions;
 
     public function requestToken( $tokenParams = array(), $authOptions = array() ) {
         $this->requestTokenCalled = true;
+        $this->lastTokenParams = $tokenParams;
+        $this->lastAuthOptions = $authOptions;
 
         if ( $this->fakeRequestToken ) return new TokenDetails( 'FAKE' );
 

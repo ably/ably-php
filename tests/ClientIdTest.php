@@ -189,24 +189,22 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
      * the ClientOptions#clientId takes precendence and is used for all Auth operations 
      */
     public function testClientIdPrecedence() {
-        $clientId = 'testClientId';
-
         $ablyCId = new AblyRest( array_merge( self::$defaultOptions, array(
             'key' => self::$testApp->getAppKeyDefault()->string,
             'useTokenAuth' => true,
-            'clientId' => 'testClientId',
+            'clientId' => 'overriddenClientId',
             'defaultTokenParams' => new TokenParams( array(
-                'clientId' => 'overridenClientId',
+                'clientId' => 'tokenParamsClientId',
             ) ),
         ) ) );
 
         $ablyCId->auth->authorise(); // obtain a token
-        $this->assertEquals( 'overridenClientId', $ablyCId->auth->clientId, 'Expected defaultTokenParams to override provided clientId' );
+        $this->assertEquals( 'overriddenClientId', $ablyCId->auth->clientId, 'Expected defaultTokenParams to override provided clientId' );
 
         $channel = $ablyCId->channels->get( 'persisted:testClientIdPrecedence' );
         $channel->publish( 'testEvent', 'testData' );
 
-        $this->assertEquals( 'overridenClientId', $channel->history()->items[0]->clientId, 'Expected message clientId to match' );
+        $this->assertEquals( 'overriddenClientId', $channel->history()->items[0]->clientId, 'Expected message clientId to match' );
     }
 
     /**
