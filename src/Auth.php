@@ -93,17 +93,24 @@ class Auth {
      * Stores the AuthOptions and TokenParams arguments as defaults for subsequent authorisations.
      * @param array|null $tokenParams Requested token parameters
      * @param array|null $authOptions Overridable auth options, if you don't wish to use the default ones
-     * @param boolean|null $force Forces generation of a fresh token
      * @return \Ably\Models\TokenDetails The new token
      */
-    public function authorise( $tokenParams = array(), $authOptions = array(), $force = false ) {
+    public function authorise( $tokenParams = array(), $authOptions = array() ) {
 
         if ( !empty( $tokenParams ) ) {
-            $this->defaultAuthoriseTokenParams = array_merge( $this->defaultAuthoriseTokenParams, $tokenParams );
+            $tokenParamsCopy = $tokenParams;
+            if ( isset( $tokenParamsCopy['timestamp'] ) ) unset( $tokenParamsCopy['timestamp'] );
+
+            $this->defaultAuthoriseTokenParams = array_merge( $this->defaultAuthoriseTokenParams, $tokenParamsCopy );
         }
         if ( !empty( $authOptions ) ) {
-            $this->defaultAuthoriseAuthOptions = array_merge( $this->defaultAuthoriseAuthOptions, $authOptions );
+            $authOptionsCopy = $authOptions;
+            if ( isset( $authOptionsCopy['force'] ) ) unset( $authOptionsCopy['force'] );
+
+            $this->defaultAuthoriseAuthOptions = array_merge( $this->defaultAuthoriseAuthOptions, $authOptionsCopy );
         }
+
+        $force = isset( $authOptions['force'] ) && $authOptions['force'];
         
         if ( !$force && !empty( $this->tokenDetails ) ) {
             if ( empty( $this->tokenDetails->expires ) ) {
@@ -117,8 +124,11 @@ class Auth {
             }
         }
 
+        $tokenParamsWithDefaults = array_merge( $this->defaultAuthoriseTokenParams, $tokenParams );
+        $authOptionsWithDefaults = array_merge( $this->defaultAuthoriseAuthOptions, $authOptions );
+
         Log::d( 'Auth::authorise: requesting new token' );
-        $this->tokenDetails = $this->requestToken( $this->defaultAuthoriseTokenParams, $this->defaultAuthoriseAuthOptions );
+        $this->tokenDetails = $this->requestToken( $tokenParamsWithDefaults, $authOptionsWithDefaults );
         $this->basicAuth = false;
 
         return $this->tokenDetails;

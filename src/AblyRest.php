@@ -153,7 +153,7 @@ class AblyRest {
                 && $e->getCode() == 40140;
 
             if ( $causedByExpiredToken ) { // renew the token
-                $this->auth->authorise( array(), array(), $force = true );
+                $this->auth->authorise( array(), array( 'force' => true ) );
                 
                 // merge headers now and use auth = false to prevent potential endless recursion
                 $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $headers );
