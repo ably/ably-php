@@ -108,7 +108,7 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( 'overriddenClientId_authOptions', $ablyCid->auth->clientId );
 
         // test clientId overridden by tokenParams
-        $ablyCid->auth->authorise( array( 'clientId' => 'overriddenClientId_tokenParams' ), array(), $force = true );
+        $ablyCid->auth->authorise( array( 'clientId' => 'overriddenClientId_tokenParams' ), array( 'force' => true ) );
         $this->assertEquals( 'overriddenClientId_tokenParams', $ablyCid->auth->clientId );
     }
 

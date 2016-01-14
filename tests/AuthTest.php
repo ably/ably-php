@@ -409,7 +409,7 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         $ably->auth->authorise();
         $this->assertEquals( $tokenOriginal->token, $ably->auth->getTokenDetails()->token, 'Expected token not to renew' );
 
-        $ably->auth->authorise(array(), array(), $force = true);
+        $ably->auth->authorise(array(), array( 'force' => true ) );
         $this->assertFalse( $tokenOriginal->token == $ably->auth->getTokenDetails()->token, 'Expected token to renew' );
     }
 
@@ -417,10 +417,17 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
      * Verify that all the parameters are supported and saved as defaults
      */
     public function testAuthoriseParams() {
+        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+            'key' => self::$testApp->getAppKeyDefault()->string,
+            'authClass' => 'authTest\AuthMock'
+        ) ) );
+        $ably->auth->fakeRequestToken = true;
+
         $tokenParams = array(
             'clientId' => 'tokenParamsClientId',
             'ttl' => 2000000,
             'capability' => '{"test":"tp"}',
+            'timestamp' => $ably->time(),
         );
 
         $authOptions = array(
@@ -435,13 +442,8 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
             'authParams' => array( 'param' => 'yep' ),
             'authMethod' => 'TEST',
             'queryTime' => true,
+            'force' => true,
         );
-
-        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
-            'key' => self::$testApp->getAppKeyDefault()->string,
-            'authClass' => 'authTest\AuthMock'
-        ) ) );
-        $ably->auth->fakeRequestToken = true;
         
         // test with empty params first
         $ably->auth->authorise();
@@ -451,19 +453,26 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
         $ably->auth->lastTokenParams = $ably->auth->lastAuthOptions = null;
 
         // provide both tokenParams and authOptions and see if they get passed to requestToken
-        $ably->auth->authorise( $tokenParams, $authOptions, $force = true );
+        $ably->auth->authorise( $tokenParams, $authOptions );
         $this->assertEquals( $tokenParams, $ably->auth->lastTokenParams, 'Expected authorise() to pass provided tokenParams to requestToken()');
         $this->assertEquals( $authOptions, $ably->auth->lastAuthOptions, 'Expected authorise() to pass provided authOptions to requestToken()');
+        
+        $this->assertFalse ( isset ( $ably->auth->getSavedAuthoriseTokenParams()['timestamp'] ),
+            'Expected authorise() to save provided tokenParams without the `timestamp` field');
+        $this->assertFalse ( isset ( $ably->auth->getSavedAuthoriseAuthOptions()['force'] ),
+            'Expected authorise() to save provided authOptions without the `force` field');
         $ably->auth->lastTokenParams = $ably->auth->lastAuthOptions = null;
 
         // provide no tokenParams or authOptions and see if previously saved params get passed to requestToken
-        $ably->auth->authorise( array(), array(), $force = true );
+        unset( $tokenParams['timestamp'] ); // expecting timestamp not to be remembered
+
+        $ably->auth->authorise( array(), array( 'force' => true ) );
         $this->assertEquals( $tokenParams, $ably->auth->lastTokenParams, 'Expected authorise() to pass saved tokenParams to requestToken()');
         $this->assertEquals( $authOptions, $ably->auth->lastAuthOptions, 'Expected authorise() to pass saved authOptions to requestToken()');
         $ably->auth->lastTokenParams = $ably->auth->lastAuthOptions = null;
 
         // check if parameter overriding works correctly
-        $ably->auth->authorise( array( 'ttl' => 99999 ), array( 'queryTime' => false ), $force = true );
+        $ably->auth->authorise( array( 'ttl' => 99999 ), array( 'queryTime' => false, 'force' => true ) );
         
         $expectedTokenParams = $tokenParams; // arrays are copied by value in PHP
         $expectedTokenParams['ttl'] = 99999;
@@ -488,8 +497,7 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
             'clientId' => 'overriddenClientId',
         ));
 
-        $forceReauth = true;
-        $token2 = $ably->auth->authorise( array(), array(), $forceReauth );
+        $token2 = $ably->auth->authorise( array(), array( 'force' => true ) );
 
         $this->assertFalse( $token1 == $token2, 'Expected different tokens to be issued') ;
         $this->assertEquals( 'overriddenClientId', $ably->auth->clientId, 'Expected to use a new clientId as a default' );
@@ -628,4 +636,13 @@ class AuthMock extends Auth {
         $args = func_get_args();
         return call_user_func_array( array( 'parent', __FUNCTION__ ), $args ); // passthru
     }
+
+    public function getSavedAuthoriseAuthOptions() {
+        return $this->defaultAuthoriseAuthOptions;
+    }
+
+    public function getSavedAuthoriseTokenParams() {
+        return $this->defaultAuthoriseTokenParams;
+    }
+
 }

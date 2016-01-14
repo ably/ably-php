@@ -162,6 +162,7 @@ class TypesTest extends \PHPUnit_Framework_TestCase {
             'authHeaders',
             'authParams',
             'queryTime',
+            'force',
         ) );
     }
 
