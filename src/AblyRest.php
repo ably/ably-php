@@ -151,7 +151,7 @@ class AblyRest {
             $causedByExpiredToken = $auth
                 && !$this->auth->isUsingBasicAuth()
                 && ($e->getCode() >= 40140)
-                && ($e->getCode() < 40149);
+                && ($e->getCode() < 40150);
 
             if ( $causedByExpiredToken ) { // renew the token
                 $this->auth->authorise( array(), array( 'force' => true ) );
