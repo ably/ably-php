@@ -284,8 +284,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
 
         sleep(2);
 
-        // TODO: Change to 40142 once https://github.com/ably/ably-common/commit/134793135a16efcb32e0630252acad9c7b52bf0b lands
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40140 ); // token expired
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40142 ); // token expired
         $channel->publish( 'test', 'test' ); // token is no longer valid
     }
 
