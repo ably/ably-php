@@ -57,7 +57,7 @@ class AblyRest {
         $authClass = $this->options->authClass;
         $this->auth = new $authClass( $this, $this->options );
         $this->channels = new Channels( $this );
-        
+
         return $this;
     }
 
@@ -134,7 +134,7 @@ class AblyRest {
                 $res = $this->requestWithFallback( $method, $path, $mergedHeaders, $params );
             } else {
                 $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->restHost;
-                
+
                 if ( $this->options->tls && !empty( $this->options->tlsPort ) ) {
                     $server .= ':' . $this->options->tlsPort;
                 }
@@ -145,16 +145,17 @@ class AblyRest {
                 $res = $this->http->request( $method, $server . $path, $mergedHeaders, $params );
             }
         } catch (AblyRequestException $e) {
-            // check if the exception was caused by an expired token = authorised request + using token auth + specific error message 
+            // check if the exception was caused by an expired token = authorised request + using token auth + specific error message
             $res = $e->getResponse();
-            
+
             $causedByExpiredToken = $auth
                 && !$this->auth->isUsingBasicAuth()
-                && $e->getCode() == 40140;
+                && ($e->getCode() >= 40140)
+                && ($e->getCode() < 40149);
 
             if ( $causedByExpiredToken ) { // renew the token
                 $this->auth->authorise( array(), array( 'force' => true ) );
-                
+
                 // merge headers now and use auth = false to prevent potential endless recursion
                 $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $headers );
 
