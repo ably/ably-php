@@ -92,7 +92,7 @@ class AblyRest {
      * @return integer system time in milliseconds
      */
     public function systemTime() {
-        return round( microtime(true) * 1000 );
+        return number_format(round( microtime(true) * 1000 ), 0, '', '');
     }
 
     /**
