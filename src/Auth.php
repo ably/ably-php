@@ -300,7 +300,8 @@ class Auth {
         } else if ( empty( $tokenRequest->timestamp ) ) {
             $tokenRequest->timestamp = sprintf ( "%.0f", $this->ably->systemTime() );
         }
-        // note: sprintf fixes inconsistent behaviour of converting numbers > 2^31 to string across platforms
+        // note: sprintf converts floating point numbers to plain integers (without scientific notation)
+        // regardless of the "precision" php.ini setting
         
         if ( empty( $tokenRequest->clientId ) ) {
             $tokenRequest->clientId = $authOptions->clientId;
