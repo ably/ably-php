@@ -296,10 +296,11 @@ class Auth {
         }
         
         if ( $authOptions->queryTime ) {
-            $tokenRequest->timestamp = $this->ably->time();
+            $tokenRequest->timestamp = sprintf ( "%.0f", $this->ably->time() );
         } else if ( empty( $tokenRequest->timestamp ) ) {
-            $tokenRequest->timestamp = $this->ably->systemTime();
+            $tokenRequest->timestamp = sprintf ( "%.0f", $this->ably->systemTime() );
         }
+        // note: sprintf fixes inconsistent behaviour of converting numbers > 2^31 to string across platforms
         
         if ( empty( $tokenRequest->clientId ) ) {
             $tokenRequest->clientId = $authOptions->clientId;
