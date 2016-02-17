@@ -296,10 +296,12 @@ class Auth {
         }
         
         if ( $authOptions->queryTime ) {
-            $tokenRequest->timestamp = $this->ably->time();
+            $tokenRequest->timestamp = sprintf ( "%.0f", $this->ably->time() );
         } else if ( empty( $tokenRequest->timestamp ) ) {
-            $tokenRequest->timestamp = $this->ably->systemTime();
+            $tokenRequest->timestamp = sprintf ( "%.0f", $this->ably->systemTime() );
         }
+        // note: sprintf converts floating point numbers to plain integers (without scientific notation)
+        // regardless of the "precision" php.ini setting
         
         if ( empty( $tokenRequest->clientId ) ) {
             $tokenRequest->clientId = $authOptions->clientId;
