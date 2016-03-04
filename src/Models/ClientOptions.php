@@ -20,7 +20,7 @@ class ClientOptions extends AuthOptions {
     public $logLevel = Log::WARNING;
 
     /**
-     * @var function|null a function to handle each line of log output. If handler is not specified, console.log is used.
+     * @var function|null a function to handle each line of log output. If handler is not specified, STDOUT is used.
      * Note that the log level and log handler have global scope in the library and will thus not act independently between library instances when multiple library instances are existing concurrently.
      * @see \Ably\Log
      */
