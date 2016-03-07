@@ -23,7 +23,11 @@ class CryptoTest extends \PHPUnit_Framework_TestCase {
 
         $cipherParams = Crypto::getDefaultParams([ 'key' => $key ]);
         $this->assertInstanceOf( 'Ably\Models\CipherParams', $cipherParams );
+        $this->assertEquals( $key, $cipherParams->key, 'Expected the key to match the provided key' );
+        $this->assertEquals( 'aes', $cipherParams->algorithm, 'Expected \'aes\' algorithm' );
         $this->assertEquals( 128, $cipherParams->keyLength, 'Expected keyLength of 128' );
+        $this->assertEquals( 'cbc', $cipherParams->mode, 'Expected \'cbc\' mode' );
+        $this->assertEquals( strlen( $key ), strlen( $cipherParams->iv), 'Expected key length and IV length to match' );
 
         $defaults = [
             'key' => $key,
@@ -36,15 +40,15 @@ class CryptoTest extends \PHPUnit_Framework_TestCase {
         $cipherParamsDef = Crypto::getDefaultParams( $defaults );
         $this->assertEquals( get_object_vars( $cipherParamsDef ), $defaults, 'Expected created CipherParams to match provided values');
 
-        $defaultsJson = $defaults; // copied by value in PHP
-        $defaultsJson['key'] = base64_encode( $defaultsJson['key'] );
-        $defaultsJson['base64Key'] = true;
-        $defaultsJson['iv'] = base64_encode( strtr( $defaultsJson['iv'], '/+', '_-' ) ); // RFC4648 section 5 ("url-safe")
-        $defaultsJson['base64Iv'] = true;
+        $defaultsB64 = $defaults; // copied by value in PHP
+        $defaultsB64['key'] = base64_encode( $defaultsB64['key'] );
+        $defaultsB64['base64Key'] = true;
+        $defaultsB64['iv'] = strtr( base64_encode( $defaultsB64['iv'] ), '/+', '_-' ); // RFC4648 section 5 ("url-safe")
+        $defaultsB64['base64Iv'] = true;
 
-        $cipherParamsDefJson = Crypto::getDefaultParams( $defaultsJson );
-        $this->assertEquals( get_object_vars( $cipherParamsDefJson ), $defaults,
-            'Expected created CipherParams to match provided values and decode JSON fields'
+        $cipherParamsDefB64 = Crypto::getDefaultParams( $defaultsB64 );
+        $this->assertEquals( get_object_vars( $cipherParamsDefB64 ), $defaults,
+            'Expected created CipherParams to match provided values and decode base64 fields'
         );
 
         try {
