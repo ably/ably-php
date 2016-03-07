@@ -2,6 +2,7 @@
 namespace Ably\Utils;
 
 use Ably\Models\CipherParams;
+use Ably\Exceptions\AblyException;
 
 /**
 * Provides static methods for encryption/decryption
@@ -41,11 +42,59 @@ class Crypto {
 
     /**
      * Returns default encryption parameters.
-     * @param $key string|null Encryption key, if not provided a random key is generated.
+     * @param $params Array Array containing optional cipher parameters. A `key` must be specified.
+     * The key may be either a binary string or a base64 encoded string, in which case `'base64Key' => true` must be set.
+     * `iv` can also be provided as binary or base64 string (`'base64IV' => true`), although you shouldn't need it in most cases.
      * @return CipherParams Default encryption parameters.
      */
-    public static function getDefaultParams( $key = null ) {
-        return new CipherParams( $key );
+    public static function getDefaultParams( $params ) {
+        if ( !isset( $params['key'] ) ) throw new AblyException ( 'No key specified.', 40003, 400 );
+
+        $cipherParams = new CipherParams();
+
+        if ( isset( $params['base64Key'] ) && $params['base64Key'] ) {
+            $params['key'] = strtr( $params['key'], '_-', '/+' );
+            $params['key'] = base64_decode( $params['key'] );
+        }
+
+        $cipherParams->key = $params['key'];
+        $cipherParams->keyLength = isset( $params['keyLength'] ) ? $params['keyLength'] : strlen( $cipherParams->key ) * 8;
+        
+        if ( !in_array( $cipherParams->keyLength, array( 128, 256 ) ) ) {
+            throw new AblyException ( 'Unsupported keyLength. Only 128 and 256 bits are supported.', 40003, 400 );
+        }
+        
+        if ( $cipherParams->keyLength / 8 != strlen( $cipherParams->key ) ) {
+            throw new AblyException ( 'keyLength does not match the actual key length.', 40003, 400 );
+        }
+
+        $cipherParams->algorithm = isset( $params['algorithm'] ) ? $params['algorithm'] : 'aes';
+        $cipherParams->mode = isset( $params['mode'] ) ? $params['mode'] : 'cbc';
+
+        if ( !in_array( $cipherParams->getAlgorithmString(), array( 'aes-128-cbc', 'aes-256-cbc' ) ) ) {
+            throw new AblyException ( 'Unsupported cipher configuration "' . $cipherParams->getAlgorithmString()
+                . '". The supported configurations are aes-128-cbc and aes-256-cbc', 40003, 400 );
+        }
+        
+        if ( isset( $params['iv'] ) ) {
+            $cipherParams->iv = $params['iv'];
+            if ( isset( $params['base64Iv'] ) && $params['base64Iv'] ) {
+                $cipherParams->iv = strtr( $cipherParams->iv, '_-', '/+' );
+                $cipherParams->iv = base64_decode( $cipherParams->iv );
+            }
+        } else {
+            $cipherParams->generateIV();
+        }
+
+        return $cipherParams;
+    }
+
+    /**
+     * Generates a random encryption key.
+     * @param $keyLength|null The length of the key to be generated, defaults to 256.
+     */     
+    public static function generateRandomKey( $keyLength = 256 ) {
+        return openssl_random_pseudo_bytes( $keyLength / 8 );
     }
 
     /**
@@ -57,6 +106,6 @@ class Crypto {
         $ivLength = strlen( $cipherParams->iv );
 
         $cipherParams->iv = openssl_encrypt( str_repeat( ' ', $ivLength ), $cipherParams->getAlgorithmString(), $cipherParams->key, $raw, $cipherParams->iv );
-        $cipherParams->iv = substr( $cipherParams->iv, 0, $ivLength);
+        $cipherParams->iv = substr( $cipherParams->iv, 0, $ivLength );
     }
 }
