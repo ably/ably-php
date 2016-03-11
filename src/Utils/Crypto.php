@@ -35,8 +35,9 @@ class Crypto {
     public static function decrypt( $payload, $cipherParams ) {
         $raw = defined( 'OPENSSL_RAW_DATA' ) ? OPENSSL_RAW_DATA : true;
 
-        $iv = substr( $payload, 0, 16 );
-        $ciphertext = substr( $payload, 16 );
+        $ivLength = openssl_cipher_iv_length( $cipherParams->getAlgorithmString() );
+        $iv = substr( $payload, 0, $ivLength );
+        $ciphertext = substr( $payload, $ivLength );
         return openssl_decrypt( $ciphertext, $cipherParams->getAlgorithmString(), $cipherParams->key, $raw, $iv );
     }
 
@@ -58,22 +59,32 @@ class Crypto {
         }
 
         $cipherParams->key = $params['key'];
-        $cipherParams->keyLength = isset( $params['keyLength'] ) ? $params['keyLength'] : strlen( $cipherParams->key ) * 8;
-        
-        if ( !in_array( $cipherParams->keyLength, array( 128, 256 ) ) ) {
-            throw new AblyException ( 'Unsupported keyLength. Only 128 and 256 bits are supported.', 40003, 400 );
-        }
-        
-        if ( $cipherParams->keyLength / 8 != strlen( $cipherParams->key ) ) {
-            throw new AblyException ( 'keyLength does not match the actual key length.', 40003, 400 );
-        }
-
         $cipherParams->algorithm = isset( $params['algorithm'] ) ? $params['algorithm'] : 'aes';
-        $cipherParams->mode = isset( $params['mode'] ) ? $params['mode'] : 'cbc';
 
-        if ( !in_array( $cipherParams->getAlgorithmString(), array( 'aes-128-cbc', 'aes-256-cbc' ) ) ) {
-            throw new AblyException ( 'Unsupported cipher configuration "' . $cipherParams->getAlgorithmString()
-                . '". The supported configurations are aes-128-cbc and aes-256-cbc', 40003, 400 );
+        if ($cipherParams->algorithm == 'aes') {
+            $cipherParams->mode = isset( $params['mode'] ) ? $params['mode'] : 'cbc';
+            $cipherParams->keyLength = isset( $params['keyLength'] ) ? $params['keyLength'] : strlen( $cipherParams->key ) * 8;
+            
+            if ( !in_array( $cipherParams->keyLength, array( 128, 256 ) ) ) {
+                throw new AblyException ( 'Unsupported keyLength. Only 128 and 256 bits are supported.', 40003, 400 );
+            }
+            
+            if ( $cipherParams->keyLength / 8 != strlen( $cipherParams->key ) ) {
+                throw new AblyException ( 'keyLength does not match the actual key length.', 40003, 400 );
+            }
+
+            if ( !in_array( $cipherParams->getAlgorithmString(), array( 'aes-128-cbc', 'aes-256-cbc' ) ) ) {
+                throw new AblyException ( 'Unsupported cipher configuration "' . $cipherParams->getAlgorithmString()
+                    . '". The supported configurations are aes-128-cbc and aes-256-cbc', 40003, 400 );
+            }
+        } else {
+            if ( isset( $params['mode'] ) ) $cipherParams->mode = $params['mode'];
+            if ( isset( $params['keyLength'] ) ) $cipherParams->keyLength = $params['keyLength'];
+
+            if ( !$cipherParams->checkValidAlgorithm() ) {
+                throw new AblyException( 'The specified algorithm "'.$cipherParams->getAlgorithmString().'"'
+                    . ' is not supported by openssl. See openssl_get_cipher_methods.', 40003, 400 );
+            }
         }
         
         if ( isset( $params['iv'] ) ) {
@@ -91,7 +102,7 @@ class Crypto {
 
     /**
      * Generates a random encryption key.
-     * @param $keyLength|null The length of the key to be generated, defaults to 256.
+     * @param $keyLength|null The length of the key to be generated in bits, defaults to 256.
      */     
     public static function generateRandomKey( $keyLength = 256 ) {
         return openssl_random_pseudo_bytes( $keyLength / 8 );

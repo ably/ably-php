@@ -82,6 +82,25 @@ class CryptoTest extends \PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testNonAESEncryptionSupport() {
+        $blowfishParams = Crypto::getDefaultParams( [
+            'key' => Crypto::generateRandomKey(128),
+            'algorithm' => 'bf',
+            'mode' => 'ecb',
+        ]);
+
+        $encrypted = Crypto::encrypt( 'test', $blowfishParams );
+        $decrypted = Crypto::decrypt( $encrypted, $blowfishParams );
+        $this->assertNotEquals( $encrypted, $decrypted );
+        $this->assertEquals( 'test', $decrypted );
+
+        try {
+            Crypto::getDefaultParams([ 'key' => Crypto::generateRandomKey(), 'algorithm' => 'fake' ]);
+        } catch (\Exception $ex) {
+            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex, 'Expected to raise an exception on unknown encryption mode' );
+        }
+    }
+
     /**
      * Tests if example messages match actual messages after encryption/decryption and vice versa:
      * decrypt(encrypted_example) == unencrypted_example

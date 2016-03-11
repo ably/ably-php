@@ -27,7 +27,7 @@ class Channel {
      * Constructor
      * @param AblyRest $ably Ably API instance
      * @param string $name Channel's name
-     * @param ChannelOpions|array|null $options Channel options (for encrypted channels)
+     * @param ChannelOptions|array|null $options Channel options (for encrypted channels)
      * @throws AblyException
      */
     public function __construct( AblyRest $ably, $name, $options = array() ) {
