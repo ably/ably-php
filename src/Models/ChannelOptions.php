@@ -1,17 +1,26 @@
 <?php
 namespace Ably\Models;
 
+use Ably\Utils\Crypto;
+
 /**
  * Channel options
  */
 class ChannelOptions extends BaseOptions {
 
     /**
-     * @var boolean indicating if the channel should be encrypted
+     * @var \Ably\Models\CipherParams|null Parameters of the cipher used on the channel, null if unencrypted
      */
-    public $encrypted = false;
+    public $cipher = null;
+
     /**
-     * @var \Ably\Models\CipherParams parameters of the cipher used on the channel
+     * Transforms `cipher` from array to CipherParams, if necessary
      */
-    public $cipherParams = null;
+    public function __construct( $options = array() ) {
+        parent::__construct( $options );
+        
+        if ( is_array( $this->cipher ) ) {
+        	$this->cipher = Crypto::getDefaultParams( $this->cipher );
+        }
+    }
 }

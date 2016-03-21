@@ -177,8 +177,7 @@ class TypesTest extends \PHPUnit_Framework_TestCase {
 
     public function testChannelOptionsType() {
         $this->verifyClassMembers( '\Ably\Models\ChannelOptions', array(
-            'encrypted',
-            'cipherParams',
+            'cipher',
         ) );
     }
 

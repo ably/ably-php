@@ -2,7 +2,7 @@
 namespace tests;
 use Ably\AblyRest;
 use Ably\Exceptions\AblyRequestException;
-use Ably\Models\CipherParams;
+use Ably\Utils\Crypto;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -26,17 +26,18 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         $fixture = self::$testApp->getFixture();
         self::$presenceFixture = $fixture->post_apps->channels[0]->presence;
 
-        $key = base64_decode( $fixture->cipher->key );
-        
-        $cipherParams = new CipherParams( $key );
-        $cipherParams->algorithm = $fixture->cipher->algorithm;
-        $cipherParams->keyLength = $fixture->cipher->keylength;
-        $cipherParams->mode      = $fixture->cipher->mode;
-        $cipherParams->iv        = base64_decode( $fixture->cipher->iv );
+        $cipherParams = Crypto::getDefaultParams([
+            'key'       => $fixture->cipher->key,
+            'algorithm' => $fixture->cipher->algorithm,
+            'keyLength' => $fixture->cipher->keylength,
+            'mode'      => $fixture->cipher->mode,
+            'iv'        => $fixture->cipher->iv,
+            'base64Key' => true,
+            'base64Iv' => true,
+        ]);
 
         $options = array(
-            'encrypted' => true,
-            'cipherParams' => $cipherParams,
+            'cipher' => $cipherParams,
         );
 
         self::$channel = self::$ably->channel('persisted:presence_fixtures', $options);

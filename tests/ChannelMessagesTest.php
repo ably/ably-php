@@ -5,7 +5,6 @@ use Ably\Channel;
 use Ably\Http;
 use Ably\Log;
 use Ably\Exceptions\AblyException;
-use Ably\Models\CipherParams;
 use Ably\Models\Message;
 use Ably\Utils\Crypto;
 
@@ -109,7 +108,9 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      * Publish events with data of various datatypes to an aes-128-cbc encrypted channel
      */
     public function testPublishMessagesVariousTypesAES128() {
-        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes', 128 ));
+        $options = array( 'cipher' => array(
+            'key' => Crypto::generateRandomKey( 128 ),
+        ) );
         $encrypted1 = self::$ably->channels->get( 'persisted:encrypted1', $options );
         
         $this->assertNotNull( $encrypted1->getCipherParams(), 'Expected channel to be encrypted' );
@@ -121,7 +122,9 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      * Publish events with data of various datatypes to an aes-256-cbc encrypted channel
      */
     public function testPublishMessagesVariousTypesAES256() {
-        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes', 256 ));
+        $options = array( 'cipher' => array(
+            'key' => Crypto::generateRandomKey( 256 ),
+        ) );
         $encrypted2 = self::$ably->channels->get( 'persisted:encrypted2', $options );
         
         $this->assertNotNull( $encrypted2->getCipherParams(), 'Expected channel to be encrypted' );
@@ -273,7 +276,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         $payload = 'This is a test message';
 
-        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes', 128 ));
+        $options = array( 'cipher' => array( 'key' => Crypto::generateRandomKey( 128 ) ) );
         $encrypted1 = $ably->channel( 'persisted:mismatch1', $options );
         $encrypted1->publish( 'test', $payload );
 
@@ -296,7 +299,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $encrypted = self::$ably->channel( 'persisted:mismatch2' );
         $encrypted->publish( 'test', $payload );
 
-        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes', 128 ));
+        $options = array( 'cipher' => array( 'key' => Crypto::generateRandomKey( 128 ) ) );
         $unencrypted = self::$ably->channel( 'persisted:mismatch2', $options );
         $messages = $unencrypted->history();
         $this->assertNotNull( $messages, 'Expected non-null messages' );
@@ -321,11 +324,11 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         $payload = 'This is a test message';
 
-        $options = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'password', 'aes', 128 ));
+        $options = array( 'cipher' => array( 'key' => 'fake key 1xxxxxx' ) );
         $encrypted1 = $ably->channel( 'persisted:mismatch3', $options );
         $encrypted1->publish( 'test', $payload );
 
-        $options2 = array( 'encrypted' => true, 'cipherParams' => new CipherParams( 'DIFFERENT PASSWORD', 'aes', 128 ));
+        $options2 = array( 'cipher' => array( 'key' => 'fake key 2xxxxxx' ) );
         $encrypted2 = $ably->channel( 'persisted:mismatch3', $options2 );
         $messages = $encrypted2->history();
         $msg = $messages->items[0];
@@ -351,10 +354,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         $this->assertNull( $channel3->getCipherParams(), 'Expected the channel to not have CipherParams' );
 
-        self::$ably->channel( 'cache_test', array(
-            'encrypted' => true,
-            'cipherParams' => new CipherParams( 'password', 'aes', 128 )
-        ) );
+        self::$ably->channel( 'cache_test', array( 'cipher' => array( 'key' => Crypto::generateRandomKey( 128 ) ) ) );
 
         $this->assertNotNull( $channel3->getCipherParams(), 'Expected the channel to have CipherParams even when specified for a new instance' );
     }
@@ -379,7 +379,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $msg->data = hex2bin( '00102030405060708090a0b0c0d0e0f0ff' );
         $this->assertEquals( 'base64', $this->getMessageEncoding( $msg ), 'Expected empty message encoding' );
 
-        $msg->setCipherParams( Crypto::getDefaultParams( 'password' ) );
+        $msg->setCipherParams( Crypto::getDefaultParams( array( 'key' => Crypto::generateRandomKey( 128 ) ) ) );
 
         $msg->data = 'This is a UTF-8 string message payload. äôč ビール';
         $this->assertEquals( 'utf-8/cipher+aes-128-cbc/base64', $this->getMessageEncoding( $msg ), 'Expected empty message encoding' );
