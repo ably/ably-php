@@ -125,12 +125,14 @@ To see what has changed in recent versions of Bundler, see the [CHANGELOG](CHANG
 
 ## Running the tests
 
-The client library uses the Ably sandbox environment to provision an app and run the tests against that app.  In order to run the tests, you simply need to:
+The client library uses the Ably sandbox environment to provision an app and run the tests against that app.  In order to run the tests, you need to:
 
+	git clone https://github.com/ably/ably-php.git
+	cd ably-php
     composer install
     git submodule init
     git submodule update
-    vendor/bin/phpunit
+    ./vendor/bin/phpunit
 
 ## Contributing
 
