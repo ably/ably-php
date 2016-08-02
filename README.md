@@ -18,10 +18,10 @@ Install Ably from the shell with:
 
     $ composer require ably/ably-php --update-no-dev
 
-Omit the `--update-no-dev` parameter, if you want to run tests. Then simply require composer's autoloader:
+Then simply require composer's autoloader:
 
 ```php
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 ```
 
 ### Manual installation
@@ -110,6 +110,10 @@ $statsPage->next(); // retrieves the next page => \Ably\Models\PaginatedResult
 ```php
 $client->time(); // in milliseconds => 1430313364993
 ```
+
+## Laravel
+
+If you're using Laravel, you may want to check out [ably-php-laravel](https://packagist.org/packages/ably/ably-php-laravel) wrapper, which is a wrapper with Laravel-specific helper classes.
 
 ## Support, feedback and troubleshooting
 
