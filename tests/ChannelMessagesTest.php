@@ -260,6 +260,23 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * Verify that publishing on behalf of realtime clients works
+     */
+    public function testPublishConnectionKey() {
+        $channel = self::$ably->channel( 'connKey' );
+
+
+        $msg = new Message();
+        $msg->name = 'delegatedMsg';
+        $msg->data = 'test payload';
+        $msg->connectionKey = 'fake!realtime_key';
+
+        // publishing the message with an invalid key must fail
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40006 );
+        $channel->publish( $msg );
+    }
+
+    /**
      * Encryption mismatch - publish message over encrypted channel, retrieve history over unencrypted channel
      */
     public function testEncryptedMessageUnencryptedHistory() {
