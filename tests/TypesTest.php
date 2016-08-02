@@ -185,6 +185,7 @@ class TypesTest extends \PHPUnit_Framework_TestCase {
     public function testCipherParamsType() {
         $this->verifyClassMembers( '\Ably\Models\CipherParams', array(
             'algorithm',
+            'key',
             'keyLength',
             'mode'
         ) );

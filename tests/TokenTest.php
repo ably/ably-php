@@ -212,7 +212,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         $channel->publish( 'test', 'test' );
         $tokenReq1 = $ablyTokenAuth->auth->getTokenDetails()->token;
 
-        sleep(2);
+        sleep(3);
 
         $channel->publish( 'test', 'test' );
         $tokenReq2 = $ablyTokenAuth->auth->getTokenDetails()->token;
@@ -249,7 +249,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         $channel->publish( 'test', 'test' );
         $tokenReq1 = $ablyTokenAuth->auth->getTokenDetails()->token;
 
-        sleep(2);
+        sleep(3);
 
         $channel->publish( 'test', 'test' );
         $tokenReq2 = $ablyTokenAuth->auth->getTokenDetails()->token;
@@ -282,7 +282,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         // do an authorised request with the valid token
         $channel->publish( 'test', 'test' );
 
-        sleep(2);
+        sleep(3);
 
         $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40142 ); // token expired
         $channel->publish( 'test', 'test' ); // token is no longer valid
@@ -306,7 +306,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         $channel = $ablyTokenAuth->channel( 'testchannel' );
         $channel->publish( 'test', 'test' ); // this should work
 
-        sleep(2);
+        sleep(3);
 
         $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40101 );
         $channel->publish( 'test', 'test' ); // this should fail
