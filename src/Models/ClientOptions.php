@@ -101,6 +101,7 @@ class ClientOptions extends AuthOptions {
             $this->restHost = 'rest.ably.io';
 
             if ( empty( $this->environment ) ) {
+                // default fallback hosts are used only with the default host and default environment
                 $this->fallbackHosts = array(
                     'a.ably-realtime.com',
                     'b.ably-realtime.com',
@@ -109,6 +110,10 @@ class ClientOptions extends AuthOptions {
                     'e.ably-realtime.com',
                 );
 
+                shuffle( $this->fallbackHosts );
+            }
+        } else { // custom host
+            if ( !empty( $this->fallbackHosts ) ) {
                 shuffle( $this->fallbackHosts );
             }
         }
