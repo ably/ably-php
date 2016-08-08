@@ -92,10 +92,6 @@ class Http {
         $this->curl->setOpt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeout); 
         $this->curl->setOpt($ch, CURLOPT_TIMEOUT_MS, $this->requestTimeout);
 
-        if (!isset( $headers['X-Ably-Version'] )) {
-            $headers['X-Ably-Version'] = AblyRest::API_VERSION;
-        }
-
         if (!empty($params)) {
             if (is_array( $params )) {
                 $paramsQuery = http_build_query( $params );

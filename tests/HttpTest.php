@@ -25,6 +25,18 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
 
         $this->assertArrayHasKey( 'X-Ably-Version', $curlParams[CURLOPT_HTTPHEADER], 'Expected Ably version header in HTTP request' );
         $this->assertEquals( AblyRest::API_VERSION, $curlParams[CURLOPT_HTTPHEADER]['X-Ably-Version'], 'Expected Ably version in HTTP header to match AblyRest constant' );
+
+        $this->assertArrayHasKey( 'X-Ably-Lib', $curlParams[CURLOPT_HTTPHEADER], 'Expected Ably lib header in HTTP request' );
+        $this->assertEquals( 'php-' . AblyRest::LIB_VERSION, $curlParams[CURLOPT_HTTPHEADER]['X-Ably-Lib'], 'Expected Ably lib in HTTP header to match AblyRest constant' );
+
+        AblyRest::setLibraryFlavourString( 'test' );
+        $ably = new AblyRest( $opts );
+        $ably->time(); // make a request
+
+        $curlParams = $ably->http->getCurlLastParams();
+        $this->assertEquals( 'php-test-' . AblyRest::LIB_VERSION, $curlParams[CURLOPT_HTTPHEADER]['X-Ably-Lib'], 'Expected X-Ably-Lib to contain library flavour string' );
+
+        AblyRest::setLibraryFlavourString();
     }
 
 

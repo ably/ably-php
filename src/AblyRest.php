@@ -11,9 +11,11 @@ use Ably\Exceptions\AblyRequestException;
  */
 class AblyRest {
 
-    const API_VERSION = '0.8';
+    const API_VERSION = '0.9';
+    const LIB_VERSION = '0.9.0';
 
-    private $options;
+    protected $options;
+    protected static $libFlavour = '';
 
     /**
      * @var \Ably\Http $http object for making HTTP requests
@@ -123,10 +125,13 @@ class AblyRest {
      * @throws AblyRequestException if the request fails
      */
     public function request( $method, $path, $headers = array(), $params = array(), $returnHeaders = false, $auth = true ) {
+        $mergedHeaders = array_merge( array(
+            'X-Ably-Version' => self::API_VERSION,
+            'X-Ably-Lib' => 'php-' . self::$libFlavour . self::LIB_VERSION,
+        ), $headers );
+
         if ( $auth ) { // inject auth headers
-            $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $headers );
-        } else {
-            $mergedHeaders = $headers;
+            $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $mergedHeaders );
         }
 
         try {
@@ -198,5 +203,14 @@ class AblyRest {
 
             throw $e; // other error code than timeout, rethrow exception
         }
+    }
+
+    /**
+     * Sets a "flavour string", that is sent in the `X-Ably-Lib` request header.
+     * Used for internal statistics.
+     * For instance setting 'laravel' results in: `X-Ably-Lib: php-laravel-0.9.0`
+     */
+    public static function setLibraryFlavourString( $flavour = '' ) {
+        self::$libFlavour = $flavour ? $flavour.'-' : '';
     }
 }
