@@ -222,7 +222,7 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
            $this->assertEquals( $hostWithFallbacks[0], $ably->http->failedHosts[0], 'Expected to try restHost first' );
-            $this->assertNotEquals( $hostWithFallbacks, $ably->http->failedHosts, 'Expected to have fallback hosts randomized' );
+            // $this->assertNotEquals( $hostWithFallbacks, $ably->http->failedHosts, 'Expected to have fallback hosts randomized' ); // this may fail when randomized order matches the original order
             
            $failedHostsSorted = $ably->http->failedHosts; // copied by value;
            sort($failedHostsSorted);
@@ -354,7 +354,7 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
         $ably->http->get('https://cdn.ably.io/lib/ably.js'); // should work
         $this->setExpectedException('Ably\Exceptions\AblyRequestException', '', 50003);
         $ablyTimeout->http->get('https://cdn.ably.io/lib/ably.js'); // guaranteed to take more than 50 ms
-    }    
+    }
 }
 
 

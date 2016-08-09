@@ -97,7 +97,9 @@ class Http {
                 $paramsQuery = http_build_query( $params );
 
                 if ($method == 'GET') {
-                    $url .= '?' . $paramsQuery;
+                    if ($paramsQuery) {
+                        $url .= '?' . $paramsQuery;
+                    }
                     $this->curl->setOpt( $ch, CURLOPT_URL, $url );
                 } else if ($method == 'POST') {
                     $this->curl->setOpt( $ch, CURLOPT_POST, true );
@@ -117,7 +119,7 @@ class Http {
                 $this->curl->setOpt( $ch, CURLOPT_POSTFIELDS, $params );
 
                 if ($this->postDataFormat == 'json') {
-                    array_push( $headers, 'Accept: application/json', 'Content-Type: application/json' );
+                    array_push( $headers, 'Content-Type: application/json' );
                 }
             } else {
                 throw new AblyRequestException( 'Unknown $params format' );
@@ -148,17 +150,15 @@ class Http {
             throw new AblyRequestException( 'cURL error: ' . $errmsg, 50003, 500 );
         }
 
-        $response = null;
-
-        $headers = substr( $raw, 0, $info['header_size'] );
+        $resHeaders = substr( $raw, 0, $info['header_size'] );
         $body = substr( $raw, $info['header_size'] );
         $decodedBody = json_decode( $body );
 
-        $response = array( 'headers' => $headers, 'body' => $decodedBody ? $decodedBody : $body );
+        $response = array( 'headers' => $resHeaders, 'body' => $decodedBody ? $decodedBody : $body );
 
         Log::v( 'cURL request response:', $info['http_code'], $response );
 
-        if ( !in_array( $info['http_code'], array(200,201) ) ) {
+        if ( $info['http_code'] < 200 || $info['http_code'] >= 300 ) {
             $ablyCode = empty( $decodedBody->error->code ) ? $info['http_code'] * 100 : $decodedBody->error->code * 1;
             $errorMessage = empty( $decodedBody->error->message ) ? 'cURL request failed' : $decodedBody->error->message;
 

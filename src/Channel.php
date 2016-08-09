@@ -111,7 +111,7 @@ class Channel {
      * @return PaginatedResult
      */
     public function history( $params = array() ) {
-        return new PaginatedResult( $this->ably, 'Ably\Models\Message', $this->getCipherParams(), $this->getPath() . '/messages', $params );
+        return new PaginatedResult( $this->ably, 'Ably\Models\Message', $this->getCipherParams(), 'GET', $this->getPath() . '/messages', $params );
     }
 
     /**

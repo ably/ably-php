@@ -3,6 +3,7 @@ namespace Ably;
 
 use Ably\Models\ClientOptions;
 use Ably\Models\PaginatedResult;
+use Ably\Models\Response;
 use Ably\Exceptions\AblyException;
 use Ably\Exceptions\AblyRequestException;
 
@@ -77,7 +78,7 @@ class AblyRest {
      * @return array Statistics
      */
     public function stats( $params = array() ) {
-        return new PaginatedResult( $this, 'Ably\Models\Stats', $cipher = false, '/stats', $params );
+        return new PaginatedResult( $this, 'Ably\Models\Stats', $cipher = false, 'GET', '/stats', $params );
     }
 
     /**
@@ -102,7 +103,7 @@ class AblyRest {
      * @see AblyRest::request()
      */
     public function get( $path, $headers = array(), $params = array(), $returnHeaders = false, $auth = true ) {
-        return $this->request( 'GET', $path, $headers, $params, $returnHeaders, $auth );
+        return $this->requestInternal( 'GET', $path, $headers, $params, $returnHeaders, $auth );
     }
 
     /**
@@ -110,11 +111,13 @@ class AblyRest {
      * @see AblyRest::request()
      */
     public function post( $path, $headers = array(), $params = array(), $returnHeaders = false, $auth = true ) {
-        return $this->request( 'POST', $path, $headers, $params, $returnHeaders, $auth );
+        return $this->requestInternal( 'POST', $path, $headers, $params, $returnHeaders, $auth );
     }
 
     /**
-     * Does a HTTP request, automatically injecting auth headers and handling fallback on server failure
+     * Does a HTTP request, automatically injecting auth headers and handling fallback on server failure.
+     * This method is used internally and `request` is the preferable method to use.
+     *
      * @param string $method HTTP method (GET, POST, PUT, DELETE, ...)
      * @param string $path root-relative path, e.g. /channels/example/messages
      * @param array $headers HTTP headers to send
@@ -124,7 +127,7 @@ class AblyRest {
      * @return mixed either array with 'headers' and 'body' fields or just body, depending on $returnHeaders, body is automatically decoded
      * @throws AblyRequestException if the request fails
      */
-    public function request( $method, $path, $headers = array(), $params = array(), $returnHeaders = false, $auth = true ) {
+    public function requestInternal( $method, $path, $headers = array(), $params = array(), $returnHeaders = false, $auth = true ) {
         $mergedHeaders = array_merge( array(
             'X-Ably-Version' => self::API_VERSION,
             'X-Ably-Lib' => 'php-' . self::$libFlavour . self::LIB_VERSION,
@@ -164,7 +167,7 @@ class AblyRest {
                 // merge headers now and use auth = false to prevent potential endless recursion
                 $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $headers );
 
-                return $this->request( $method, $path, $mergedHeaders, $params, $returnHeaders, $auth = false );
+                return $this->requestInternal( $method, $path, $mergedHeaders, $params, $returnHeaders, $auth = false );
             } else {
                 throw $e;
             }
@@ -174,6 +177,34 @@ class AblyRest {
             $res = $res['body'];
         }
         return $res;
+    }
+
+    /**
+     * Does an HTTP request with automatic pagination, automatically injected
+     * auth headers and automatic server failure handling using fallbackHosts.
+     *
+     * @param string $method HTTP method (GET, POST, PUT, DELETE, ...)
+     * @param string $path root-relative path, e.g. /channels/example/messages
+     * @param array $params GET parameters to append to $path
+     * @param array|object $body JSON-encodable structure to send in the body - leave empty for GET requests
+     * @param array $headers HTTP headers to send
+     * @return \Ably\Models\Response
+     * @throws AblyRequestException This exception is only thrown for status codes >= 500
+     */
+    public function request( $method, $path, $params = array(), $body = '', $headers = array()) {
+        if ( count( $params ) ) {
+            $path .= '?' . http_build_query( $params );
+        }
+
+        if ( $method == 'GET' && $body ) {
+            throw new AblyException( 'GET requests cannot have a JSON body', 400, 40000 );
+        }
+
+        if ( !is_string( $body ) ) {
+            $body = json_encode( $body );
+        }
+
+        return new Response( $this, 'Ably\Models\Untyped', null, $method, $path, $body, $headers );
     }
 
     /**
