@@ -409,6 +409,31 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * Test library interoperability by encoding and decoding messages from messages-encoding.json
+     */
+    public function testMessageEncodingInteroperabilityFixture() {
+        $ably = self::$ably;
+        $fixture = json_decode( file_get_contents( __DIR__ . '/../ably-common/test-resources/messages-encoding.json' ) );
+
+        foreach ($fixture->messages as $i => $testMsgData) {
+            $msg = new Message();
+            $msg->data = $testMsgData->data;
+            $msg->encoding = $testMsgData->encoding;
+            
+            $ably->channel("testInterop_$i")->publish($msg);
+            $ret = $ably->channel("testInterop_$i")->history();
+
+            if ( isset( $testMsgData->expectedHexValue ) ) {
+                $expected = pack( 'H*', $testMsgData->expectedHexValue );
+            } else {
+                $expected = $testMsgData->expectedValue;
+            }
+
+            $this->assertEquals($expected, $ret->items[0]->data);
+        }
+    }
+
+    /**
      * Test if null name and data elements are allowed when publishing messages
      */
     public function testNullData() {
