@@ -31,7 +31,7 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
 
         $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
 
-        $ably->auth->authorise();
+        $ably->auth->authorize();
         $this->assertEquals( 'testClientId', $ably->auth->clientId, 'Expected clientId result to match the provided id' );
         $this->assertEquals( 'testClientId', $ably->auth->getTokenDetails()->clientId, 'Expected clientId in tokenDetails to match the provided id' );
     }
@@ -57,7 +57,7 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
             'key' => self::$testApp->getAppKeyDefault()->string,
         ) ) );
 
-        $ably->auth->authorise(); // switch to token based auth
+        $ably->auth->authorize(); // switch to token based auth
 
         $this->assertNull( $ably->auth->getTokenDetails()->clientId, 'Expected tokenDetails clientId to be null' );
         $this->assertNull( $ably->auth->clientId, 'Expected clientId to be null' );
@@ -72,7 +72,7 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
 
         $this->assertNull( $ablyImplicitCId->auth->clientId, 'Expected clientId to be null prior to authorising' );
 
-        $ablyImplicitCId->auth->authorise();
+        $ablyImplicitCId->auth->authorize();
 
         $this->assertEquals( 'testClientId', $ablyImplicitCId->auth->clientId, 'Expected clientId to match after authorising' );
     }
@@ -104,11 +104,11 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( 'testClientId', $ablyCid->auth->clientId );
 
         // test clientId overridden by authOptions
-        $ablyCid->auth->authorise( array(), array( 'clientId' => 'overriddenClientId_authOptions' ) );
+        $ablyCid->auth->authorize( array(), array( 'clientId' => 'overriddenClientId_authOptions' ) );
         $this->assertEquals( 'overriddenClientId_authOptions', $ablyCid->auth->clientId );
 
         // test clientId overridden by tokenParams
-        $ablyCid->auth->authorise( array( 'clientId' => 'overriddenClientId_tokenParams' ), array( 'force' => true ) );
+        $ablyCid->auth->authorize( array( 'clientId' => 'overriddenClientId_tokenParams' ) );
         $this->assertEquals( 'overriddenClientId_tokenParams', $ablyCid->auth->clientId );
     }
 
@@ -198,7 +198,7 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
             ) ),
         ) ) );
 
-        $ablyCId->auth->authorise(); // obtain a token
+        $ablyCId->auth->authorize(); // obtain a token
         $this->assertEquals( 'overriddenClientId', $ablyCId->auth->clientId, 'Expected defaultTokenParams to override provided clientId' );
 
         $channel = $ablyCId->channels->get( 'persisted:testClientIdPrecedence' );

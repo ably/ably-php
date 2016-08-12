@@ -129,6 +129,7 @@ class AblyRest {
      */
     public function requestInternal( $method, $path, $headers = array(), $params = array(), $returnHeaders = false, $auth = true ) {
         $mergedHeaders = array_merge( array(
+            'Accept', 'application/json',
             'X-Ably-Version' => self::API_VERSION,
             'X-Ably-Lib' => 'php-' . self::$libFlavour . self::LIB_VERSION,
         ), $headers );
@@ -162,7 +163,7 @@ class AblyRest {
                 && ($e->getCode() < 40150);
 
             if ( $causedByExpiredToken ) { // renew the token
-                $this->auth->authorise( array(), array( 'force' => true ) );
+                $this->auth->authorize();
 
                 // merge headers now and use auth = false to prevent potential endless recursion
                 $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $headers );

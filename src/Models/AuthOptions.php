@@ -75,11 +75,6 @@ class AuthOptions extends BaseOptions {
      */
     public $queryTime;
 
-    /**
-     * @var boolean Forces a token renewal when calling Auth::authorise()
-     */
-    public $force;
-
     public function __construct( $options = array() ) {
         parent::__construct( $options );
         

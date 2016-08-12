@@ -203,7 +203,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         ) );
 
         $ablyTokenAuth = new AblyRest( $options );
-        $ablyTokenAuth->auth->authorise();
+        $ablyTokenAuth->auth->authorize();
         $tokenBefore = $ablyTokenAuth->auth->getTokenDetails()->token;
 
         $channel = $ablyTokenAuth->channel( 'testchannel' );
@@ -240,7 +240,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         ) );
 
         $ablyTokenAuth = new AblyRest( $options );
-        $ablyTokenAuth->auth->authorise();
+        $ablyTokenAuth->auth->authorize();
         $tokenBefore = $ablyTokenAuth->auth->getTokenDetails()->token;
 
         $channel = $ablyTokenAuth->channel( 'testchannel' );
