@@ -19,9 +19,9 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
 
         self::$testApp = new TestApp();
         self::$defaultOptions = self::$testApp->getOptions();
-        self::$ably = new AblyRest( array_merge( self::$defaultOptions, array(
+        self::$ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
-        ) ) );
+        ] ) );
 
         $fixture = self::$testApp->getFixture();
         self::$presenceFixture = $fixture->post_apps->channels[0]->presence;
@@ -36,9 +36,9 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
             'base64Iv' => true,
         ]);
 
-        $options = array(
+        $options = [
             'cipher' => $cipherParams,
-        );
+        ];
 
         self::$channel = self::$ably->channel('persisted:presence_fixtures', $options);
     }
@@ -58,7 +58,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( 6, count($presence->items), 'Expected 6 presence messages' );
 
         // verify presence contents
-        $fixturePresenceMap = array();
+        $fixturePresenceMap = [];
         foreach (self::$presenceFixture as $entry) {
             $fixturePresenceMap[$entry->clientId] = $entry->data;
         }
@@ -72,7 +72,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         }
 
         // verify limit / pagination
-        $firstPage = self::$channel->presence->get( array( 'limit' => 3, 'direction' => 'forwards' ) );
+        $firstPage = self::$channel->presence->get( [ 'limit' => 3, 'direction' => 'forwards' ] );
 
         $this->assertEquals( 3, count($firstPage->items), 'Expected 3 presence entries on the 1st page' );
 
@@ -92,7 +92,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( 6, count($history->items), 'Expected 6 history entries' );
 
         // verify history contents
-        $fixtureHistoryMap = array();
+        $fixtureHistoryMap = [];
         foreach (self::$presenceFixture as $entry) {
             $fixtureHistoryMap[$entry->clientId] = $entry->data;
         }
@@ -106,7 +106,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         }
 
         // verify limit / pagination - forwards
-        $firstPage = self::$channel->presence->history( array( 'limit' => 3, 'direction' => 'forwards' ) );
+        $firstPage = self::$channel->presence->history( [ 'limit' => 3, 'direction' => 'forwards' ] );
 
         $this->assertEquals( 3, count($firstPage->items), 'Expected 3 presence entries' );
 
@@ -116,7 +116,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( self::$presenceFixture[5]->clientId, $nextPage->items[2]->clientId, 'Expected most recent presence activity to be the last' );
 
         // verify limit / pagination - backwards (default)
-        $firstPage = self::$channel->presence->history( array( 'limit' => 3 ) );
+        $firstPage = self::$channel->presence->history( [ 'limit' => 3 ] );
 
         $this->assertEquals( 3, count($firstPage->items), 'Expected 3 presence entries' );
 
@@ -139,7 +139,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
 
         // test with start parameter
         try {
-            $history = self::$channel->presence->history( array( 'start' => $now ) );
+            $history = self::$channel->presence->history( [ 'start' => $now ] );
             $this->assertEquals( 0, count($history->items), 'Expected 0 presence messages' );
         } catch (AblyRequestException $e) {
             $this->fail( 'Start parameter - ' . $e->getMessage() . ', HTTP code: ' . $e->getCode() );
@@ -147,7 +147,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
 
         // test with end parameter
         try {
-            $history = self::$channel->presence->history( array( 'end' => $now ) );
+            $history = self::$channel->presence->history( [ 'end' => $now ] );
             $this->assertEquals( 6, count($history->items), 'Expected 6 presence messages' );
         } catch (AblyRequestException $e) {
             $this->fail( 'End parameter - ' . $e->getMessage() . ', HTTP code: ' . $e->getCode() );
@@ -155,7 +155,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
 
         // test with both start and end parameters - time range: ($now - 500ms) ... $now
         try {
-            $history = self::$channel->presence->history( array( 'start' => $now - ($delay / 2), 'end' => $now ) );
+            $history = self::$channel->presence->history( [ 'start' => $now - ($delay / 2), 'end' => $now ] );
             $this->assertEquals( 0, count($history->items), 'Expected 0 presence messages' );
         } catch (AblyRequestException $e) {
             $this->fail( 'Start + end parameter - ' . $e->getMessage() . ', HTTP code: ' . $e->getCode() );
@@ -163,7 +163,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
 
         // test ISO 8601 date format
         try {
-            $history = self::$channel->presence->history( array( 'end' => gmdate('c', $now / 1000) ) );
+            $history = self::$channel->presence->history( [ 'end' => gmdate('c', $now / 1000) ] );
             $this->assertEquals( 6, count($history->items), 'Expected 6 presence messages' );
         } catch (AblyRequestException $e) {
             $this->fail( 'ISO format: ' . $e->getMessage() . ', HTTP code: ' . $e->getCode() );
@@ -181,7 +181,7 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( 6, count($presence->items), 'Expected 6 presence messages' );
 
         // verify presence contents
-        $messageMap = array();
+        $messageMap = [];
         foreach ($presence->items as $entry) {
             $messageMap[$entry->clientId] = $entry->data;
         }
@@ -193,15 +193,15 @@ class PresenceTest extends \PHPUnit_Framework_TestCase {
      * Ensure clientId and connectionId filters on Presence GET works
      */
     public function testFilters() {
-        $presenceClientFilter = self::$channel->presence->get( array( 'clientId' => 'client_string' ) );
+        $presenceClientFilter = self::$channel->presence->get( [ 'clientId' => 'client_string' ] );
         $this->assertEquals( 1, count($presenceClientFilter->items), 'Expected the clientId filter to return 1 user' );
 
         $connId = $presenceClientFilter->items[0]->connectionId;
 
-        $presenceConnFilter1 = self::$channel->presence->get( array( 'connectionId' => $connId ) );
+        $presenceConnFilter1 = self::$channel->presence->get( [ 'connectionId' => $connId ] );
         $this->assertEquals( 6, count($presenceConnFilter1->items), 'Expected the connectionId filter to return 6 users' );
 
-        $presenceConnFilter2 = self::$channel->presence->get( array( 'connectionId' => '*FAKE CONNECTION ID*' ) );
+        $presenceConnFilter2 = self::$channel->presence->get( [ 'connectionId' => '*FAKE CONNECTION ID*' ] );
         $this->assertEquals( 0, count($presenceConnFilter2->items), 'Expected the connectionId filter to return no users' );
     }
 }

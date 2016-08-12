@@ -17,8 +17,8 @@ use Ably\Exceptions\AblyException;
 class Auth {
     protected $defaultAuthOptions;
     protected $defaultTokenParams;
-    protected $defaultAuthoriseAuthOptions = array();
-    protected $defaultAuthoriseTokenParams = array();
+    protected $defaultAuthorizeAuthOptions = [];
+    protected $defaultAuthorizeTokenParams = [];
     protected $basicAuth;
     protected $tokenDetails;
     protected $ably;
@@ -85,49 +85,37 @@ class Auth {
         return $this->basicAuth;
     }
 
-    /**
-     * Ensures that a valid token is present for the library instance. This may rely on an already-known and valid token,
-     * and will obtain a new token if necessary.
-     * In the event that a new token request is made, the specified options are used.
-     * If not already using token based auth, this will enable it.
-     * Stores the AuthOptions and TokenParams arguments as defaults for subsequent authorisations.
-     * @param array|null $tokenParams Requested token parameters
-     * @param array|null $authOptions Overridable auth options, if you don't wish to use the default ones
-     * @return \Ably\Models\TokenDetails The new token
-     */
-    public function authorise( $tokenParams = array(), $authOptions = array() ) {
+    
+    public function authorizeInternal( $tokenParams = [], $authOptions = [], $force = true ) {
 
         if ( !empty( $tokenParams ) ) {
             $tokenParamsCopy = $tokenParams;
             if ( isset( $tokenParamsCopy['timestamp'] ) ) unset( $tokenParamsCopy['timestamp'] );
 
-            $this->defaultAuthoriseTokenParams = array_merge( $this->defaultAuthoriseTokenParams, $tokenParamsCopy );
+            $this->defaultAuthorizeTokenParams = array_merge( $this->defaultAuthorizeTokenParams, $tokenParamsCopy );
         }
         if ( !empty( $authOptions ) ) {
             $authOptionsCopy = $authOptions;
-            if ( isset( $authOptionsCopy['force'] ) ) unset( $authOptionsCopy['force'] );
 
-            $this->defaultAuthoriseAuthOptions = array_merge( $this->defaultAuthoriseAuthOptions, $authOptionsCopy );
+            $this->defaultAuthorizeAuthOptions = array_merge( $this->defaultAuthorizeAuthOptions, $authOptionsCopy );
         }
 
-        $force = isset( $authOptions['force'] ) && $authOptions['force'];
-        
         if ( !$force && !empty( $this->tokenDetails ) ) {
             if ( empty( $this->tokenDetails->expires ) ) {
                 // using cached token
-                Log::d( 'Auth::authorise: using cached token, unknown expiration time' );
+                Log::d( 'Auth::authorize: using cached token, unknown expiration time' );
                 return $this->tokenDetails;
             } else if ( $this->tokenDetails->expires - self::TOKEN_EXPIRY_MARGIN > $this->ably->systemTime() ) {
                 // using cached token
-                Log::d( 'Auth::authorise: using cached token, expires on ' . date( 'Y-m-d H:i:s', $this->tokenDetails->expires / 1000 ) );
+                Log::d( 'Auth::authorize: using cached token, expires on ' . date( 'Y-m-d H:i:s', $this->tokenDetails->expires / 1000 ) );
                 return $this->tokenDetails;
             }
         }
 
-        $tokenParamsWithDefaults = array_merge( $this->defaultAuthoriseTokenParams, $tokenParams );
-        $authOptionsWithDefaults = array_merge( $this->defaultAuthoriseAuthOptions, $authOptions );
+        $tokenParamsWithDefaults = array_merge( $this->defaultAuthorizeTokenParams, $tokenParams );
+        $authOptionsWithDefaults = array_merge( $this->defaultAuthorizeAuthOptions, $authOptions );
 
-        Log::d( 'Auth::authorise: requesting new token' );
+        Log::d( 'Auth::authorize: requesting new token' );
         $this->tokenDetails = $this->requestToken( $tokenParamsWithDefaults, $authOptionsWithDefaults );
         $this->basicAuth = false;
 
@@ -135,20 +123,42 @@ class Auth {
     }
 
     /**
+     * Ensures that a valid token is present for the library instance. This will always request a new token.
+     * In the event that a new token request is made, the specified options are used.
+     * If not already using token based auth, this will enable it.
+     * Stores the AuthOptions and TokenParams arguments as defaults for subsequent authorisations.
+     * @param array|null $tokenParams Requested token parameters
+     * @param array|null $authOptions Overridable auth options, if you don't wish to use the default ones
+     * @return \Ably\Models\TokenDetails The new token
+     */
+    public function authorize( $tokenParams = [], $authOptions = [] ) {
+        return $this->authorizeInternal( $tokenParams, $authOptions );
+    }
+
+    /**
+     * @deprecated 0.9 Please use `authorize` instead
+     */
+    public function authorise( $tokenParams = [], $authOptions = [] ) {
+        Log::w( 'Auth::authorise is deprecated, please use Auth::authorize instead');
+
+        return $this->authorizeInternal( $tokenParams, $authOptions );
+    }
+
+    /**
      * Get HTTP headers with authentication data
-     * Automatically attempts to authorise token requests
+     * Automatically attempts to authorize token requests
      * @return Array Array of HTTP headers containing an `Authorization` header
      */
     public function getAuthHeaders() {
-        $header = array();
+        $headers = [];
         if ( $this->isUsingBasicAuth() ) {
-            $header = array( 'Authorization: Basic ' . base64_encode( $this->defaultAuthOptions->key ) );
+            $headers[] = 'Authorization: Basic ' . base64_encode( $this->defaultAuthOptions->key );
         } else {
-            $this->authorise();
-            $header = array( 'Authorization: Bearer '. base64_encode( $this->tokenDetails->token ) );
+            $this->authorizeInternal( [], [], $force = false ); // authorize only if necessary
+            $headers[] = 'Authorization: Bearer '. base64_encode( $this->tokenDetails->token );
         }
         
-        return $header;
+        return $headers;
     }
 
     /**
@@ -166,7 +176,7 @@ class Auth {
      * @throws \Ably\Exceptions\AblyException
      * @return \Ably\Models\TokenDetails The new token
      */
-    public function requestToken( $tokenParams = array(), $authOptions = array() ) {
+    public function requestToken( $tokenParams = [], $authOptions = [] ) {
         // token clientId priority:
         // $tokenParams->clientId overrides $authOptions->tokenId overrides $this->defaultAuthOptions->clientId overrides $this->defaultTokenParams->clientId
         $tokenClientId = $this->defaultTokenParams->clientId;
@@ -207,8 +217,8 @@ class Auth {
             $data = $this->ably->http->request(
                 $authOptionsMerged->authMethod,
                 $authOptionsMerged->authUrl,
-                $authOptionsMerged->authHeaders ? : array(),
-                array_merge( $authOptionsMerged->authParams ? : array(), $tokenParamsMerged->toArray() )
+                $authOptionsMerged->authHeaders ? : [],
+                array_merge( $authOptionsMerged->authParams ? : [], $tokenParamsMerged->toArray() )
             );
             
             $data = $data['body'];
@@ -246,7 +256,7 @@ class Auth {
         
         $res = $this->ably->post(
             "/keys/{$keyName}/requestToken",
-            $headers = array(),
+            $headers = [],
             $params = json_encode( $signedTokenRequest->toArray() ),
             $returnHeaders = false,
             $authHeaders = false
@@ -267,7 +277,7 @@ class Auth {
      * @param \Ably\Models\AuthOptions $authOptions
      * @return \Ably\Models\TokenRequest A signed token request
      */
-    public function createTokenRequest( $tokenParams = array(), $authOptions = array() ) {
+    public function createTokenRequest( $tokenParams = [], $authOptions = [] ) {
         $tokenClientId = $this->defaultTokenParams->clientId;
         if ( !empty( $this->defaultAuthOptions->clientId ) ) $tokenClientId = $this->defaultAuthOptions->clientId;
         if ( array_key_exists( 'clientId', $authOptions ) ) $tokenClientId = $authOptions['clientId'];
@@ -311,14 +321,14 @@ class Auth {
             $tokenRequest->nonce = md5( microtime( true ) . mt_rand() );
         }
 
-        $signText = implode("\n", array(
+        $signText = implode( "\n", [
             empty( $tokenRequest->keyName )    ? '' : $tokenRequest->keyName,
             empty( $tokenRequest->ttl )        ? '' : $tokenRequest->ttl,
             empty( $tokenRequest->capability ) ? '' : $tokenRequest->capability,
             empty( $tokenRequest->clientId )   ? '' : $tokenRequest->clientId,
             empty( $tokenRequest->timestamp )  ? '' : $tokenRequest->timestamp,
             empty( $tokenRequest->nonce )      ? '' : $tokenRequest->nonce,
-        )) . "\n";
+        ] ) . "\n";
 
 
         if ( empty( $tokenRequest->mac ) ) {

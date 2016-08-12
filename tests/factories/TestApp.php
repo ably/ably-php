@@ -17,13 +17,13 @@ class TestApp {
     private $options;
     private $fixture;
     private $appId;
-    private $appKeys = array();
+    private $appKeys = [];
     private $server;
     private $debugRequests = false;
 
     public function __construct() {
 
-        $settings = array();
+        $settings = [];
 
         $settings['environment'] = getenv( 'ABLY_ENV' ) ? : 'sandbox';
         //$settings['logLevel'] = Log::DEBUG;
@@ -48,7 +48,7 @@ class TestApp {
             exit(1);
         }
 
-        $raw = $this->request( 'POST', $this->server . '/apps', array(), json_encode( $this->fixture->post_apps ) );
+        $raw = $this->request( 'POST', $this->server . '/apps', [], json_encode( $this->fixture->post_apps ) );
         $response = json_decode( $raw );
 
         if ($response === null) {
@@ -73,7 +73,7 @@ class TestApp {
 
     public function release() {
         if (!empty($this->options)) {
-            $headers = array( 'authorization: Basic ' . base64_encode( $this->getAppKeyDefault()->string ) );
+            $headers = [ 'authorization: Basic ' . base64_encode( $this->getAppKeyDefault()->string ) ];
             $this->request( 'DELETE', $this->server . '/apps/' . $this->appId, $headers );
             $this->options = null;
         }
@@ -99,7 +99,7 @@ class TestApp {
         return $this->appKeys[1];
     }
 
-    private function request( $mode, $url, $headers = array(), $params = '' ) {
+    private function request( $mode, $url, $headers = [], $params = '' ) {
         $ch = curl_init($url);
 
         if ( $mode == 'DELETE') curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, 'DELETE' );

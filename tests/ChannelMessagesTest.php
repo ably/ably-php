@@ -18,9 +18,9 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     public static function setUpBeforeClass() {
         self::$testApp = new TestApp();
         self::$defaultOptions = self::$testApp->getOptions();
-        self::$ably = new AblyRest( array_merge( self::$defaultOptions, array(
+        self::$ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
-        ) ) );
+        ] ) );
     }
 
     public static function tearDownAfterClass() {
@@ -35,14 +35,14 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     private function executePublishTestOnChannel(Channel $channel) {
        
         // first publish some messages
-        $data = array(
+        $data = [
             'utf' => 'This is a UTF-8 string message payload. äôč ビール',
             'binary' => hex2bin('00102030405060708090a0b0c0d0e0f0ff'),
-            'object' => (object)array( 'test' => 'This is a JSONObject message payload' ),
-            'array' => array( 'This is a JSONarray message payload', 'Test' ),
-        );
+            'object' => (object)[ 'test' => 'This is a JSONObject message payload' ],
+            'array' => [ 'This is a JSONarray message payload', 'Test' ],
+        ];
 
-        $messages = array();
+        $messages = [];
 
         foreach ($data as $type => $payload) {
             $msg = new Message();
@@ -80,7 +80,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $this->assertNotNull( $messages, 'Expected non-null messages' );
         $this->assertEquals( 4, count($messages->items), 'Expected 4 messages' );
 
-        $actual_message_order = array();
+        $actual_message_order = [];
 
         // verify message contents
         foreach ($messages->items as $message) {
@@ -108,9 +108,9 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      * Publish events with data of various datatypes to an aes-128-cbc encrypted channel
      */
     public function testPublishMessagesVariousTypesAES128() {
-        $options = array( 'cipher' => array(
+        $options = [ 'cipher' => [
             'key' => Crypto::generateRandomKey( 128 ),
-        ) );
+        ] ];
         $encrypted1 = self::$ably->channels->get( 'persisted:encrypted1', $options );
         
         $this->assertNotNull( $encrypted1->getCipherParams(), 'Expected channel to be encrypted' );
@@ -122,9 +122,9 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      * Publish events with data of various datatypes to an aes-256-cbc encrypted channel
      */
     public function testPublishMessagesVariousTypesAES256() {
-        $options = array( 'cipher' => array(
+        $options = [ 'cipher' => [
             'key' => Crypto::generateRandomKey( 256 ),
-        ) );
+        ] ];
         $encrypted2 = self::$ably->channels->get( 'persisted:encrypted2', $options );
         
         $this->assertNotNull( $encrypted2->getCipherParams(), 'Expected channel to be encrypted' );
@@ -137,7 +137,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      */
     public function testPublishSingleMessageUnencrypted() {
         $channel = self::$ably->channel( 'persisted:unencryptedSingle' );
-        $data = (object)array( 'test' => 'This is a JSONObject message payload' );
+        $data = (object)[ 'test' => 'This is a JSONObject message payload' ];
 
         $msg = new Message();
         $msg->name = 'single';
@@ -172,7 +172,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      * Verify that batch sending messages actually makes just one request
      */
     public function testMessageArraySingleRequest() {
-        $messages = array();
+        $messages = [];
         
         for ( $i = 0; $i < 10; $i++ ) {
             $msg = new Message();
@@ -181,10 +181,10 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
             $messages[] = $msg;
         }
 
-        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
             'httpClass' => 'tests\HttpMockMsgCounter',
-        ) ) );
+        ] ) );
 
         $channel = $ably->channel( 'singleReq' );
         $channel->publish( $messages );
@@ -282,22 +282,22 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     public function testEncryptedMessageUnencryptedHistory() {
         $errorLogged = false;
 
-        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
             'logHandler' => function( $level, $args ) use ( &$errorLogged ) {
                 if ( $level == Log::ERROR ) {
                     $errorLogged = true;
                 }
             },
-        ) ) );
+        ] ) );
 
         $payload = 'This is a test message';
 
-        $options = array( 'cipher' => array( 'key' => Crypto::generateRandomKey( 128 ) ) );
+        $options = [ 'cipher' => [ 'key' => Crypto::generateRandomKey( 128 ) ] ];
         $encrypted1 = $ably->channel( 'persisted:mismatch1', $options );
         $encrypted1->publish( 'test', $payload );
 
-        $options2 = array();
+        $options2 = [];
         $encrypted2 = $ably->channel( 'persisted:mismatch1', $options2 );
         $messages = $encrypted2->history();
         $msg = $messages->items[0];
@@ -316,7 +316,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $encrypted = self::$ably->channel( 'persisted:mismatch2' );
         $encrypted->publish( 'test', $payload );
 
-        $options = array( 'cipher' => array( 'key' => Crypto::generateRandomKey( 128 ) ) );
+        $options = [ 'cipher' => [ 'key' => Crypto::generateRandomKey( 128 ) ] ];
         $unencrypted = self::$ably->channel( 'persisted:mismatch2', $options );
         $messages = $unencrypted->history();
         $this->assertNotNull( $messages, 'Expected non-null messages' );
@@ -330,22 +330,22 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     public function testEncryptionKeyMismatch() {
         $errorLogged = false;
 
-        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
             'logHandler' => function( $level, $args ) use ( &$errorLogged ) {
                 if ( $level == Log::ERROR ) {
                     $errorLogged = true;
                 }
             },
-        ) ) );
+        ] ) );
 
         $payload = 'This is a test message';
 
-        $options = array( 'cipher' => array( 'key' => 'fake key 1xxxxxx' ) );
+        $options = [ 'cipher' => [ 'key' => 'fake key 1xxxxxx' ] ];
         $encrypted1 = $ably->channel( 'persisted:mismatch3', $options );
         $encrypted1->publish( 'test', $payload );
 
-        $options2 = array( 'cipher' => array( 'key' => 'fake key 2xxxxxx' ) );
+        $options2 = [ 'cipher' => [ 'key' => 'fake key 2xxxxxx' ] ];
         $encrypted2 = $ably->channel( 'persisted:mismatch3', $options2 );
         $messages = $encrypted2->history();
         $msg = $messages->items[0];
@@ -371,7 +371,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 
         $this->assertNull( $channel3->getCipherParams(), 'Expected the channel to not have CipherParams' );
 
-        self::$ably->channel( 'cache_test', array( 'cipher' => array( 'key' => Crypto::generateRandomKey( 128 ) ) ) );
+        self::$ably->channel( 'cache_test', [ 'cipher' => [ 'key' => Crypto::generateRandomKey( 128 ) ] ] );
 
         $this->assertNotNull( $channel3->getCipherParams(), 'Expected the channel to have CipherParams even when specified for a new instance' );
     }
@@ -390,18 +390,18 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $msg->data = 'This is a UTF-8 string message payload. äôč ビール';
         $this->assertEquals( '', $this->getMessageEncoding( $msg ), 'Expected empty message encoding' );
 
-        $msg->data = (object)array( 'test' => 'This is a JSONObject message payload' );
+        $msg->data = (object)[ 'test' => 'This is a JSONObject message payload' ];
         $this->assertEquals( 'json', $this->getMessageEncoding( $msg ), 'Expected empty message encoding' );
 
         $msg->data = hex2bin( '00102030405060708090a0b0c0d0e0f0ff' );
         $this->assertEquals( 'base64', $this->getMessageEncoding( $msg ), 'Expected empty message encoding' );
 
-        $msg->setCipherParams( Crypto::getDefaultParams( array( 'key' => Crypto::generateRandomKey( 128 ) ) ) );
+        $msg->setCipherParams( Crypto::getDefaultParams( [ 'key' => Crypto::generateRandomKey( 128 ) ] ) );
 
         $msg->data = 'This is a UTF-8 string message payload. äôč ビール';
         $this->assertEquals( 'utf-8/cipher+aes-128-cbc/base64', $this->getMessageEncoding( $msg ), 'Expected empty message encoding' );
 
-        $msg->data = (object)array( 'test' => 'This is a JSONObject message payload' );
+        $msg->data = (object)[ 'test' => 'This is a JSONObject message payload' ];
         $this->assertEquals( 'json/utf-8/cipher+aes-128-cbc/base64', $this->getMessageEncoding( $msg ), 'Expected empty message encoding' );
 
         $msg->data = hex2bin( '00102030405060708090a0b0c0d0e0f0ff' );
@@ -409,13 +409,100 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * Test library interoperability by sending messages from messages-encoding.json
+     * via raw HTTP and decoding them using the library
+     */
+    public function testEncodingInteroperabilityRawToAbly() {
+        $fixture = json_decode( file_get_contents( __DIR__ . '/../ably-common/test-resources/messages-encoding.json' ) );
+
+        $defaultOpts = new \Ably\Models\ClientOptions( self::$defaultOptions );
+        $http = new \Ably\Http( $defaultOpts ); // initialize http class for raw requests with default timeouts
+        $server = 'https://' . $defaultOpts->restHost;
+
+        $messages = [];
+        foreach ($fixture->messages as $i => $testMsgData) {
+            $messages[] = (object) [
+                'data' => $testMsgData->data,
+                'encoding' => $testMsgData->encoding,
+            ];
+        }
+
+        $http->request(
+            'POST',
+            $server . '/channels/interopTest1/messages',
+            [
+                'Content-Type: application/json',
+                'Accept: application/json',
+                'Authorization: Basic ' . base64_encode( self::$testApp->getAppKeyDefault()->string ),
+            ],
+            json_encode( $messages )
+        );
+
+        $history = self::$ably->channel("interopTest1")->history([ 'direction' => 'forwards' ]);
+
+        foreach ($fixture->messages as $i => $testMsgData) {
+            $msg = $history->items[$i];
+
+            if ( isset( $testMsgData->expectedHexValue ) ) {
+                $expected = pack( 'H*', $testMsgData->expectedHexValue );
+            } else {
+                $expected = $testMsgData->expectedValue;
+            }
+
+            $this->assertEquals($expected, $msg->data);
+        }
+
+    }
+
+    /**
+     * Test library interoperability by sending messages from messages-encoding.json
+     * via the library, fetching them using raw HTTP and comparing
+     */
+    public function testEncodingInteroperabilityAblyToRaw() {
+        $fixture = json_decode( file_get_contents( __DIR__ . '/../ably-common/test-resources/messages-encoding.json' ) );
+
+        $defaultOpts = new \Ably\Models\ClientOptions( self::$defaultOptions );
+        $http = new \Ably\Http( $defaultOpts ); // initialize http class for raw requests with default timeouts
+        $server = 'https://' . $defaultOpts->restHost;
+
+        $messages = [];
+        foreach ($fixture->messages as $i => $testMsgData) {
+            $msg = new Message();
+            $msg->data = $testMsgData->data;
+            $msg->encoding = $testMsgData->encoding;
+            $messages[] = $msg;
+        }
+
+        self::$ably->channel("interopTest2")->publish($messages);
+
+        $res = $http->request(
+            'GET',
+            $server . '/channels/interopTest2/messages?direction=forwards',
+            [
+                'Accept: application/json',
+                'Authorization: Basic ' . base64_encode( self::$testApp->getAppKeyDefault()->string ),
+            ]
+        );
+
+        $history = $res['body'];
+
+        foreach ($fixture->messages as $i => $testMsgData) {
+            $msg = $history[$i];
+
+            $this->assertEquals($testMsgData->data, $msg->data);
+            $this->assertEquals($testMsgData->encoding, $msg->encoding);
+        }
+
+    }
+
+    /**
      * Test if null name and data elements are allowed when publishing messages
      */
     public function testNullData() {
-        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
             'httpClass' => 'tests\HttpSaveWrapper',
-        ) ) );
+        ] ) );
 
         $channel = $ably->channels->get( 'testChannel' );
 
@@ -447,14 +534,14 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
 class HttpMockMsgCounter extends Http {
     public $requestCount = 0;
     
-    public function request( $method, $url, $headers = array(), $params = array() ) {
+    public function request( $method, $url, $headers = [], $params = [] ) {
 
         $this->requestCount++;
 
-        return array(
+        return [
             'headers' => 'HTTP/1.1 200 OK'."\n",
-            'body' => array(),
-        );
+            'body' => [],
+        ];
     }
 }
 
@@ -464,7 +551,7 @@ class HttpSaveWrapper extends Http {
     public $lastHeaders;
     public $lastParams;
     
-    public function request( $method, $url, $headers = array(), $params = array() ) {
+    public function request( $method, $url, $headers = [], $params = [] ) {
         $this->lastHeaders = $headers;
         $this->lastParams = $params;
         $this->lastResponse = parent::request( $method, $url, $headers, $params );

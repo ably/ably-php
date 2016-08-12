@@ -9,9 +9,9 @@ class LogTest extends \PHPUnit_Framework_TestCase {
 
     public static function tearDownAfterClass() {
         // ensure the logger is reset to default
-        $ably = new AblyRest( array(
+        $ably = new AblyRest( [
             'key' => 'fake.key:totallyFake'
-        ) );
+        ] );
     }
 
     private function logMessages() {
@@ -27,12 +27,12 @@ class LogTest extends \PHPUnit_Framework_TestCase {
     public function testLogDefault() {
         $out = '';
 
-        $opts = array(
+        $opts = [
             'key' => 'fake.key:veryFake',
             'logHandler' => function( $level, $args ) use ( &$out ) {
                 $out .= $args[0] . "\n";
             },
-        );
+        ];
         $ably = new AblyRest( $opts );
 
         $this->logMessages();
@@ -60,13 +60,13 @@ class LogTest extends \PHPUnit_Framework_TestCase {
     public function testLogVerbose() {
         $out = '';
 
-        $opts = array(
+        $opts = [
             'key' => 'fake.key:veryFake',
             'logLevel' => Log::VERBOSE,
             'logHandler' => function( $level, $args ) use ( &$out ) {
                 $out .= $args[0] . "\n";
             },
-        );
+        ];
 
         $ably = new AblyRest( $opts );
         $this->logMessages();
@@ -93,13 +93,13 @@ class LogTest extends \PHPUnit_Framework_TestCase {
      */
     public function testLogNone() {
         $called = false;
-        $opts = array(
+        $opts = [
             'key' => 'fake.key:veryFake',
             'logLevel' => Log::NONE,
             'logHandler' => function( $level, $args ) use ( &$called ) {
                 $called = true;
             },
-        );
+        ];
 
         $ably = new AblyRest( $opts );
         $this->logMessages();

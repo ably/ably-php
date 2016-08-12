@@ -175,9 +175,9 @@ class CryptoTest extends \PHPUnit_Framework_TestCase {
     }
 
     public function filenameProvider() {
-        return array(
-            array( __DIR__ . '/../ably-common/test-resources/crypto-data-128.json'),
-            array( __DIR__ . '/../ably-common/test-resources/crypto-data-256.json'),
-        );
+        return [
+            [ __DIR__ . '/../ably-common/test-resources/crypto-data-128.json'],
+            [ __DIR__ . '/../ably-common/test-resources/crypto-data-256.json'],
+        ];
     }
 }

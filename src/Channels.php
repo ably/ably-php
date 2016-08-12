@@ -4,7 +4,7 @@ namespace Ably;
 class Channels {
 
     private $ably;
-    private $channels = array();
+    private $channels = [];
 
     /**
      * Constructor
@@ -31,7 +31,7 @@ class Channels {
 
             return $this->channels[$name];
         } else {
-            $this->channels[$name] = new Channel( $this->ably, $name, is_null( $options ) ? array() : $options );
+            $this->channels[$name] = new Channel( $this->ably, $name, is_null( $options ) ? [] : $options );
 
             return $this->channels[$name];
         }

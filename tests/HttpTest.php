@@ -4,20 +4,36 @@ namespace tests;
 use Ably\AblyRest;
 use Ably\Http;
 use Ably\Utils\CurlWrapper;
-use Ably\Exceptions\AblyRequestException;
+use Ably\Models\Untyped;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
 class HttpTest extends \PHPUnit_Framework_TestCase {
 
+    protected static $testApp;
+    protected static $defaultOptions;
+    protected static $ably;
+
+    public static function setUpBeforeClass() {
+        self::$testApp = new TestApp();
+        self::$defaultOptions = self::$testApp->getOptions();
+        self::$ably = new AblyRest( array_merge( self::$defaultOptions, [
+            'key' => self::$testApp->getAppKeyDefault()->string,
+        ] ) );
+    }
+
+    public static function tearDownAfterClass() {
+        self::$testApp->release();
+    }
+
     /**
      * Verify that API version is sent in HTTP requests
      */
     public function testVersionHeaderPresence() {
-        $opts = array(
+        $opts = [
             'key' => 'fake.key:totallyFake',
             'httpClass' => 'tests\HttpMock',
-        );
+        ];
         $ably = new AblyRest( $opts );
         $ably->time(); // make a request
 
@@ -25,6 +41,18 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
 
         $this->assertArrayHasKey( 'X-Ably-Version', $curlParams[CURLOPT_HTTPHEADER], 'Expected Ably version header in HTTP request' );
         $this->assertEquals( AblyRest::API_VERSION, $curlParams[CURLOPT_HTTPHEADER]['X-Ably-Version'], 'Expected Ably version in HTTP header to match AblyRest constant' );
+
+        $this->assertArrayHasKey( 'X-Ably-Lib', $curlParams[CURLOPT_HTTPHEADER], 'Expected Ably lib header in HTTP request' );
+        $this->assertEquals( 'php-' . AblyRest::LIB_VERSION, $curlParams[CURLOPT_HTTPHEADER]['X-Ably-Lib'], 'Expected Ably lib in HTTP header to match AblyRest constant' );
+
+        AblyRest::setLibraryFlavourString( 'test' );
+        $ably = new AblyRest( $opts );
+        $ably->time(); // make a request
+
+        $curlParams = $ably->http->getCurlLastParams();
+        $this->assertEquals( 'php-test-' . AblyRest::LIB_VERSION, $curlParams[CURLOPT_HTTPHEADER]['X-Ably-Lib'], 'Expected X-Ably-Lib to contain library flavour string' );
+
+        AblyRest::setLibraryFlavourString();
     }
 
 
@@ -32,21 +60,21 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
      * Verify that GET requests are encoded properly (using requestToken)
      */
     public function testGET() {
-        $authParams = array(
+        $authParams = [
             'param1' => '&?#',
             'param2' => 'x',
-        );
-        $tokenParams = array(
+        ];
+        $tokenParams = [
             'clientId' => 'test',
-        );
+        ];
 
-        $ably = new AblyRest( array(
+        $ably = new AblyRest( [
             'key' => 'fake.key:totallyFake',
             'authUrl' => 'http://test.test/tokenRequest',
             'authParams' => $authParams,
             'authMethod' => 'GET',
             'httpClass' => 'tests\HttpMock',
-        ) );
+        ] );
 
         $expectedParams = array_merge( $authParams, $tokenParams );
         
@@ -62,21 +90,21 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
      * Verify that POST requests are encoded properly (using requestToken)
      */
     public function testPOST() {
-        $authParams = array(
+        $authParams = [
             'param1' => '&?#',
             'param2' => 'x',
-        );
-        $tokenParams = array(
+        ];
+        $tokenParams = [
             'clientId' => 'test',
-        );
+        ];
 
-        $ably = new AblyRest( array(
+        $ably = new AblyRest( [
             'key' => 'fake.key:totallyFake',
             'authUrl' => 'http://test.test/tokenRequest',
             'authParams' => $authParams,
             'authMethod' => 'POST',
             'httpClass' => 'tests\HttpMock',
-        ) );
+        ] );
 
         $expectedParams = array_merge( $authParams, $tokenParams );
         
@@ -87,6 +115,71 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( 'http://test.test/tokenRequest', $curlParams[CURLOPT_URL], 'Expected URL to match authUrl' );
         $this->assertEquals( http_build_query($expectedParams), $curlParams[CURLOPT_POSTFIELDS], 'Expected POST params to contain encoded params' );
     }
+
+    /**
+     * Test basic AblyRest::request functionality
+     */
+    public function testRequestBasic() {
+        $ably = self::$ably;
+
+        $msg = (object) [
+            'name' => 'testEvent',
+            'data' => 'testPayload',
+        ];
+
+        $res = $ably->request('POST', '/channels/persisted:test/messages', [], $msg );
+
+        $this->assertTrue($res->success, 'Expected sending a message via custom request to succeed');
+        $this->assertLessThan(300, $res->statusCode, 'Expected statusCode < 300');
+        $this->assertEmpty($res->errorCode, 'Expected empty errorCode');
+        $this->assertEmpty($res->errorMessage, 'Expected empty errorMessage');
+        
+        $res2 = $ably->request('GET', '/channels/persisted:test/messages');
+
+        $this->assertTrue($res2->success, 'Expected retrieving the message via custom request to succeed');
+        $this->assertLessThan(300, $res2->statusCode, 'Expected statusCode < 300');
+        $this->assertArrayHasKey('Content-Type', $res2->headers, 'Expected headers to be an array containing key `Content-Type`');
+        $this->assertEquals(1, count($res2->items), 'Expected to receive 1 message');
+        $this->assertEquals($msg->name, $res2->items[0]->name, 'Expected to receive matching message contents');
+
+        $res3 = $ably->request('GET', '/this-does-not-exist');
+
+        $this->assertEquals(404, $res3->statusCode, 'Expected statusCode 404');
+        $this->assertEquals(40400, $res3->errorCode, 'Expected errorCode 40400');
+        $this->assertNotEmpty($res3->errorMessage, 'Expected errorMessage to be set');
+        $this->assertArrayHasKey('X-Ably-Errorcode', $res3->headers, 'Expected X-Ably-Errorcode header to be present');
+        $this->assertArrayHasKey('X-Ably-Errormessage', $res3->headers, 'Expected X-Ably-Errormessage header to be present');
+    }
+
+    /**
+     * Test that Response handles various returned structures properly
+     */
+    public function testRequestReturnValues() {
+        $ably = new AblyRest( [
+            'key' => 'fake.key:totallyFake',
+            'httpClass' => 'tests\HttpMockReturnData',
+        ] );
+
+        // array of objects
+        $ably->http->setResponseJSONString('[{"test":"one"},{"test":"two"},{"test":"three"}]');
+        $res1 = $ably->request('GET', '/get_test_json');
+        $this->assertEquals('[{"test":"one"},{"test":"two"},{"test":"three"}]', json_encode($res1->items));
+        
+        // array with single object
+        $ably->http->setResponseJSONString('[{"test":"yes"}]');
+        $res2 = $ably->request('GET', '/get_test_json');
+        $this->assertEquals('[{"test":"yes"}]', json_encode($res2->items));
+        
+        // single object - should be returned as array with single object
+        $ably->http->setResponseJSONString('{"test":"yes"}');
+        $res3 = $ably->request('GET', '/get_test_json');
+        $this->assertEquals('[{"test":"yes"}]', json_encode($res3->items));
+        
+        // not an object or array - should be returned as empty array
+        $ably->http->setResponseJSONString('"invalid"');
+        $res4 = $ably->request('GET', '/get_test_json');
+        $this->assertEquals('[]', json_encode($res4->items));
+    }
 }
 
 
@@ -94,7 +187,7 @@ class CurlWrapperMock extends CurlWrapper {
     public $lastParams;
 
     public function init( $url = null ) {
-        $this->lastParams = array( CURLOPT_URL => $url );
+        $this->lastParams = [ CURLOPT_URL => $url ];
 
         return parent::init( $url );
     }
@@ -118,10 +211,10 @@ class CurlWrapperMock extends CurlWrapper {
     }
 
     public function getInfo( $handle ) {
-        return array(
+        return [
             'http_code' => 200,
             'header_size' => 0,
-        );
+        ];
     }
 }
 
@@ -134,5 +227,32 @@ class HttpMock extends Http {
 
     public function getCurlLastParams() {
         return $this->curl->lastParams;
+    }
+}
+
+
+class HttpMockReturnData extends Http {
+    private $responseStr = '';
+    public function setResponseJSONString($str) {
+        $this->responseStr = $str;
+    }
+    
+    public function request($method, $url, $headers = [], $params = []) {
+
+        if ($method == 'GET' && self::endsWith($url, '/get_test_json')) {
+            return [
+                'headers' => 'HTTP/1.1 200 OK'."\n",
+                'body' => json_decode($this->responseStr),
+            ];
+        } else {
+            return [
+                'headers' => 'HTTP/1.1 404 Not found'."\n",
+                'body' => '',
+            ];
+        }
+    }
+    
+    private static function endsWith($haystack, $needle) {
+        return substr($haystack, -strlen($needle)) == $needle;
     }
 }

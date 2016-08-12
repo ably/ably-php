@@ -10,45 +10,57 @@ use Ably\Exceptions\AblyException;
  */
 class PaginatedResult {
 
-    private $ably;
-    private $path;
-    private $model;
-    private $cipherParams;
-    private $paginationHeaders = false;
+    protected $ably;
+    protected $method;
+    protected $path;
+    protected $requestHeaders;
+    protected $model;
+    protected $cipherParams;
+    protected $paginationHeaders = false;
+    protected $response;
 
     /**
      * @var array Array of returned models (either Message, PresenceMessage or Stats)
      */
-    public $items = array();
+    public $items = [];
 
     /**
      * Constructor.
      * @param \Ably\AblyRest $ably Ably API instance
-     * @param mixed $model Name of a class that will populate this ArrayObject. It must implement a fromJSON() method.
+     * @param mixed $model Name of a class that will be instantiated for returned results. It must implement a fromJSON() method.
      * @param CipherParams|null $cipherParams Optional cipher parameters if data should be decoded
+     * @param string $method HTTP method
      * @param string $path Request path
      * @param array $params Parameters to be sent with the request
+     * @param array $headers Headers to be sent with the request
+     * @throws AblyException
      */
-    public function __construct( \Ably\AblyRest $ably, $model, $cipherParams, $path, $params = array() ) {
+    public function __construct( \Ably\AblyRest $ably, $model, $cipherParams, $method, $path, $params = [], $headers = [] ) {
         $this->ably = $ably;
         $this->model = $model;
         $this->cipherParams = $cipherParams;
+        $this->requestHeaders = $headers;
+        $this->method = $method;
         $this->path = $path;
 
-        $response = $this->ably->get( $path, $headers = array(), $params, $withHeaders = true );
+        $response = $this->ably->requestInternal( $method, $path, $headers, $params, $withHeaders = true );
+        $this->response = $response;
 
-        if (isset($response['body']) && is_array($response['body'])) {
+        $body = isset( $response['body'] ) ? $response['body'] : [];
+        if ( is_object( $body ) ) $body = [ $body ];
 
-            $transformedArray = array();
+        if ( is_array( $body ) ) {
 
-            foreach ($response['body'] as $data) {
+            $transformedArray = [];
+
+            foreach ($body as $data) {
 
                 $instance = new $model;
 
                 if ( !method_exists( $model, 'fromJSON' ) ) {
                     throw new AblyException( 'Invalid model class provided: ' . $model . '. The model needs to implement fromJSON method.' );
                 }
-                if (!empty( $cipherParams ) ) {
+                if ( !empty( $cipherParams ) ) {
                     $instance->setCipherParams( $cipherParams );
                 }
                 $instance->fromJSON( $data );
@@ -57,7 +69,7 @@ class PaginatedResult {
             }
 
             $this->items = $transformedArray;
-            $this->parseHeaders( $response['headers'] );
+            $this->parsePaginationHeaders( $response['headers'] );
         }
     }
 
@@ -67,7 +79,7 @@ class PaginatedResult {
      */
     public function first() {
         if (isset($this->paginationHeaders['first'])) {
-            return new PaginatedResult( $this->ably, $this->model, $this->cipherParams, $this->paginationHeaders['first'] );
+            return new PaginatedResult( $this->ably, $this->model, $this->cipherParams, $this->method, $this->paginationHeaders['first'] );
         } else {
             return null;
         }
@@ -86,7 +98,7 @@ class PaginatedResult {
      */
     public function next() {
         if ($this->isPaginated() && isset($this->paginationHeaders['next'])) {
-            return new PaginatedResult( $this->ably, $this->model, $this->cipherParams, $this->paginationHeaders['next'] );
+            return new PaginatedResult( $this->ably, $this->model, $this->cipherParams, $this->method, $this->paginationHeaders['next'] );
         } else {
             return null;
         }
@@ -120,7 +132,7 @@ class PaginatedResult {
     /**
      * Parses HTTP headers for pagination links
      */
-    private function parseHeaders($headers) {
+    private function parsePaginationHeaders($headers) {
 
         $path = preg_replace('/\/[^\/]*$/', '/', $this->path);
 
@@ -128,7 +140,7 @@ class PaginatedResult {
 
         if (!$matches) return;
 
-        $this->paginationHeaders = array();
+        $this->paginationHeaders = [];
 
         foreach ($matches as $m) {
             $link = $m[1];

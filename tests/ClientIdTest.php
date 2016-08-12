@@ -24,14 +24,14 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
      * Init library with a key and clientId; expect token auth to be chosen; expect Auth::clientId to return the id
      */
     public function testInitWithKeyAndClientId() {
-        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key'      => self::$testApp->getAppKeyDefault()->string,
             'clientId' => 'testClientId',
-        ) ) );
+        ] ) );
 
         $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
 
-        $ably->auth->authorise();
+        $ably->auth->authorize();
         $this->assertEquals( 'testClientId', $ably->auth->clientId, 'Expected clientId result to match the provided id' );
         $this->assertEquals( 'testClientId', $ably->auth->getTokenDetails()->clientId, 'Expected clientId in tokenDetails to match the provided id' );
     }
@@ -42,10 +42,10 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
     public function testInitWithWildcardClientId() {
         $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
 
-        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key'      => self::$testApp->getAppKeyDefault()->string,
             'clientId' => '*',
-        ) ) );
+        ] ) );
     }
 
     /**
@@ -53,26 +53,26 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
      */
     public function testGetClientIdNull() {
         // no clientId provided anywhere, should be null
-        $ably = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
-        ) ) );
+        ] ) );
 
-        $ably->auth->authorise(); // switch to token based auth
+        $ably->auth->authorize(); // switch to token based auth
 
         $this->assertNull( $ably->auth->getTokenDetails()->clientId, 'Expected tokenDetails clientId to be null' );
         $this->assertNull( $ably->auth->clientId, 'Expected clientId to be null' );
 
         // test not yet authorised lib without a clientId specified on ClientOptions
-        $ablyImplicitCId = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyImplicitCId = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
-            'defaultTokenParams' => new TokenParams( array(
+            'defaultTokenParams' => new TokenParams( [
                 'clientId' => 'testClientId',
-            ) ),
-        ) ) );
+            ] ),
+        ] ) );
 
         $this->assertNull( $ablyImplicitCId->auth->clientId, 'Expected clientId to be null prior to authorising' );
 
-        $ablyImplicitCId->auth->authorise();
+        $ablyImplicitCId->auth->authorize();
 
         $this->assertEquals( 'testClientId', $ablyImplicitCId->auth->clientId, 'Expected clientId to match after authorising' );
     }
@@ -82,33 +82,33 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
      */
     public function testGetClientIdNonNull() {
         // test wildcard clientId provided via tokenDetails
-        $ablyKey = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyKey = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
-        ) ) );
+        ] ) );
 
-        $wildcardToken = $ablyKey->auth->requestToken( array( 'clientId' => '*' ) );
+        $wildcardToken = $ablyKey->auth->requestToken( [ 'clientId' => '*' ] );
 
-        $ablyWildcard = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyWildcard = new AblyRest( array_merge( self::$defaultOptions, [
             'tokenDetails' => $wildcardToken,
-        ) ) );
+        ] ) );
 
         $this->assertEquals( '*', $ablyWildcard->auth->getTokenDetails()->clientId, 'Expected tokenDetails clientId to be *' );
         $this->assertEquals( '*', $ablyWildcard->auth->clientId, 'Expected clientId to be *' );
 
         // test specified clientId specified in ClientOptions
-        $ablyCid = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyCid = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
             'clientId' => 'testClientId',
-        ) ) );
+        ] ) );
 
         $this->assertEquals( 'testClientId', $ablyCid->auth->clientId );
 
         // test clientId overridden by authOptions
-        $ablyCid->auth->authorise( array(), array( 'clientId' => 'overriddenClientId_authOptions' ) );
+        $ablyCid->auth->authorize( [], [ 'clientId' => 'overriddenClientId_authOptions' ] );
         $this->assertEquals( 'overriddenClientId_authOptions', $ablyCid->auth->clientId );
 
         // test clientId overridden by tokenParams
-        $ablyCid->auth->authorise( array( 'clientId' => 'overriddenClientId_tokenParams' ), array( 'force' => true ) );
+        $ablyCid->auth->authorize( [ 'clientId' => 'overriddenClientId_tokenParams' ] );
         $this->assertEquals( 'overriddenClientId_tokenParams', $ablyCid->auth->clientId );
     }
 
@@ -116,15 +116,15 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
      * Check if messages can be assigned a clientId with a wildcard lib instance
      */
     public function testWildcardClientIdMsg() {
-        $ablyKey = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyKey = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
-        ) ) );
+        ] ) );
 
-        $wildcardToken = $ablyKey->auth->requestToken( array( 'clientId' => '*' ) );
+        $wildcardToken = $ablyKey->auth->requestToken( [ 'clientId' => '*' ] );
 
-        $ablyWildcard = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyWildcard = new AblyRest( array_merge( self::$defaultOptions, [
             'tokenDetails' => $wildcardToken,
-        ) ) );
+        ] ) );
 
         $clientId = 'testClientId';
         $msg = new Message();
@@ -151,10 +151,10 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
     public function testClientIdLib() {
         $clientId = 'testClientId';
 
-        $ablyCId = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyCId = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
             'clientId' => $clientId,
-        ) ) );
+        ] ) );
 
         $this->assertEquals( $clientId, $ablyCId->auth->clientId, 'Expected a token with specified clientId to be used' );
 
@@ -189,16 +189,16 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
      * the ClientOptions#clientId takes precendence and is used for all Auth operations 
      */
     public function testClientIdPrecedence() {
-        $ablyCId = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyCId = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
             'useTokenAuth' => true,
             'clientId' => 'overriddenClientId',
-            'defaultTokenParams' => new TokenParams( array(
+            'defaultTokenParams' => new TokenParams( [
                 'clientId' => 'tokenParamsClientId',
-            ) ),
-        ) ) );
+            ] ),
+        ] ) );
 
-        $ablyCId->auth->authorise(); // obtain a token
+        $ablyCId->auth->authorize(); // obtain a token
         $this->assertEquals( 'overriddenClientId', $ablyCId->auth->clientId, 'Expected defaultTokenParams to override provided clientId' );
 
         $channel = $ablyCId->channels->get( 'persisted:testClientIdPrecedence' );
@@ -213,15 +213,15 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
      * have a clientId. Check that Auth#clientId is null   
      */
     public function testRSA8f1() {
-        $ablyMain = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyMain = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
-        ) ) );
+        ] ) );
 
         $tokenDetails = $ablyMain->auth->requestToken();
 
-        $ablyClient = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyClient = new AblyRest( array_merge( self::$defaultOptions, [
             'tokenDetails' => $tokenDetails,
-        ) ) );
+        ] ) );
 
         $channel = $ablyClient->channels->get( 'persisted:RSA8f1' );
         $channel->publish( 'testEvent', 'testData' );
@@ -236,15 +236,15 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
      * publish a message with an explicit clientId value, and ensure that the message is rejected    
      */
     public function testRSA8f2() {
-        $ablyMain = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyMain = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
-        ) ) );
+        ] ) );
 
         $tokenDetails = $ablyMain->auth->requestToken();
 
-        $ablyClient = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyClient = new AblyRest( array_merge( self::$defaultOptions, [
             'tokenDetails' => $tokenDetails,
-        ) ) );
+        ] ) );
 
         $channel = $ablyClient->channels->get( 'persisted:RSA8f2' );
 
@@ -258,15 +258,15 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
      * a clientId. Check that Auth#clientId is a string with value '*'.
      */
     public function testRSA8f3() {
-        $ablyMain = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyMain = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
-        ) ) );
+        ] ) );
 
-        $tokenDetails = $ablyMain->auth->requestToken( array( 'clientId' => '*' ) );
+        $tokenDetails = $ablyMain->auth->requestToken( [ 'clientId' => '*' ] );
 
-        $ablyClient = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyClient = new AblyRest( array_merge( self::$defaultOptions, [
             'tokenDetails' => $tokenDetails,
-        ) ) );
+        ] ) );
 
         $channel = $ablyClient->channels->get( 'persisted:RSA8f3' );
         $channel->publish( 'testEvent', 'testData' );
@@ -282,15 +282,15 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
      * the provided clientId
      */
     public function testRSA8f4() {
-        $ablyMain = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyMain = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
-        ) ) );
+        ] ) );
 
-        $tokenDetails = $ablyMain->auth->requestToken( array( 'clientId' => '*' ) );
+        $tokenDetails = $ablyMain->auth->requestToken( [ 'clientId' => '*' ] );
 
-        $ablyClient = new AblyRest( array_merge( self::$defaultOptions, array(
+        $ablyClient = new AblyRest( array_merge( self::$defaultOptions, [
             'tokenDetails' => $tokenDetails,
-        ) ) );
+        ] ) );
 
         $channel = $ablyClient->channels->get( 'persisted:RSA8f4' );
         $channel->publish( 'testEvent', 'testData', 'testClientId' );

@@ -11,7 +11,7 @@ class AblyRequestException extends AblyException {
     public function __construct( $message, $code, $statusCode, $response = null ) {
         parent::__construct( $message, $code, $statusCode );
 
-        $this->response = $response ? : array( 'headers' => '', 'body' => '' );
+        $this->response = $response ? : [ 'headers' => '', 'body' => '' ];
     }
 
     public function getResponse() {

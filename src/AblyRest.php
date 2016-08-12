@@ -3,6 +3,7 @@ namespace Ably;
 
 use Ably\Models\ClientOptions;
 use Ably\Models\PaginatedResult;
+use Ably\Models\HttpPaginatedResponse;
 use Ably\Exceptions\AblyException;
 use Ably\Exceptions\AblyRequestException;
 
@@ -11,9 +12,11 @@ use Ably\Exceptions\AblyRequestException;
  */
 class AblyRest {
 
-    const API_VERSION = '0.8';
+    const API_VERSION = '0.9';
+    const LIB_VERSION = '0.9.0';
 
-    private $options;
+    protected $options;
+    protected static $libFlavour = '';
 
     /**
      * @var \Ably\Http $http object for making HTTP requests
@@ -32,14 +35,14 @@ class AblyRest {
      * Constructor
      * @param \Ably\Models\ClientOptions|string array with options or a string with app key or token
      */
-    public function __construct( $options = array() ) {
+    public function __construct( $options = [] ) {
 
         # convert to options if a single key is provided
         if ( is_string( $options ) ) {
             if ( strpos( $options, ':' ) === false ) {
-                $options = array( 'token' => $options );
+                $options = [ 'token' => $options ];
             } else {
-                $options = array( 'key' => $options );
+                $options = [ 'key' => $options ];
             }
         }
 
@@ -65,7 +68,7 @@ class AblyRest {
      * Shorthand to $this->channels->get()
      * @return \Ably\Channel Channel
      */
-    public function channel( $name, $options = array() ) {
+    public function channel( $name, $options = [] ) {
         return $this->channels->get( $name, $options );
     }
 
@@ -74,8 +77,8 @@ class AblyRest {
      * and received, API requests and connections
      * @return array Statistics
      */
-    public function stats( $params = array() ) {
-        return new PaginatedResult( $this, 'Ably\Models\Stats', $cipher = false, '/stats', $params );
+    public function stats( $params = [] ) {
+        return new PaginatedResult( $this, 'Ably\Models\Stats', $cipher = false, 'GET', '/stats', $params );
     }
 
     /**
@@ -83,7 +86,7 @@ class AblyRest {
      * @return integer server time in milliseconds
      */
     public function time() {
-        $res = $this->get( '/time', $params = array(), $headers = array(), $returnHeaders = false, $authHeaders = false );
+        $res = $this->get( '/time', $params = [], $headers = [], $returnHeaders = false, $authHeaders = false );
         return $res[0];
     }
 
@@ -99,20 +102,22 @@ class AblyRest {
      * Does a GET request, automatically injecting auth headers and handling fallback on server failure
      * @see AblyRest::request()
      */
-    public function get( $path, $headers = array(), $params = array(), $returnHeaders = false, $auth = true ) {
-        return $this->request( 'GET', $path, $headers, $params, $returnHeaders, $auth );
+    public function get( $path, $headers = [], $params = [], $returnHeaders = false, $auth = true ) {
+        return $this->requestInternal( 'GET', $path, $headers, $params, $returnHeaders, $auth );
     }
 
     /**
      * Does a POST request, automatically injecting auth headers and handling fallback on server failure
      * @see AblyRest::request()
      */
-    public function post( $path, $headers = array(), $params = array(), $returnHeaders = false, $auth = true ) {
-        return $this->request( 'POST', $path, $headers, $params, $returnHeaders, $auth );
+    public function post( $path, $headers = [], $params = [], $returnHeaders = false, $auth = true ) {
+        return $this->requestInternal( 'POST', $path, $headers, $params, $returnHeaders, $auth );
     }
 
     /**
-     * Does a HTTP request, automatically injecting auth headers and handling fallback on server failure
+     * Does a HTTP request, automatically injecting auth headers and handling fallback on server failure.
+     * This method is used internally and `request` is the preferable method to use.
+     *
      * @param string $method HTTP method (GET, POST, PUT, DELETE, ...)
      * @param string $path root-relative path, e.g. /channels/example/messages
      * @param array $headers HTTP headers to send
@@ -122,11 +127,15 @@ class AblyRest {
      * @return mixed either array with 'headers' and 'body' fields or just body, depending on $returnHeaders, body is automatically decoded
      * @throws AblyRequestException if the request fails
      */
-    public function request( $method, $path, $headers = array(), $params = array(), $returnHeaders = false, $auth = true ) {
+    public function requestInternal( $method, $path, $headers = [], $params = [], $returnHeaders = false, $auth = true ) {
+        $mergedHeaders = array_merge( [
+            'Accept', 'application/json',
+            'X-Ably-Version' => self::API_VERSION,
+            'X-Ably-Lib' => 'php-' . self::$libFlavour . self::LIB_VERSION,
+        ], $headers );
+
         if ( $auth ) { // inject auth headers
-            $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $headers );
-        } else {
-            $mergedHeaders = $headers;
+            $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $mergedHeaders );
         }
 
         try {
@@ -154,12 +163,12 @@ class AblyRest {
                 && ($e->getCode() < 40150);
 
             if ( $causedByExpiredToken ) { // renew the token
-                $this->auth->authorise( array(), array( 'force' => true ) );
+                $this->auth->authorize();
 
                 // merge headers now and use auth = false to prevent potential endless recursion
                 $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $headers );
 
-                return $this->request( $method, $path, $mergedHeaders, $params, $returnHeaders, $auth = false );
+                return $this->requestInternal( $method, $path, $mergedHeaders, $params, $returnHeaders, $auth = false );
             } else {
                 throw $e;
             }
@@ -172,9 +181,37 @@ class AblyRest {
     }
 
     /**
+     * Does an HTTP request with automatic pagination, automatically injected
+     * auth headers and automatic server failure handling using fallbackHosts.
+     *
+     * @param string $method HTTP method (GET, POST, PUT, DELETE, ...)
+     * @param string $path root-relative path, e.g. /channels/example/messages
+     * @param array $params GET parameters to append to $path
+     * @param array|object $body JSON-encodable structure to send in the body - leave empty for GET requests
+     * @param array $headers HTTP headers to send
+     * @return \Ably\Models\HttpPaginatedResponse
+     * @throws AblyRequestException This exception is only thrown for status codes >= 500
+     */
+    public function request( $method, $path, $params = [], $body = '', $headers = []) {
+        if ( count( $params ) ) {
+            $path .= '?' . http_build_query( $params );
+        }
+
+        if ( $method == 'GET' && $body ) {
+            throw new AblyException( 'GET requests cannot have a JSON body', 400, 40000 );
+        }
+
+        if ( !is_string( $body ) ) {
+            $body = json_encode( $body );
+        }
+
+        return new HttpPaginatedResponse( $this, 'Ably\Models\Untyped', null, $method, $path, $body, $headers );
+    }
+
+    /**
      * Does a HTTP request backed up by fallback servers
      */
-    protected function requestWithFallback( $method, $path, $headers = array(), $params = array(), $attempt = 0 ) {
+    protected function requestWithFallback( $method, $path, $headers = [], $params = [], $attempt = 0 ) {
         try {
             if ( $attempt == 0 ) { // using default host
                 $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->restHost;
@@ -198,5 +235,14 @@ class AblyRest {
 
             throw $e; // other error code than timeout, rethrow exception
         }
+    }
+
+    /**
+     * Sets a "flavour string", that is sent in the `X-Ably-Lib` request header.
+     * Used for internal statistics.
+     * For instance setting 'laravel' results in: `X-Ably-Lib: php-laravel-0.9.0`
+     */
+    public static function setLibraryFlavourString( $flavour = '' ) {
+        self::$libFlavour = $flavour ? $flavour.'-' : '';
     }
 }

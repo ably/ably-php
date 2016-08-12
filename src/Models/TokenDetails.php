@@ -37,7 +37,7 @@ class TokenDetails extends BaseOptions {
     /**
      * @param string|array $options
      */
-    public function __construct( $options = array() ) {
+    public function __construct( $options = [] ) {
         if (is_string( $options )) {
             $this->token = $options;
         } else {
