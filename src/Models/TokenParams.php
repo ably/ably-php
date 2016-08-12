@@ -37,7 +37,7 @@ class TokenParams extends BaseOptions {
      * Constructor. Automatically canonicalizes capability, if provided as array or object.
      * If capability is a string, it is assumed that it's already a canonicalized json_encoded string.
      */
-    public function __construct( $options = array() ) {
+    public function __construct( $options = [] ) {
         parent::__construct( $options );
 
         if (is_object( $this->capability )) {

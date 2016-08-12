@@ -17,8 +17,8 @@ use Ably\Exceptions\AblyException;
 class Auth {
     protected $defaultAuthOptions;
     protected $defaultTokenParams;
-    protected $defaultAuthorizeAuthOptions = array();
-    protected $defaultAuthorizeTokenParams = array();
+    protected $defaultAuthorizeAuthOptions = [];
+    protected $defaultAuthorizeTokenParams = [];
     protected $basicAuth;
     protected $tokenDetails;
     protected $ably;
@@ -86,7 +86,7 @@ class Auth {
     }
 
     
-    public function authorizeInternal( $tokenParams = array(), $authOptions = array(), $force = true ) {
+    public function authorizeInternal( $tokenParams = [], $authOptions = [], $force = true ) {
 
         if ( !empty( $tokenParams ) ) {
             $tokenParamsCopy = $tokenParams;
@@ -131,14 +131,14 @@ class Auth {
      * @param array|null $authOptions Overridable auth options, if you don't wish to use the default ones
      * @return \Ably\Models\TokenDetails The new token
      */
-    public function authorize( $tokenParams = array(), $authOptions = array() ) {
+    public function authorize( $tokenParams = [], $authOptions = [] ) {
         return $this->authorizeInternal( $tokenParams, $authOptions );
     }
 
     /**
      * @deprecated 0.9 Please use `authorize` instead
      */
-    public function authorise( $tokenParams = array(), $authOptions = array() ) {
+    public function authorise( $tokenParams = [], $authOptions = [] ) {
         Log::w( 'Auth::authorise is deprecated, please use Auth::authorize instead');
 
         return $this->authorizeInternal( $tokenParams, $authOptions );
@@ -150,15 +150,15 @@ class Auth {
      * @return Array Array of HTTP headers containing an `Authorization` header
      */
     public function getAuthHeaders() {
-        $header = array();
+        $headers = [];
         if ( $this->isUsingBasicAuth() ) {
-            $header = array( 'Authorization: Basic ' . base64_encode( $this->defaultAuthOptions->key ) );
+            $headers[] = 'Authorization: Basic ' . base64_encode( $this->defaultAuthOptions->key );
         } else {
-            $this->authorizeInternal( array(), array(), $force = false ); // authorize only if necessary
-            $header = array( 'Authorization: Bearer '. base64_encode( $this->tokenDetails->token ) );
+            $this->authorizeInternal( [], [], $force = false ); // authorize only if necessary
+            $headers[] = 'Authorization: Bearer '. base64_encode( $this->tokenDetails->token );
         }
         
-        return $header;
+        return $headers;
     }
 
     /**
@@ -176,7 +176,7 @@ class Auth {
      * @throws \Ably\Exceptions\AblyException
      * @return \Ably\Models\TokenDetails The new token
      */
-    public function requestToken( $tokenParams = array(), $authOptions = array() ) {
+    public function requestToken( $tokenParams = [], $authOptions = [] ) {
         // token clientId priority:
         // $tokenParams->clientId overrides $authOptions->tokenId overrides $this->defaultAuthOptions->clientId overrides $this->defaultTokenParams->clientId
         $tokenClientId = $this->defaultTokenParams->clientId;
@@ -217,8 +217,8 @@ class Auth {
             $data = $this->ably->http->request(
                 $authOptionsMerged->authMethod,
                 $authOptionsMerged->authUrl,
-                $authOptionsMerged->authHeaders ? : array(),
-                array_merge( $authOptionsMerged->authParams ? : array(), $tokenParamsMerged->toArray() )
+                $authOptionsMerged->authHeaders ? : [],
+                array_merge( $authOptionsMerged->authParams ? : [], $tokenParamsMerged->toArray() )
             );
             
             $data = $data['body'];
@@ -256,7 +256,7 @@ class Auth {
         
         $res = $this->ably->post(
             "/keys/{$keyName}/requestToken",
-            $headers = array(),
+            $headers = [],
             $params = json_encode( $signedTokenRequest->toArray() ),
             $returnHeaders = false,
             $authHeaders = false
@@ -277,7 +277,7 @@ class Auth {
      * @param \Ably\Models\AuthOptions $authOptions
      * @return \Ably\Models\TokenRequest A signed token request
      */
-    public function createTokenRequest( $tokenParams = array(), $authOptions = array() ) {
+    public function createTokenRequest( $tokenParams = [], $authOptions = [] ) {
         $tokenClientId = $this->defaultTokenParams->clientId;
         if ( !empty( $this->defaultAuthOptions->clientId ) ) $tokenClientId = $this->defaultAuthOptions->clientId;
         if ( array_key_exists( 'clientId', $authOptions ) ) $tokenClientId = $authOptions['clientId'];
@@ -321,14 +321,14 @@ class Auth {
             $tokenRequest->nonce = md5( microtime( true ) . mt_rand() );
         }
 
-        $signText = implode("\n", array(
+        $signText = implode( "\n", [
             empty( $tokenRequest->keyName )    ? '' : $tokenRequest->keyName,
             empty( $tokenRequest->ttl )        ? '' : $tokenRequest->ttl,
             empty( $tokenRequest->capability ) ? '' : $tokenRequest->capability,
             empty( $tokenRequest->clientId )   ? '' : $tokenRequest->clientId,
             empty( $tokenRequest->timestamp )  ? '' : $tokenRequest->timestamp,
             empty( $tokenRequest->nonce )      ? '' : $tokenRequest->nonce,
-        )) . "\n";
+        ] ) . "\n";
 
 
         if ( empty( $tokenRequest->mac ) ) {

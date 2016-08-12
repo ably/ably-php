@@ -6,15 +6,15 @@ namespace Ably\Utils;
  * Also generates commands pastable to terminal for easier debugging.
  */
 class CurlWrapper {
-    protected $commands = array();
+    protected $commands = [];
 
     public function init( $url = null ) {
         $handle = curl_init( $url );
-        $this->commands[(int) $handle] = array(
+        $this->commands[(int) $handle] = [
             'prefix' => 'curl',
             'command' => ' ',
             'url' => $url ? : '',
-        );
+        ];
 
         return $handle;
     }

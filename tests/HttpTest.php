@@ -17,9 +17,9 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
     public static function setUpBeforeClass() {
         self::$testApp = new TestApp();
         self::$defaultOptions = self::$testApp->getOptions();
-        self::$ably = new AblyRest( array_merge( self::$defaultOptions, array(
+        self::$ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
-        ) ) );
+        ] ) );
     }
 
     public static function tearDownAfterClass() {
@@ -30,10 +30,10 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
      * Verify that API version is sent in HTTP requests
      */
     public function testVersionHeaderPresence() {
-        $opts = array(
+        $opts = [
             'key' => 'fake.key:totallyFake',
             'httpClass' => 'tests\HttpMock',
-        );
+        ];
         $ably = new AblyRest( $opts );
         $ably->time(); // make a request
 
@@ -60,21 +60,21 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
      * Verify that GET requests are encoded properly (using requestToken)
      */
     public function testGET() {
-        $authParams = array(
+        $authParams = [
             'param1' => '&?#',
             'param2' => 'x',
-        );
-        $tokenParams = array(
+        ];
+        $tokenParams = [
             'clientId' => 'test',
-        );
+        ];
 
-        $ably = new AblyRest( array(
+        $ably = new AblyRest( [
             'key' => 'fake.key:totallyFake',
             'authUrl' => 'http://test.test/tokenRequest',
             'authParams' => $authParams,
             'authMethod' => 'GET',
             'httpClass' => 'tests\HttpMock',
-        ) );
+        ] );
 
         $expectedParams = array_merge( $authParams, $tokenParams );
         
@@ -90,21 +90,21 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
      * Verify that POST requests are encoded properly (using requestToken)
      */
     public function testPOST() {
-        $authParams = array(
+        $authParams = [
             'param1' => '&?#',
             'param2' => 'x',
-        );
-        $tokenParams = array(
+        ];
+        $tokenParams = [
             'clientId' => 'test',
-        );
+        ];
 
-        $ably = new AblyRest( array(
+        $ably = new AblyRest( [
             'key' => 'fake.key:totallyFake',
             'authUrl' => 'http://test.test/tokenRequest',
             'authParams' => $authParams,
             'authMethod' => 'POST',
             'httpClass' => 'tests\HttpMock',
-        ) );
+        ] );
 
         $expectedParams = array_merge( $authParams, $tokenParams );
         
@@ -155,10 +155,10 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
      * Test that Response handles various returned structures properly
      */
     public function testRequestReturnValues() {
-        $ably = new AblyRest( array(
+        $ably = new AblyRest( [
             'key' => 'fake.key:totallyFake',
             'httpClass' => 'tests\HttpMockReturnData',
-        ) );
+        ] );
 
         // array of objects
         $ably->http->setResponseJSONString('[{"test":"one"},{"test":"two"},{"test":"three"}]');
@@ -187,7 +187,7 @@ class CurlWrapperMock extends CurlWrapper {
     public $lastParams;
 
     public function init( $url = null ) {
-        $this->lastParams = array( CURLOPT_URL => $url );
+        $this->lastParams = [ CURLOPT_URL => $url ];
 
         return parent::init( $url );
     }
@@ -211,10 +211,10 @@ class CurlWrapperMock extends CurlWrapper {
     }
 
     public function getInfo( $handle ) {
-        return array(
+        return [
             'http_code' => 200,
             'header_size' => 0,
-        );
+        ];
     }
 }
 
@@ -237,18 +237,18 @@ class HttpMockReturnData extends Http {
         $this->responseStr = $str;
     }
     
-    public function request($method, $url, $headers = array(), $params = array()) {
+    public function request($method, $url, $headers = [], $params = []) {
 
         if ($method == 'GET' && self::endsWith($url, '/get_test_json')) {
-            return array(
+            return [
                 'headers' => 'HTTP/1.1 200 OK'."\n",
                 'body' => json_decode($this->responseStr),
-            );
+            ];
         } else {
-            return array(
+            return [
                 'headers' => 'HTTP/1.1 404 Not found'."\n",
                 'body' => '',
-            );
+            ];
         }
     }
     

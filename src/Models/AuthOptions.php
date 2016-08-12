@@ -75,7 +75,7 @@ class AuthOptions extends BaseOptions {
      */
     public $queryTime;
 
-    public function __construct( $options = array() ) {
+    public function __construct( $options = [] ) {
         parent::__construct( $options );
         
         if ( empty( $this->tokenDetails ) && !empty( $this->token ) ) {

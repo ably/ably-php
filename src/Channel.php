@@ -30,7 +30,7 @@ class Channel {
      * @param ChannelOptions|array|null $options Channel options (for encrypted channels)
      * @throws AblyException
      */
-    public function __construct( AblyRest $ably, $name, $options = array() ) {
+    public function __construct( AblyRest $ably, $name, $options = [] ) {
         $this->ably = $ably;
         $this->name = $name;
         $this->channelPath = "/channels/" . urlencode( $name );
@@ -69,7 +69,7 @@ class Channel {
 
             $json = $msg->toJSON();
         } else if ( count($args) == 1 && is_array( $args[0] ) ) { // array of Messages
-            $jsonArray = array();
+            $jsonArray = [];
 
             foreach ( $args[0] as $msg ) {
                 if ( $this->options->cipher ) {
@@ -101,7 +101,7 @@ class Channel {
             throw new AblyException( 'Message\'s clientId does not match the clientId of the authorisation token.', 40102, 401 );
         }
 
-        $this->ably->post( $this->channelPath . '/messages', $headers = array(), $json );
+        $this->ably->post( $this->channelPath . '/messages', $headers = [], $json );
         return true;
     }
 
@@ -110,7 +110,7 @@ class Channel {
      * @param array $params Parameters to be sent with the request
      * @return PaginatedResult
      */
-    public function history( $params = array() ) {
+    public function history( $params = [] ) {
         return new PaginatedResult( $this->ably, 'Ably\Models\Message', $this->getCipherParams(), 'GET', $this->getPath() . '/messages', $params );
     }
 
@@ -147,7 +147,7 @@ class Channel {
      * @param array|null $options channel options
      * @throws AblyException
      */
-    public function setOptions( $options = array() ) {
+    public function setOptions( $options = [] ) {
         $this->options = new ChannelOptions( $options );
     }
 }

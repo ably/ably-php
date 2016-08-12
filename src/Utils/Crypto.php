@@ -65,7 +65,7 @@ class Crypto {
             $cipherParams->mode = isset( $params['mode'] ) ? $params['mode'] : 'cbc';
             $cipherParams->keyLength = isset( $params['keyLength'] ) ? $params['keyLength'] : strlen( $cipherParams->key ) * 8;
             
-            if ( !in_array( $cipherParams->keyLength, array( 128, 256 ) ) ) {
+            if ( !in_array( $cipherParams->keyLength, [ 128, 256 ] ) ) {
                 throw new AblyException ( 'Unsupported keyLength. Only 128 and 256 bits are supported.', 40003, 400 );
             }
             
@@ -73,7 +73,7 @@ class Crypto {
                 throw new AblyException ( 'keyLength does not match the actual key length.', 40003, 400 );
             }
 
-            if ( !in_array( $cipherParams->getAlgorithmString(), array( 'aes-128-cbc', 'aes-256-cbc' ) ) ) {
+            if ( !in_array( $cipherParams->getAlgorithmString(), [ 'aes-128-cbc', 'aes-256-cbc' ] ) ) {
                 throw new AblyException ( 'Unsupported cipher configuration "' . $cipherParams->getAlgorithmString()
                     . '". The supported configurations are aes-128-cbc and aes-256-cbc', 40003, 400 );
             }

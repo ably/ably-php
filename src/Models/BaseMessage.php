@@ -113,7 +113,7 @@ abstract class BaseMessage {
         }
 
         $isBinary = false;
-        $encodings = array();
+        $encodings = [];
 
         if ( is_array( $this->data ) || $this->data instanceof \stdClass ) {
             $encodings[] = 'json';

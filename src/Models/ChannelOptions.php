@@ -16,7 +16,7 @@ class ChannelOptions extends BaseOptions {
     /**
      * Transforms `cipher` from array to CipherParams, if necessary
      */
-    public function __construct( $options = array() ) {
+    public function __construct( $options = [] ) {
         parent::__construct( $options );
         
         if ( is_array( $this->cipher ) ) {

@@ -35,14 +35,14 @@ class AblyRest {
      * Constructor
      * @param \Ably\Models\ClientOptions|string array with options or a string with app key or token
      */
-    public function __construct( $options = array() ) {
+    public function __construct( $options = [] ) {
 
         # convert to options if a single key is provided
         if ( is_string( $options ) ) {
             if ( strpos( $options, ':' ) === false ) {
-                $options = array( 'token' => $options );
+                $options = [ 'token' => $options ];
             } else {
-                $options = array( 'key' => $options );
+                $options = [ 'key' => $options ];
             }
         }
 
@@ -68,7 +68,7 @@ class AblyRest {
      * Shorthand to $this->channels->get()
      * @return \Ably\Channel Channel
      */
-    public function channel( $name, $options = array() ) {
+    public function channel( $name, $options = [] ) {
         return $this->channels->get( $name, $options );
     }
 
@@ -77,7 +77,7 @@ class AblyRest {
      * and received, API requests and connections
      * @return array Statistics
      */
-    public function stats( $params = array() ) {
+    public function stats( $params = [] ) {
         return new PaginatedResult( $this, 'Ably\Models\Stats', $cipher = false, 'GET', '/stats', $params );
     }
 
@@ -86,7 +86,7 @@ class AblyRest {
      * @return integer server time in milliseconds
      */
     public function time() {
-        $res = $this->get( '/time', $params = array(), $headers = array(), $returnHeaders = false, $authHeaders = false );
+        $res = $this->get( '/time', $params = [], $headers = [], $returnHeaders = false, $authHeaders = false );
         return $res[0];
     }
 
@@ -102,7 +102,7 @@ class AblyRest {
      * Does a GET request, automatically injecting auth headers and handling fallback on server failure
      * @see AblyRest::request()
      */
-    public function get( $path, $headers = array(), $params = array(), $returnHeaders = false, $auth = true ) {
+    public function get( $path, $headers = [], $params = [], $returnHeaders = false, $auth = true ) {
         return $this->requestInternal( 'GET', $path, $headers, $params, $returnHeaders, $auth );
     }
 
@@ -110,7 +110,7 @@ class AblyRest {
      * Does a POST request, automatically injecting auth headers and handling fallback on server failure
      * @see AblyRest::request()
      */
-    public function post( $path, $headers = array(), $params = array(), $returnHeaders = false, $auth = true ) {
+    public function post( $path, $headers = [], $params = [], $returnHeaders = false, $auth = true ) {
         return $this->requestInternal( 'POST', $path, $headers, $params, $returnHeaders, $auth );
     }
 
@@ -127,12 +127,12 @@ class AblyRest {
      * @return mixed either array with 'headers' and 'body' fields or just body, depending on $returnHeaders, body is automatically decoded
      * @throws AblyRequestException if the request fails
      */
-    public function requestInternal( $method, $path, $headers = array(), $params = array(), $returnHeaders = false, $auth = true ) {
-        $mergedHeaders = array_merge( array(
+    public function requestInternal( $method, $path, $headers = [], $params = [], $returnHeaders = false, $auth = true ) {
+        $mergedHeaders = array_merge( [
             'Accept', 'application/json',
             'X-Ably-Version' => self::API_VERSION,
             'X-Ably-Lib' => 'php-' . self::$libFlavour . self::LIB_VERSION,
-        ), $headers );
+        ], $headers );
 
         if ( $auth ) { // inject auth headers
             $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $mergedHeaders );
@@ -192,7 +192,7 @@ class AblyRest {
      * @return \Ably\Models\HttpPaginatedResponse
      * @throws AblyRequestException This exception is only thrown for status codes >= 500
      */
-    public function request( $method, $path, $params = array(), $body = '', $headers = array()) {
+    public function request( $method, $path, $params = [], $body = '', $headers = []) {
         if ( count( $params ) ) {
             $path .= '?' . http_build_query( $params );
         }
@@ -211,7 +211,7 @@ class AblyRest {
     /**
      * Does a HTTP request backed up by fallback servers
      */
-    protected function requestWithFallback( $method, $path, $headers = array(), $params = array(), $attempt = 0 ) {
+    protected function requestWithFallback( $method, $path, $headers = [], $params = [], $attempt = 0 ) {
         try {
             if ( $attempt == 0 ) { // using default host
                 $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->restHost;

@@ -8,7 +8,7 @@ use Ably\Log;
  * Provides automatic loading of options from array or an object
  */
 abstract class BaseOptions {
-    public function __construct( $options = array() ) {
+    public function __construct( $options = [] ) {
         $class = get_class( $this );
         
         foreach ($options as $key => $value) {

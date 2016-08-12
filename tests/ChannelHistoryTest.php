@@ -15,9 +15,9 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
     public static function setUpBeforeClass() {
         self::$testApp = new TestApp();
         self::$defaultOptions = self::$testApp->getOptions();
-        self::$ably = new AblyRest( array_merge( self::$defaultOptions, array(
+        self::$ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
-        ) ) );
+        ] ) );
     }
 
     public static function tearDownAfterClass() {
@@ -31,7 +31,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         // publish some messages
         $history1 = self::$ably->channel('persisted:history1');
         
-        $msgsToSend = array();
+        $msgsToSend = [];
         for ( $i = 0; $i < 50; $i++ ) {
             $msg = new Message();
             $msg->name = 'history'.$i;
@@ -41,11 +41,11 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         $history1->publish( $msgsToSend );
 
         // get the history for this channel
-        $messages = $history1->history( array('direction' => 'forwards') );
+        $messages = $history1->history( ['direction' => 'forwards'] );
         $this->assertEquals( 50, count($messages->items), 'Expected 50 messages' );
 
         // verify message order
-        $actual_message_history = array();
+        $actual_message_history = [];
         foreach ($messages->items as $msg) {
             $actual_message_history[] = (int) $msg->data;
         }
@@ -60,7 +60,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         // publish some messages
         $history2 = self::$ably->channel('persisted:history2');
         
-        $msgsToSend = array();
+        $msgsToSend = [];
         for ( $i = 0; $i < 50; $i++ ) {
             $msg = new Message();
             $msg->name = 'history'.$i;
@@ -69,11 +69,11 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         }
         $history2->publish( $msgsToSend );
 
-        $messages = $history2->history( array('direction' => 'backwards') );
+        $messages = $history2->history( ['direction' => 'backwards'] );
         $this->assertEquals( 50, count($messages->items), 'Expected 50 messages' );
 
         // verify message order
-        $actual_message_history = array();
+        $actual_message_history = [];
         foreach ($messages->items as $msg) {
             $actual_message_history[] = (int) $msg->data;
         }
@@ -87,7 +87,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
     public function testDefaults() {
         $channel = self::$ably->channel('persisted:history_def_limit');
         
-        $msgsToSend = array();
+        $msgsToSend = [];
         for ( $i = 0; $i < 101; $i++ ) {
             $msg = new Message();
             $msg->data = (string) $i;
@@ -99,7 +99,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( 100, count( $messages->items ), 'Expected 100 messages' );
 
         // verify message order
-        $actual_message_history = array();
+        $actual_message_history = [];
         foreach ($messages->items as $msg) {
             $actual_message_history[] = (int) $msg->data;
         }
@@ -114,7 +114,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         // publish some messages
         $history3 = self::$ably->channel( 'persisted:history3' );
 
-        $msgsToSend = array();
+        $msgsToSend = [];
         for ( $i = 0; $i < 50; $i++ ) {
             $msg = new Message();
             $msg->name = 'history'.$i;
@@ -123,11 +123,11 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         }
         $history3->publish( $msgsToSend );
 
-        $messages = $history3->history( array('direction' => 'forwards', 'limit' => 25) );
+        $messages = $history3->history( ['direction' => 'forwards', 'limit' => 25] );
         $this->assertEquals( 25, count($messages->items), 'Expected 25 messages' );
 
         // verify message order
-        $actual_message_history = array();
+        $actual_message_history = [];
         foreach ($messages->items as $msg) {
             $actual_message_history[] = (int) $msg->data;
         }
@@ -144,7 +144,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         $messages2 = $messages->next();
         $this->assertEquals( 25, count($messages2->items), 'Expected 25 messages on 2nd page' );
 
-        $actual_message_history2 = array();
+        $actual_message_history2 = [];
         foreach ($messages2->items as $msg) {
             $actual_message_history2[] = (int) $msg->data;
         }
@@ -161,7 +161,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         $messages1 = $messages2->first();
         $this->assertEquals( 25, count($messages1->items), 'Expected 25 messages on the 1st page' );
 
-        $actual_message_history1 = array();
+        $actual_message_history1 = [];
         foreach ($messages1->items as $msg) {
             $actual_message_history1[] = (int) $msg->data;
         }
@@ -176,7 +176,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         // publish some messages
         $history4 = self::$ably->channel('persisted:history4');
         
-        $msgsToSend = array();
+        $msgsToSend = [];
         for ( $i = 0; $i < 50; $i++ ) {
             $msg = new Message();
             $msg->name = 'history'.$i;
@@ -185,11 +185,11 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         }
         $history4->publish( $msgsToSend );
 
-        $messages = $history4->history( array('direction' => 'backwards', 'limit' => 25) );
+        $messages = $history4->history( ['direction' => 'backwards', 'limit' => 25] );
         $this->assertEquals( 25, count($messages->items), 'Expected 25 messages' );
 
         // verify message order
-        $actual_message_history = array();
+        $actual_message_history = [];
         foreach ($messages->items as $msg) {
             $actual_message_history[] = (int) $msg->data;
         }
@@ -206,7 +206,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         $messages2 = $messages->next();
         $this->assertEquals( 25, count($messages2->items), 'Expected 25 messages on 2nd page' );
 
-        $actual_message_history2 = array();
+        $actual_message_history2 = [];
         foreach ($messages2->items as $msg) {
             $actual_message_history2[] = (int) $msg->data;
         }
@@ -223,7 +223,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         $messages1 = $messages2->first();
         $this->assertEquals( 25, count($messages1->items), 'Expected 25 messages on the 1st page' );
 
-        $actual_message_history1 = array();
+        $actual_message_history1 = [];
         foreach ($messages1->items as $msg) {
             $actual_message_history1[] = (int) $msg->data;
         }
@@ -256,19 +256,19 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         }
 
         // get the history for this channel
-        $messages = $history5->history(array(
+        $messages = $history5->history([
             'direction' => 'forwards',
             'start'     => $interval_start,
             'end'       => $interval_end,
-        ));
+        ]);
         $this->assertEquals( 2, count($messages->items), 'Expected 2 messages' );
 
         // verify message order
-        $actual_message_history = array();
+        $actual_message_history = [];
         for ($i=2; $i<4; $i++) {
             $actual_message_history[] = $messages->items[$i-2]->data;
         }
-        $expected_message_history = array( 2, 3 );
+        $expected_message_history = [ 2, 3 ];
         $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in forward order');
     }
 
@@ -298,20 +298,20 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         }
 
         // get the history for this channel
-        $messages = $history6->history(array(
+        $messages = $history6->history([
             'direction' => 'backwards',
             'start'     => $interval_start,
             'end'       => $interval_end,
-        ));
+        ]);
 
         $this->assertEquals( 2, count($messages->items), 'Expected 20 messages' );
 
         // verify message order
-        $actual_message_history = array();
+        $actual_message_history = [];
         for ($i=2; $i<4; $i++) {
             $actual_message_history[] = $messages->items[$i-2]->data;
         }
-        $expected_message_history = array( 3, 2 );
+        $expected_message_history = [ 3, 2 ];
         $this->assertEquals( $expected_message_history, $actual_message_history, 'Expect messages in backward order' );
     }
 }

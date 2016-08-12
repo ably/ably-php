@@ -22,7 +22,7 @@ class PaginatedResult {
     /**
      * @var array Array of returned models (either Message, PresenceMessage or Stats)
      */
-    public $items = array();
+    public $items = [];
 
     /**
      * Constructor.
@@ -35,7 +35,7 @@ class PaginatedResult {
      * @param array $headers Headers to be sent with the request
      * @throws AblyException
      */
-    public function __construct( \Ably\AblyRest $ably, $model, $cipherParams, $method, $path, $params = array(), $headers = array() ) {
+    public function __construct( \Ably\AblyRest $ably, $model, $cipherParams, $method, $path, $params = [], $headers = [] ) {
         $this->ably = $ably;
         $this->model = $model;
         $this->cipherParams = $cipherParams;
@@ -46,12 +46,12 @@ class PaginatedResult {
         $response = $this->ably->requestInternal( $method, $path, $headers, $params, $withHeaders = true );
         $this->response = $response;
 
-        $body = isset( $response['body'] ) ? $response['body'] : array();
-        if ( is_object( $body ) ) $body = array( $body );
+        $body = isset( $response['body'] ) ? $response['body'] : [];
+        if ( is_object( $body ) ) $body = [ $body ];
 
         if ( is_array( $body ) ) {
 
-            $transformedArray = array();
+            $transformedArray = [];
 
             foreach ($body as $data) {
 
@@ -140,7 +140,7 @@ class PaginatedResult {
 
         if (!$matches) return;
 
-        $this->paginationHeaders = array();
+        $this->paginationHeaders = [];
 
         foreach ($matches as $m) {
             $link = $m[1];

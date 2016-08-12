@@ -94,7 +94,7 @@ class ClientOptions extends AuthOptions {
      */
     public $authClass = 'Ably\Auth';
 
-    public function __construct( $options = array() ) {
+    public function __construct( $options = [] ) {
         parent::__construct( $options );
 
         if ( empty( $this->restHost ) ) {
@@ -102,13 +102,13 @@ class ClientOptions extends AuthOptions {
 
             if ( empty( $this->environment ) ) {
                 // default fallback hosts are used only with the default host and default environment
-                $this->fallbackHosts = array(
+                $this->fallbackHosts = [
                     'a.ably-realtime.com',
                     'b.ably-realtime.com',
                     'c.ably-realtime.com',
                     'd.ably-realtime.com',
                     'e.ably-realtime.com',
-                );
+                ];
 
                 shuffle( $this->fallbackHosts );
             }

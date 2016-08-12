@@ -47,7 +47,7 @@ class Http {
      * Wrapper to do a GET request
      * @see Http::request()
      */
-    public function get( $url, $headers = array(), $params = array() ) {
+    public function get( $url, $headers = [], $params = [] ) {
         return $this->request( 'GET', $url, $headers, $params );
     }
 
@@ -55,7 +55,7 @@ class Http {
      * Wrapper to do a POST request
      * @see Http::request()
      */
-    public function post( $url, $headers = array(), $params = array() ) {
+    public function post( $url, $headers = [], $params = [] ) {
         return $this->request( 'POST', $url, $headers, $params );
     }
 
@@ -63,7 +63,7 @@ class Http {
      * Wrapper to do a PUT request
      * @see Http::request()
      */
-    public function put( $url, $headers = array(), $params = array() ) {
+    public function put( $url, $headers = [], $params = [] ) {
         return $this->request( 'PUT', $url, $headers, $params );
     }
 
@@ -71,7 +71,7 @@ class Http {
      * Wrapper to do a DELETE request
      * @see Http::request()
      */
-    public function delete( $url, $headers = array(), $params = array() ) {
+    public function delete( $url, $headers = [], $params = [] ) {
         return $this->request( 'DELETE', $url, $headers, $params );
     }
 
@@ -85,7 +85,7 @@ class Http {
      * @throws AblyRequestTimeoutException if the request times out
      * @return array with 'headers' and 'body' fields, body is automatically decoded
      */
-    public function request( $method, $url, $headers = array(), $params = array() ) {
+    public function request( $method, $url, $headers = [], $params = [] ) {
 
         $ch = $this->curl->init($url);
 
@@ -154,7 +154,7 @@ class Http {
         $body = substr( $raw, $info['header_size'] );
         $decodedBody = json_decode( $body );
 
-        $response = array( 'headers' => $resHeaders, 'body' => $decodedBody ? $decodedBody : $body );
+        $response = [ 'headers' => $resHeaders, 'body' => $decodedBody ? $decodedBody : $body ];
 
         Log::v( 'cURL request response:', $info['http_code'], $response );
 
