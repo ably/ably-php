@@ -250,4 +250,15 @@ class TypesTest extends \PHPUnit_Framework_TestCase {
             'succeeded' => 'integer',
         ) );
     }
+
+    public function testHttpPaginatedResponseType() {
+        $this->verifyClassMembers( '\Ably\Models\HttpPaginatedResponse', array(
+            'items',
+            'statusCode',
+            'success',
+            'errorCode',
+            'errorMessage',
+            'headers',
+        ) );
+    }
 }
