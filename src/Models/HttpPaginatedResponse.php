@@ -7,7 +7,7 @@ use Ably\Exceptions\AblyRequestException;
  * This class is used as a container for response data from AblyRest::request
  * It provides automatic pagination.
  */
-class Response extends PaginatedResult {
+class HttpPaginatedResponse extends PaginatedResult {
     /**
      * @var integer HTTP status code of the page
      */
@@ -70,8 +70,6 @@ class Response extends PaginatedResult {
         } else {
             $this->success = true;
         }
-
-        $this->ably = null; // !!!!!!!!!!!!!!!!!!!!! remove
     }
 
     private function parseHeaders( $headers ) {

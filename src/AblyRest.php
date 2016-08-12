@@ -3,7 +3,7 @@ namespace Ably;
 
 use Ably\Models\ClientOptions;
 use Ably\Models\PaginatedResult;
-use Ably\Models\Response;
+use Ably\Models\HttpPaginatedResponse;
 use Ably\Exceptions\AblyException;
 use Ably\Exceptions\AblyRequestException;
 
@@ -189,7 +189,7 @@ class AblyRest {
      * @param array $params GET parameters to append to $path
      * @param array|object $body JSON-encodable structure to send in the body - leave empty for GET requests
      * @param array $headers HTTP headers to send
-     * @return \Ably\Models\Response
+     * @return \Ably\Models\HttpPaginatedResponse
      * @throws AblyRequestException This exception is only thrown for status codes >= 500
      */
     public function request( $method, $path, $params = array(), $body = '', $headers = array()) {
@@ -205,7 +205,7 @@ class AblyRest {
             $body = json_encode( $body );
         }
 
-        return new Response( $this, 'Ably\Models\Untyped', null, $method, $path, $body, $headers );
+        return new HttpPaginatedResponse( $this, 'Ably\Models\Untyped', null, $method, $path, $body, $headers );
     }
 
     /**
