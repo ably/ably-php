@@ -409,19 +409,39 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * Test library interoperability by encoding and decoding messages from messages-encoding.json
+     * Test library interoperability by sending messages from messages-encoding.json
+     * via raw HTTP and decoding them using the library
      */
-    public function testMessageEncodingInteroperabilityFixture() {
-        $ably = self::$ably;
+    public function testEncodingInteroperabilityRawToAbly() {
         $fixture = json_decode( file_get_contents( __DIR__ . '/../ably-common/test-resources/messages-encoding.json' ) );
 
+        $defaultOpts = new \Ably\Models\ClientOptions( self::$defaultOptions );
+        $http = new \Ably\Http( $defaultOpts ); // initialize http class for raw requests with default timeouts
+        $server = 'https://' . $defaultOpts->restHost;
+
+        $messages = [];
         foreach ($fixture->messages as $i => $testMsgData) {
-            $msg = new Message();
-            $msg->data = $testMsgData->data;
-            $msg->encoding = $testMsgData->encoding;
-            
-            $ably->channel("testInterop_$i")->publish($msg);
-            $ret = $ably->channel("testInterop_$i")->history();
+            $messages[] = (object) [
+                'data' => $testMsgData->data,
+                'encoding' => $testMsgData->encoding,
+            ];
+        }
+
+        $http->request(
+            'POST',
+            $server . '/channels/interopTest1/messages',
+            [
+                'Content-Type: application/json',
+                'Accept: application/json',
+                'Authorization: Basic ' . base64_encode( self::$testApp->getAppKeyDefault()->string ),
+            ],
+            json_encode( $messages )
+        );
+
+        $history = self::$ably->channel("interopTest1")->history([ 'direction' => 'forwards' ]);
+
+        foreach ($fixture->messages as $i => $testMsgData) {
+            $msg = $history->items[$i];
 
             if ( isset( $testMsgData->expectedHexValue ) ) {
                 $expected = pack( 'H*', $testMsgData->expectedHexValue );
@@ -429,8 +449,50 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
                 $expected = $testMsgData->expectedValue;
             }
 
-            $this->assertEquals($expected, $ret->items[0]->data);
+            $this->assertEquals($expected, $msg->data);
         }
+
+    }
+
+    /**
+     * Test library interoperability by sending messages from messages-encoding.json
+     * via the library, fetching them using raw HTTP and comparing
+     */
+    public function testEncodingInteroperabilityAblyToRaw() {
+        $fixture = json_decode( file_get_contents( __DIR__ . '/../ably-common/test-resources/messages-encoding.json' ) );
+
+        $defaultOpts = new \Ably\Models\ClientOptions( self::$defaultOptions );
+        $http = new \Ably\Http( $defaultOpts ); // initialize http class for raw requests with default timeouts
+        $server = 'https://' . $defaultOpts->restHost;
+
+        $messages = [];
+        foreach ($fixture->messages as $i => $testMsgData) {
+            $msg = new Message();
+            $msg->data = $testMsgData->data;
+            $msg->encoding = $testMsgData->encoding;
+            $messages[] = $msg;
+        }
+
+        self::$ably->channel("interopTest2")->publish($messages);
+
+        $res = $http->request(
+            'GET',
+            $server . '/channels/interopTest2/messages?direction=forwards',
+            [
+                'Accept: application/json',
+                'Authorization: Basic ' . base64_encode( self::$testApp->getAppKeyDefault()->string ),
+            ]
+        );
+
+        $history = $res['body'];
+
+        foreach ($fixture->messages as $i => $testMsgData) {
+            $msg = $history[$i];
+
+            $this->assertEquals($testMsgData->data, $msg->data);
+            $this->assertEquals($testMsgData->encoding, $msg->encoding);
+        }
+
     }
 
     /**
