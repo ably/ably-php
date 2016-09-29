@@ -1,8 +1,6 @@
 # [Ably](https://www.ably.io)
 
-[![Build Status](https://travis-ci.org/ably/ably-php.png)](https://travis-ci.org/ably/ably-php)
-
-A PHP REST client library for [ably.io](https://www.ably.io), the realtime messaging service.
+A PHP REST client library for [www.ably.io](https://www.ably.io), the realtime messaging service.
 
 ## Documentation
 
