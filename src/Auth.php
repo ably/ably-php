@@ -136,7 +136,7 @@ class Auth {
     }
 
     /**
-     * @deprecated 0.9 Please use `authorize` instead
+     * @deprecated 1.0 Please use `authorize` instead
      */
     public function authorise( $tokenParams = [], $authOptions = [] ) {
         Log::w( 'Auth::authorise is deprecated, please use Auth::authorize instead');

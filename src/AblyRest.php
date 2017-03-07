@@ -12,8 +12,8 @@ use Ably\Exceptions\AblyRequestException;
  */
 class AblyRest {
 
-    const API_VERSION = '0.9';
-    const LIB_VERSION = '0.9.0';
+    const API_VERSION = '1.0';
+    const LIB_VERSION = '1.0.0';
 
     protected $options;
     protected static $libFlavour = '';
@@ -240,7 +240,7 @@ class AblyRest {
     /**
      * Sets a "flavour string", that is sent in the `X-Ably-Lib` request header.
      * Used for internal statistics.
-     * For instance setting 'laravel' results in: `X-Ably-Lib: php-laravel-0.9.0`
+     * For instance setting 'laravel' results in: `X-Ably-Lib: php-laravel-1.0.0`
      */
     public static function setLibraryFlavourString( $flavour = '' ) {
         self::$libFlavour = $flavour ? $flavour.'-' : '';
