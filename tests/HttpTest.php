@@ -79,11 +79,11 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
         ] );
 
         $expectedParams = array_merge( $authParams, $tokenParams );
-        
+
         $ably->auth->requestToken( $tokenParams );
 
         $curlParams = $ably->http->getCurlLastParams();
-        
+
         $this->assertEquals( 'http://test.test/tokenRequest?'.http_build_query($expectedParams), $curlParams[CURLOPT_URL], 'Expected URL to contain encoded GET parameters' );
     }
 
@@ -109,11 +109,11 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
         ] );
 
         $expectedParams = array_merge( $authParams, $tokenParams );
-        
+
         $ably->auth->requestToken( $tokenParams );
 
         $curlParams = $ably->http->getCurlLastParams();
-        
+
         $this->assertEquals( 'http://test.test/tokenRequest', $curlParams[CURLOPT_URL], 'Expected URL to match authUrl' );
         $this->assertEquals( http_build_query($expectedParams), $curlParams[CURLOPT_POSTFIELDS], 'Expected POST params to contain encoded params' );
     }
@@ -135,7 +135,7 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
         $this->assertLessThan(300, $res->statusCode, 'Expected statusCode < 300');
         $this->assertEmpty($res->errorCode, 'Expected empty errorCode');
         $this->assertEmpty($res->errorMessage, 'Expected empty errorMessage');
-        
+
         $res2 = $ably->request('GET', '/channels/persisted:test/messages');
 
         $this->assertTrue($res2->success, 'Expected retrieving the message via custom request to succeed');
@@ -166,17 +166,17 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
         $ably->http->setResponseJSONString('[{"test":"one"},{"test":"two"},{"test":"three"}]');
         $res1 = $ably->request('GET', '/get_test_json');
         $this->assertEquals('[{"test":"one"},{"test":"two"},{"test":"three"}]', json_encode($res1->items));
-        
+
         // array with single object
         $ably->http->setResponseJSONString('[{"test":"yes"}]');
         $res2 = $ably->request('GET', '/get_test_json');
         $this->assertEquals('[{"test":"yes"}]', json_encode($res2->items));
-        
+
         // single object - should be returned as array with single object
         $ably->http->setResponseJSONString('{"test":"yes"}');
         $res3 = $ably->request('GET', '/get_test_json');
         $this->assertEquals('[{"test":"yes"}]', json_encode($res3->items));
-        
+
         // not an object or array - should be returned as empty array
         $ably->http->setResponseJSONString('"invalid"');
         $res4 = $ably->request('GET', '/get_test_json');
@@ -238,7 +238,7 @@ class HttpMockReturnData extends Http {
     public function setResponseJSONString($str) {
         $this->responseStr = $str;
     }
-    
+
     public function request($method, $url, $headers = [], $params = []) {
 
         if ($method == 'GET' && self::endsWith($url, '/get_test_json')) {
@@ -253,7 +253,7 @@ class HttpMockReturnData extends Http {
             ];
         }
     }
-    
+
     private static function endsWith($haystack, $needle) {
         return substr($haystack, -strlen($needle)) == $needle;
     }

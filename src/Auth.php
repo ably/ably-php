@@ -85,7 +85,7 @@ class Auth {
         return $this->basicAuth;
     }
 
-    
+
     public function authorizeInternal( $tokenParams = [], $authOptions = [], $force = true ) {
 
         if ( !empty( $tokenParams ) ) {
@@ -157,7 +157,7 @@ class Auth {
             $this->authorizeInternal( [], [], $force = false ); // authorize only if necessary
             $headers[] = 'Authorization: Bearer '. base64_encode( $this->tokenDetails->token );
         }
-        
+
         return $headers;
     }
 
@@ -189,14 +189,14 @@ class Auth {
         // merge provided auth options with defaults
         $authOptionsMerged = new AuthOptions( array_merge( $this->defaultAuthOptions->toArray(), $authOptions ) );
         $tokenParamsMerged = new TokenParams( array_merge( $this->defaultTokenParams->toArray(), $tokenParams ) );
-        
+
         $tokenParamsMerged->clientId = $tokenClientId;
 
         // get a signed token request
         $signedTokenRequest = null;
         if ( !empty( $authOptionsMerged->authCallback ) ) {
             Log::d( 'Auth::requestToken:', 'using token auth with auth_callback' );
-            
+
             $callback = $authOptionsMerged->authCallback;
             $data = $callback($tokenParamsMerged);
 
@@ -220,7 +220,7 @@ class Auth {
                 $authOptionsMerged->authHeaders ? : [],
                 array_merge( $authOptionsMerged->authParams ? : [], $tokenParamsMerged->toArray() )
             );
-            
+
             $data = $data['body'];
 
             if ( is_string( $data ) ) {
@@ -253,7 +253,7 @@ class Auth {
         if ( empty( $keyName ) ) {
             throw new AblyException( 'No keyName specified in the TokenRequest' );
         }
-        
+
         $res = $this->ably->post(
             "/keys/{$keyName}/requestToken",
             $headers = [],
@@ -286,25 +286,25 @@ class Auth {
         $authOptions = new AuthOptions( array_merge( $this->defaultAuthOptions->toArray(), $authOptions ) );
         $tokenParams = new TokenParams( array_merge( $this->defaultTokenParams->toArray(), $tokenParams ) );
         $tokenParams->clientId = $tokenClientId;
-        
+
         $keyParts = explode( ':', $authOptions->key );
-        
+
         if ( count( $keyParts ) != 2 ) {
             Log::e( 'Auth::createTokenRequest', "Can't create signed token request, invalid key specified" );
             throw new AblyException( 'Invalid key specified', 40101, 401 );
         }
-        
+
         $keyName   = $keyParts[0];
         $keySecret = $keyParts[1];
-        
+
         $tokenRequest = new TokenRequest( $tokenParams );
-        
+
         if ( !empty( $tokenRequest->keyName ) && $tokenRequest->keyName != $keyName ) {
             throw new AblyException( 'Incompatible keys specified', 40102, 401 );
         } else {
             $tokenRequest->keyName = $keyName;
         }
-        
+
         if ( $authOptions->queryTime ) {
             $tokenRequest->timestamp = sprintf ( "%.0f", $this->ably->time() );
         } else if ( empty( $tokenRequest->timestamp ) ) {
@@ -312,7 +312,7 @@ class Auth {
         }
         // note: sprintf converts floating point numbers to plain integers (without scientific notation)
         // regardless of the "precision" php.ini setting
-        
+
         if ( empty( $tokenRequest->clientId ) ) {
             $tokenRequest->clientId = $authOptions->clientId;
         }
