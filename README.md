@@ -123,7 +123,8 @@ To see what has changed in recent versions of Bundler, see the [CHANGELOG](CHANG
 
 ## Known limitations
 
-[msgpack](http://msgpack.org/) support is currently missing in PHP client library, as there is no stable PHP msgpack library available.
+1. This client library requires PHP version 5.4 or greater
+2. [msgpack](http://msgpack.org/) support is currently missing in PHP client library, as there is no stable PHP msgpack library available.
 
 ## Running the tests
 
