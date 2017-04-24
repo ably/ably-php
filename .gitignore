@@ -4,3 +4,5 @@ tmp/
 config.php
 vendor/
 composer.lock
+
+.*.swp

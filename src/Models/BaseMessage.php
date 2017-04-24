@@ -96,6 +96,42 @@ abstract class BaseMessage {
     }
 
     /**
+     * Creates and returns a new message from the given encoded message like object
+     * @param stdClass $obj Message-like object
+     * @param CipherParams|null $cipherParams
+     */
+    public static function fromEncoded( $obj, CipherParams $cipherParams = null ) {
+        $class = get_called_class();
+
+        $msg = new $class();
+        if ($cipherParams != null) {
+            $msg->setCipherParams( $cipherParams );
+        }
+
+        foreach ($obj as $key => $value) {
+            if (property_exists( $class, $key )) {
+                $msg->$key = $value;
+            }
+        }
+
+        $msg->decode();
+
+        return $msg;
+    }
+
+    /**
+     * Creates and returns a new message from the given encoded message like object
+     * @param array $objs Array of Message-Like objects
+     * @param CipherParams|null $cipherParams
+     */
+    public static function fromEncodedArray( $objs, CipherParams $cipherParams = null ) {
+        return array_map(
+            function( $obj ) use ($cipherParams) { return static::fromEncoded($obj, $cipherParams); },
+            $objs
+        );
+    }
+
+    /**
      * Returns an encoded message as a stdClass ready for stringifying
      */
     protected function encode() {
