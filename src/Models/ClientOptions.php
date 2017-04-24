@@ -75,12 +75,17 @@ class ClientOptions extends AuthOptions {
     /**
      * @var integer connection timeout after which a next fallback host is used
      */
-    public $httpRequestTimeout = 15000;
+    public $httpRequestTimeout = 10000;
 
     /**
      * @var integer Max number of fallback host retries for HTTP requests that fail due to network issues or server problems
      */
     public $httpMaxRetryCount = 3;
+
+    /**
+     * @var integer Max elapsed time in which fallback host retries for HTTP requests will be attempted
+     */
+    public $httpMaxRetryDuration = 15000;
 
     /**
      * @var string a class that should be used for making HTTP connections
