@@ -269,7 +269,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $msg = new Message();
         $msg->name = 'delegatedMsg';
         $msg->data = 'test payload';
-        $msg->connectionKey = 'fake!realtime_key';
+        $msg->connectionKey = 'fake.realtime_key';
 
         // publishing the message with an invalid key must fail
         $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40006 );
