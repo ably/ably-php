@@ -27,4 +27,5 @@ class Message extends BaseMessage {
 
         return $msg;
     }
+
 }

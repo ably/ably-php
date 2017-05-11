@@ -128,11 +128,44 @@ class CryptoTest extends \PHPUnit_Framework_TestCase {
             $decryptedExample->setCipherParams( $cipherParams );
             $decryptedExample->fromJSON( $example->encrypted );
 
-            $this->assertEquals( $decodedExample->data, $decryptedExample->data, 'Expected unencrypted and decrypted message\'s contents to match' );
+            $this->assertEquals( $decodedExample->data, $decryptedExample->data,
+                                 'Expected unencrypted and decrypted message\'s contents to match' );
 
             $decodedExample->setCipherParams( $cipherParams );
             $encryptedJSON = json_decode( $decodedExample->toJSON() );
-            $this->assertEquals( $example->encrypted->data, $encryptedJSON->data, 'Expected encrypted and example encrypted message\'s contents to match' );
+            $this->assertEquals( $example->encrypted->data, $encryptedJSON->data,
+                                 'Expected encrypted and example encrypted message\'s contents to match' );
+        }
+    }
+
+    /**
+     * Tests Message:fromEncodedArray
+     *
+     * @dataProvider filenameProvider
+     */
+    public function testMessageFromEncodedArray( $filename ) {
+        $fixture = json_decode( file_get_contents( $filename ) );
+
+        $cipherParams = Crypto::getDefaultParams([
+            'key'       => $fixture->key,
+            'algorithm' => $fixture->algorithm,
+            'keyLength' => $fixture->keylength,
+            'mode'      => $fixture->mode,
+            'iv'        => $fixture->iv,
+            'base64Key' => true,
+            'base64Iv' => true,
+        ]);
+
+        $encrypted = array_map( function ( $x ) { return $x->encrypted ; }, $fixture->items );
+        $encoded = array_map( function ( $x ) { return $x->encoded ; }, $fixture->items );
+
+        $encrypted = Message::fromEncodedArray( $encrypted, $cipherParams );
+        $encoded = Message::fromEncodedArray( $encoded );
+
+        foreach ($encrypted as $i => $decryptedExample) {
+            $decodedExample = $encoded[$i];
+            $this->assertEquals( $decodedExample->data, $decryptedExample->data,
+                                 'Expected unencrypted and decrypted message\'s contents to match' );
         }
     }
 
@@ -166,11 +199,44 @@ class CryptoTest extends \PHPUnit_Framework_TestCase {
             $decryptedExample->setCipherParams( $cipherParams );
             $decryptedExample->fromJSON( $example->encrypted );
 
-            $this->assertEquals( $decodedExample->data, $decryptedExample->data, 'Expected unencrypted and decrypted message\'s contents to match' );
+            $this->assertEquals( $decodedExample->data, $decryptedExample->data,
+                                 'Expected unencrypted and decrypted message\'s contents to match' );
 
             $decodedExample->setCipherParams( $cipherParams );
             $encryptedJSON = json_decode( $decodedExample->toJSON() );
-            $this->assertEquals( $example->encrypted->data, $encryptedJSON->data, 'Expected encrypted and example encrypted message\'s contents to match' );
+            $this->assertEquals( $example->encrypted->data, $encryptedJSON->data,
+                                 'Expected encrypted and example encrypted message\'s contents to match' );
+        }
+    }
+
+    /**
+     * Tests PresenceMessage:fromEncodedArray
+     *
+     * @dataProvider filenameProvider
+     */
+    public function testPresenceMessageFromEncodedArray( $filename ) {
+        $fixture = json_decode( file_get_contents( $filename ) );
+
+        $cipherParams = Crypto::getDefaultParams([
+            'key'       => $fixture->key,
+            'algorithm' => $fixture->algorithm,
+            'keyLength' => $fixture->keylength,
+            'mode'      => $fixture->mode,
+            'iv'        => $fixture->iv,
+            'base64Key' => true,
+            'base64Iv' => true,
+        ]);
+
+        $encrypted = array_map( function ( $x ) { return $x->encrypted ; }, $fixture->items );
+        $encoded = array_map( function ( $x ) { return $x->encoded ; }, $fixture->items );
+
+        $encrypted = PresenceMessage::fromEncodedArray( $encrypted, $cipherParams );
+        $encoded = PresenceMessage::fromEncodedArray( $encoded );
+
+        foreach ($encrypted as $i => $decryptedExample) {
+            $decodedExample = $encoded[$i];
+            $this->assertEquals( $decodedExample->data, $decryptedExample->data,
+                                 'Expected unencrypted and decrypted message\'s contents to match' );
         }
     }
 
