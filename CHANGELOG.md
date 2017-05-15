@@ -1,8 +1,8 @@
 # Change Log
 
-## [v1.0.0](https://github.com/ably/ably-php/tree/v1.0.0)
+## [1.0.0](https://github.com/ably/ably-php/tree/1.0.0)
 
-[Full Changelog](https://github.com/ably/ably-php/compare/0.9.0...v1.0.0)
+[Full Changelog](https://github.com/ably/ably-php/compare/0.9.0...1.0.0)
 
 ### v1.0 release and upgrade notes from v0.8
 
