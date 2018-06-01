@@ -22,7 +22,7 @@ class Http {
      * @var integer $timeout Timeout for a cURL connection in ms.
      */
     protected $connectTimeout;
-    
+
     /**
      * @var integer $timeout Timeout for a cURL request in ms.
      */
@@ -89,7 +89,11 @@ class Http {
 
         $ch = $this->curl->init($url);
 
-        $this->curl->setOpt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeout); 
+        if (isset($_SERVER['http_proxy']) && is_string($_SERVER['http_proxy'])) {
+            $this->curl->setOpt($ch, CURLOPT_PROXY, $_SERVER['http_proxy']);
+        }
+
+        $this->curl->setOpt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeout);
         $this->curl->setOpt($ch, CURLOPT_TIMEOUT_MS, $this->requestTimeout);
 
         if (!empty($params)) {
@@ -142,7 +146,7 @@ class Http {
         $info = $this->curl->getInfo( $ch );
         $err = $this->curl->getErrNo( $ch );
         $errmsg = $err ? $this->curl->getError( $ch ) : '';
-        
+
         $this->curl->close( $ch );
 
         if ( $err ) { // a connection error has occured (no data received)
