@@ -215,9 +215,14 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
 
         $this->assertTrue( $messages2->isPaginated(), 'Expected messages to be paginated' );
         $this->assertTrue( $messages2->hasFirst(), 'Expected to have first page' );
-        $this->assertFalse( $messages2->hasNext(), 'Expected not to have next page' );
-        $this->assertTrue( $messages2->isLast(), 'Expected to be the last page' );
-        $this->assertNull( $messages2->next(), 'Expected the 3rd page to be null' );
+        if ($messages2->hasNext()) {
+            $messages3 = $messages2->next();
+            $this->assertTrue( $messages3->isLast(), 'Expected to be the last page' );
+            $this->assertNull( $messages3->next(), 'Expected the 3rd page to be null' );
+        } else {
+            $this->assertTrue( $messages2->isLast(), 'Expected to be the last page' );
+            $this->assertNull( $messages2->next(), 'Expected the 3rd page to be null' );
+        }
 
         // get the first page from the 2nd page
         $messages1 = $messages2->first();

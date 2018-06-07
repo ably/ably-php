@@ -74,7 +74,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         $tokenParams = array_merge(self::$tokenParams, [
             'timestamp' => $requestTime - 30 * 60 * 1000 // half an hour ago
         ]);
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', 'Timestamp not current', 40101 );
+        $this->setExpectedException( 'Ably\Exceptions\AblyException', 'Timestamp not current', 40104 );
         self::$ably->auth->requestToken( $tokenParams );
     }
 
