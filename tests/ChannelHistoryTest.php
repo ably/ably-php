@@ -218,7 +218,7 @@ class ChannelHistoryTest extends \PHPUnit_Framework_TestCase {
         if ($messages2->hasNext()) {
             $messages3 = $messages2->next();
             $this->assertTrue( $messages3->isLast(), 'Expected to be the last page' );
-            $this->assertNull( $messages3->next(), 'Expected the 3rd page to be null' );
+            $this->assertNull( $messages3->next(), 'Expected the 4th page to be null' );
         } else {
             $this->assertTrue( $messages2->isLast(), 'Expected to be the last page' );
             $this->assertNull( $messages2->next(), 'Expected the 3rd page to be null' );
