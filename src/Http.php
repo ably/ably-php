@@ -91,6 +91,8 @@ class Http {
 
         if (isset($_SERVER['http_proxy']) && is_string($_SERVER['http_proxy'])) {
             $this->curl->setOpt($ch, CURLOPT_PROXY, $_SERVER['http_proxy']);
+        } elseif (isset($_SERVER['https_proxy']) && is_string($_SERVER['https_proxy'])) {
+            $this->curl->setOpt($ch, CURLOPT_PROXY, $_SERVER['https_proxy']);
         }
 
         $this->curl->setOpt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeout);
