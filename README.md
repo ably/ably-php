@@ -77,7 +77,7 @@ $membersPage->hasNext(); // false, there are no more pages
 ### Querying the Presence History
 
 ```php
-$presencePage = channel->presence->history(); // => \Ably\Models\PaginatedResult
+$presencePage = $channel->presence->history(); // => \Ably\Models\PaginatedResult
 $presencePage->items[0]; // => \Ably\Models\PresenceMessage
 $presencePage->items[0]->clientId; // client ID of first member
 $presencePage->next(); // retrieves the next page => \Ably\Models\PaginatedResult
