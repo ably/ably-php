@@ -57,48 +57,58 @@ class Channel {
      */
     public function __publish_request_body(...$args) {
 
-        $json = '';
-
+        // Process arguments
+        $messages = [];
         if ( count($args) == 1 && is_a( $args[0], 'Ably\Models\Message' ) ) { // single Message
-            $msg = $args[0];
-
-            if ( $this->options->cipher ) {
-                $msg->setCipherParams( $this->options->cipher );
-            }
-
-            $json = $msg->toJSON();
+            $messages[] = $args[0];
         } else if ( count($args) == 1 && is_array( $args[0] ) ) { // array of Messages
-            $jsonArray = [];
-
-            foreach ( $args[0] as $msg ) {
-                if ( $this->options->cipher ) {
-                    $msg->setCipherParams( $this->options->cipher );
-                }
-
-                $jsonArray[] = $msg->toJSON();
-            }
-
-            $json = '[' . implode( ',', $jsonArray ) . ']';
+            $messages = $args[0];
         } else if ( count($args) >= 2 && count($args) <= 3 ) { // eventName, data[, clientId]
             $msg = new Message();
             $msg->name = $args[0];
             $msg->data = $args[1];
             if ( count($args) == 3 ) $msg->clientId = $args[2];
 
-            if ( $this->options->cipher ) {
-                $msg->setCipherParams( $this->options->cipher );
-            }
-
-            $json = $msg->toJSON();
+            $messages[] = $msg;
         } else {
             throw new AblyException(
                 'Wrong parameters provided, use either Message, array of Messages, or name and data', 40003, 400
             );
         }
 
-        $authClientId = $this->ably->auth->clientId;
+        // Cipher and Idempotent
+        $emptyId = true;
+        foreach ( $messages as $msg ) {
+            if ( $this->options->cipher ) {
+                $msg->setCipherParams( $this->options->cipher );
+            }
+            if ( $msg->id ) {
+                $emptyId = false;
+            }
+        }
+
+        if ($emptyId && $this->ably->options->idempotentRestPublishing) {
+            $baseId = base64_encode( openssl_random_pseudo_bytes(12) );
+            foreach ( $messages as $key => $msg ) {
+              $msg->id = $baseId . ":" . $key;
+            }
+        }
+
+        // Serialize
+        $json = '';
+        if ( count($messages) == 1) {
+            $json = $messages[0]->toJSON();
+        } else {
+            $jsonArray = [];
+            foreach ( $messages as $msg ) {
+                $jsonArray[] = $msg->toJSON();
+            }
+            $json = '[' . implode( ',', $jsonArray ) . ']';
+        }
+
         // if the message has a clientId set and we're using token based auth,
         // the clientIds must match unless we're a wildcard client
+        $authClientId = $this->ably->auth->clientId;
         if ( !empty( $msg->clientId ) && !$this->ably->auth->isUsingBasicAuth()
              && $authClientId != '*' && $msg->clientId != $authClientId) {
             throw new AblyException(
