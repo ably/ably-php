@@ -78,7 +78,32 @@ class ChannelIdempotentTest extends \PHPUnit_Framework_TestCase {
         $body = $channel->__publish_request_body( $msg );
         $body = json_decode($body);
         $this->assertEquals( $body->id, "foobar" );
+    }
 
+    /**
+     * RSL1k3
+     */
+    public function testIdempotentMixedIds() {
+        $channel = self::$ably->channel( 'idempotentMixedIds' );
+
+        $messages = [];
+
+        $msg = new Message();
+        $msg->name = 'name';
+        $msg->data = 'data';
+        $msg->id = 'foobar';
+        $messages[] = $msg;
+
+        $msg = new Message();
+        $msg->name = 'name';
+        $msg->data = 'data';
+        $messages[] = $msg;
+
+        $body = $channel->__publish_request_body( $messages );
+        $body = json_decode($body);
+
+        $this->assertEquals( $body[0]->id, "foobar" );
+        $this->assertFalse( property_exists($body[1], 'id') );
     }
 
 }
