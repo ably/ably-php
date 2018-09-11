@@ -106,4 +106,23 @@ class ChannelIdempotentTest extends \PHPUnit_Framework_TestCase {
         $this->assertFalse( property_exists($body[1], 'id') );
     }
 
+    /**
+     * RSL1k5
+     */
+    public function testIdempotentClientSuppliedPublish() {
+        $channel = self::$ably->channel( 'idempotentClientSuppliedPublish' );
+
+        $msg = new Message();
+        $msg->name = 'name';
+        $msg->data = 'data';
+        $msg->id = 'foobar';
+
+        $body = $channel->publish( $msg );
+        $body = $channel->publish( $msg );
+        $body = $channel->publish( $msg );
+
+        $messages = $channel->history();
+        $this->assertEquals( 1, count($messages->items));
+    }
+
 }
