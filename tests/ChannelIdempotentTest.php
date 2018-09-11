@@ -64,4 +64,21 @@ class ChannelIdempotentTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( $id[1], "0");
     }
 
+    /**
+     * RSL1k2
+     */
+    public function testIdempotentClientSupplied() {
+        $channel = self::$ably->channel( 'idempotentClientSupplied' );
+
+        $msg = new Message();
+        $msg->name = 'name';
+        $msg->data = 'data';
+        $msg->id = 'foobar';
+
+        $body = $channel->__publish_request_body( $msg );
+        $body = json_decode($body);
+        $this->assertEquals( $body->id, "foobar" );
+
+    }
+
 }
