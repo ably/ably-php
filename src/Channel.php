@@ -55,11 +55,10 @@ class Channel {
      * @param mixed ... Either a Message, array of Message-s, or (string eventName, string data, [string clientId])
      * @throws \Ably\Exceptions\AblyException
      */
-    public function publish() {
+    public function __publish_request_body(...$args) {
 
-        $args = func_get_args();
         $json = '';
-        
+
         if ( count($args) == 1 && is_a( $args[0], 'Ably\Models\Message' ) ) { // single Message
             $msg = $args[0];
 
@@ -78,7 +77,7 @@ class Channel {
 
                 $jsonArray[] = $msg->toJSON();
             }
-            
+
             $json = '[' . implode( ',', $jsonArray ) . ']';
         } else if ( count($args) >= 2 && count($args) <= 3 ) { // eventName, data[, clientId]
             $msg = new Message();
@@ -92,14 +91,27 @@ class Channel {
 
             $json = $msg->toJSON();
         } else {
-            throw new AblyException( 'Wrong parameters provided, use either Message, array of Messages, or name and data', 40003, 400 );
+            throw new AblyException(
+                'Wrong parameters provided, use either Message, array of Messages, or name and data', 40003, 400
+            );
         }
-        
+
         $authClientId = $this->ably->auth->clientId;
-        // if the message has a clientId set and we're using token based auth, the clientIds must match unless we're a wildcard client
-        if ( !empty( $msg->clientId ) && !$this->ably->auth->isUsingBasicAuth() && $authClientId != '*' && $msg->clientId != $authClientId) {
-            throw new AblyException( 'Message\'s clientId does not match the clientId of the authorisation token.', 40102, 401 );
+        // if the message has a clientId set and we're using token based auth,
+        // the clientIds must match unless we're a wildcard client
+        if ( !empty( $msg->clientId ) && !$this->ably->auth->isUsingBasicAuth()
+             && $authClientId != '*' && $msg->clientId != $authClientId) {
+            throw new AblyException(
+                'Message\'s clientId does not match the clientId of the authorisation token.', 40102, 401
+            );
         }
+
+        return $json;
+    }
+
+    public function publish(...$args) {
+
+        $json = $this->__publish_request_body(...$args);
 
         $this->ably->post( $this->channelPath . '/messages', $headers = [], $json );
         return true;
