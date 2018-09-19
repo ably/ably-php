@@ -62,6 +62,11 @@ class ChannelIdempotentTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( count($id), 2);
         $this->assertGreaterThanOrEqual( base64_decode($id[0]), 9);
         $this->assertEquals( $id[1], "0");
+
+        $channel->publish($msg);
+        $messages = $channel->history();
+        $this->assertEquals(count($messages->items), 1);
+        $this->assertEquals($messages->items[0]->id, $msg->id);
     }
 
     /**
@@ -78,6 +83,11 @@ class ChannelIdempotentTest extends \PHPUnit_Framework_TestCase {
         $body = $channel->__publish_request_body( $msg );
         $body = json_decode($body);
         $this->assertEquals( $body->id, "foobar" );
+
+        $channel->publish($msg);
+        $messages = $channel->history();
+        $this->assertEquals(count($messages->items), 1);
+        $this->assertEquals($messages->items[0]->id, $msg->id);
     }
 
     /**
