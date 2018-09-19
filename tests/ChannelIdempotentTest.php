@@ -1,9 +1,25 @@
 <?php
 namespace tests;
 use Ably\AblyRest;
+use Ably\Http;
 use Ably\Models\Message;
+use Ably\Exceptions\AblyRequestException;
 
 require_once __DIR__ . '/factories/TestApp.php';
+
+
+class HttpMock extends Http {
+    public function request( $method, ...$args ) {
+        static $failures = 0;
+
+        $ret = parent::request($method, ...$args);
+        if ( $method == 'POST' and $failures < 2) {
+            $failures++;
+            throw new AblyRequestException( 'fake error', 50000, 500 );
+        }
+        return $ret;
+    }
+}
 
 
 class ChannelIdempotentTest extends \PHPUnit_Framework_TestCase {
@@ -114,6 +130,33 @@ class ChannelIdempotentTest extends \PHPUnit_Framework_TestCase {
 
         $this->assertEquals( $body[0]->id, "foobar" );
         $this->assertFalse( property_exists($body[1], 'id') );
+    }
+
+    /**
+     * RSL1k4
+     */
+    public function testIdempotentLibraryGeneratedPublish() {
+        $ably = new AblyRest( array_merge( self::$defaultOptions, [
+            'key' => self::$testApp->getAppKeyDefault()->string,
+            'idempotentRestPublishing' => true,
+            'httpClass' => 'tests\HttpMock',
+            'fallbackHosts' => [
+                self::$ably->options->restHost,
+                self::$ably->options->restHost,
+                self::$ably->options->restHost,
+            ],
+        ] ) );
+
+        $channel = $ably->channel( 'idempotentLibraryGeneratedPublish' );
+
+        $msg = new Message();
+        $msg->name = 'name';
+        $msg->data = 'data';
+
+        $body = $channel->publish( $msg );
+
+        $messages = $channel->history();
+        $this->assertEquals( 1, count($messages->items));
     }
 
     /**
