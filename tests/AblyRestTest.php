@@ -333,7 +333,7 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
             'restHost' => 'this.host.does.not.exist',
         ]);
 
-        $this->setExpectedException('Ably\Exceptions\AblyRequestException');
+        $this->expectException(AblyRequestException::class);
         $reportedTime = $ablyInvalidHost->time();
     }
 
@@ -352,7 +352,8 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
         ]);
 
         $ably->http->get('https://cdn.ably.io/lib/ably.js'); // should work
-        $this->setExpectedException('Ably\Exceptions\AblyRequestException', '', 50003);
+        $this->expectException(AblyRequestException::class);
+        $this->expectExceptionCode(50003);
         $ablyTimeout->http->get('https://cdn.ably.io/lib/ably.js'); // guaranteed to take more than 50 ms
     }
 }

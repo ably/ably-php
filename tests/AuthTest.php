@@ -6,7 +6,7 @@ use Ably\Auth;
 use Ably\Models\TokenDetails;
 use Ably\Models\TokenParams;
 use Ably\Models\TokenRequest;
-use Ably\Exceptions\AblyRequestException;
+use Ably\Exceptions\AblyException;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -28,7 +28,8 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
      * Init library with a key over unsecure connection
      */
     public function testAuthWithKeyInsecure() {
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40103 );
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40103);
 
         $ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
@@ -40,7 +41,8 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
      * Init library without any valid auth
      */
     public function testNoAuthParams() {
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40103 );
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40103);
 
         $ably = new AblyRest( );
     }
@@ -81,7 +83,8 @@ class AuthTest extends \PHPUnit_Framework_TestCase {
      * Init library without providing a key or a token, force use of token with useTokenAuth
      */
     public function testAuthEmptyForceToken() {
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40103 );
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40103);
 
         $ably = new AblyRest( [
             'useTokenAuth' => true,
