@@ -9,10 +9,10 @@ require_once __DIR__ . '/factories/TestApp.php';
 
 
 class HttpMockIdempotent extends Http {
-    public function request( $method, ...$args ) {
+    public function request( $method, $url, $headers = [], $params = [] ) {
         static $failures = 0;
 
-        $ret = parent::request($method, ...$args);
+        $ret = parent::request($method, $url, $headers, $params);
         if ( $method == 'POST' and $failures < 2) {
             $failures++;
             throw new AblyRequestException( 'fake error', 50000, 500 );
