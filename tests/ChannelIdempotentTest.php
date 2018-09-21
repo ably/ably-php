@@ -8,7 +8,7 @@ use Ably\Exceptions\AblyRequestException;
 require_once __DIR__ . '/factories/TestApp.php';
 
 
-class HttpMock extends Http {
+class HttpMockIdempotent extends Http {
     public function request( $method, ...$args ) {
         static $failures = 0;
 
@@ -139,7 +139,7 @@ class ChannelIdempotentTest extends \PHPUnit_Framework_TestCase {
         $ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
             'idempotentRestPublishing' => true,
-            'httpClass' => 'tests\HttpMock',
+            'httpClass' => 'tests\HttpMockIdempotent',
             'fallbackHosts' => [
                 self::$ably->options->restHost,
                 self::$ably->options->restHost,
