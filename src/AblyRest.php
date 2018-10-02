@@ -60,6 +60,7 @@ class AblyRest {
         $authClass = $this->options->authClass;
         $this->auth = new $authClass( $this, $this->options );
         $this->channels = new Channels( $this );
+        $this->push = new Push( $this );
 
         return $this;
     }
