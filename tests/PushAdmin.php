@@ -5,7 +5,7 @@ use Ably\AblyRest;
 require_once __DIR__ . '/factories/TestApp.php';
 
 
-class PushTest extends \PHPUnit_Framework_TestCase {
+class PushAdminTest extends \PHPUnit_Framework_TestCase {
     protected static $testApp;
     protected static $defaultOptions;
     protected static $ably;
@@ -31,10 +31,23 @@ class PushTest extends \PHPUnit_Framework_TestCase {
 
         $res = self::$ably->push->admin->publish( $recipient, $data , true );
         $this->assertEquals($res['info']['http_code'] , 204 );
-
-        $this->expectException(\InvalidArgumentException::class);
-        self::$ably->push->admin->publish( [], $data );
-        self::$ably->push->admin->publish( $recipient, [] );
     }
 
+    public function badValues() {
+        $recipient = [ 'clientId' => 'ablyChannel' ];
+        $data = [ 'data' => [ 'foo' => 'bar' ] ];
+
+        return [
+            [ [], $data ],
+            [ $recipient, [] ],
+        ];
+    }
+
+    /**
+     * @dataProvider badValues
+     * @expectedException InvalidArgumentException
+     */
+    public function testAdminPublishInvalid($recipient, $data) {
+        self::$ably->push->admin->publish( $recipient, $data );
+    }
 }
