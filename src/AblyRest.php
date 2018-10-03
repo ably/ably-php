@@ -116,6 +116,14 @@ class AblyRest {
     }
 
     /**
+     * Does a PUT request, automatically injecting auth headers and handling fallback on server failure
+     * @see AblyRest::request()
+     */
+    public function put( $path, $headers = [], $params = [], $returnHeaders = false, $auth = true ) {
+        return $this->requestInternal( 'PUT', $path, $headers, $params, $returnHeaders, $auth );
+    }
+
+    /**
      * Does a HTTP request, automatically injecting auth headers and handling fallback on server failure.
      * This method is used internally and `request` is the preferable method to use.
      *
