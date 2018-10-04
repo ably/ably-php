@@ -54,4 +54,14 @@ class PushDeviceRegistrations {
         return new PaginatedResult( $this->ably, 'Ably\Models\DeviceDetails', $cipher = false, 'GET', $path, $params );
     }
 
+    /**
+     *  Deletes the registered device identified by the given device id.
+     *
+     *  @param string $device_id the id of the device
+     */
+    public function remove ($deviceId, $returnHeaders = false) {
+        $path = '/push/deviceRegistrations/' . $deviceId;
+        return $this->ably->delete( $path, [], [], $returnHeaders );
+    }
+
 }
