@@ -111,7 +111,7 @@ class Http {
             if (is_array( $params )) {
                 $paramsQuery = http_build_query( $params );
 
-                if ($method == 'GET') {
+                if ($method == 'GET' || $method == 'DELETE') {
                     if ($paramsQuery) {
                         $url .= '?' . $paramsQuery;
                     }
