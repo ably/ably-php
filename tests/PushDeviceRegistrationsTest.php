@@ -145,4 +145,31 @@ class PushDeviceRegistrationsTest extends \PHPUnit_Framework_TestCase {
         self::$ably->push->admin->deviceRegistrations->save($data);
     }
 
+
+    /**
+     * RSH1b4
+     */
+    public function testRemove() {
+        $data = data();
+        $deviceId = $data['id'];
+
+        // Save
+        self::$ably->push->admin->deviceRegistrations->save($data);
+        $deviceDetails = self::$ably->push->admin->deviceRegistrations->get($deviceId);
+        $this->assertEquals($deviceId, $deviceDetails->id);
+
+        // Remove
+        $response = self::$ably->push->admin->deviceRegistrations->remove($deviceId, true);
+        $this->assertEquals($response['info']['http_code'] , 204);
+
+        // Remove again, it doesn't fail
+        $response = self::$ably->push->admin->deviceRegistrations->remove($deviceId, true);
+        $this->assertEquals($response['info']['http_code'] , 204);
+
+        // The device is gone
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40400);
+        self::$ably->push->admin->deviceRegistrations->get($deviceId);
+    }
+
 }
