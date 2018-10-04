@@ -2,6 +2,7 @@
 namespace Ably;
 
 use Ably\Models\DeviceDetails;
+use Ably\Models\PaginatedResult;
 
 class PushDeviceRegistrations {
 
@@ -42,5 +43,15 @@ class PushDeviceRegistrations {
         return new DeviceDetails ( $body );
     }
 
+    /**
+     *  Returns a PaginatedResult object with the list of DeviceDetails
+     *  objects, filtered by the given parameters.
+     *
+     *  @param array $params the parameters used to filter the list
+     */
+    public function list_ (array $params = []) {
+        $path = '/push/deviceRegistrations';
+        return new PaginatedResult( $this->ably, 'Ably\Models\DeviceDetails', $cipher = false, 'GET', $path, $params );
+    }
 
 }
