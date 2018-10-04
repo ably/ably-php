@@ -11,6 +11,23 @@ function random_string ( $n ) {
     return bin2hex(openssl_random_pseudo_bytes($n / 2));
 }
 
+function data () {
+    return [
+        'id' => random_string(26),
+        'clientId' => random_string(12),
+        'platform' => 'ios',
+        'formFactor' => 'phone',
+        'push' => [
+            'recipient' => [
+                'transportType' => 'apns',
+                'deviceToken' => '740f4707bebcf74f9b7c25d48e3358945f6aa01da5ddb387462c7eaf61bb78ad'
+            ]
+        ],
+        'deviceSecret' => random_string(12),
+    ];
+}
+
+
 class PushDeviceRegistrationsTest extends \PHPUnit_Framework_TestCase {
     protected static $testApp;
     protected static $defaultOptions;
@@ -29,22 +46,30 @@ class PushDeviceRegistrationsTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * RSH1b1
+     */
+    public function testGet() {
+        // Save
+        $data = data();
+        self::$ably->push->admin->deviceRegistrations->save($data);
+
+        // Found
+        $deviceDetails = self::$ably->push->admin->deviceRegistrations->get($data['id']);
+        $this->assertEquals($data['id'], $deviceDetails->id);
+        $this->assertEquals($data['platform'], $deviceDetails->platform);
+        $this->assertEquals($data['formFactor'], $deviceDetails->formFactor);
+        $this->assertEquals($data['deviceSecret'], $deviceDetails->deviceSecret);
+
+        // Not Found
+        $this->expectException(AblyException::class);
+        self::$ably->push->admin->deviceRegistrations->get("not-found");
+    }
+
+    /**
      * RSH1b3
      */
-    public function testAdminDeviceRegistrationsSave() {
-        $data = [
-            'id' => random_string(26),
-            'clientId' => random_string(12),
-            'platform' => 'ios',
-            'formFactor' => 'phone',
-            'push' => [
-                'recipient' => [
-                    'transportType' => 'apns',
-                    'deviceToken' => '740f4707bebcf74f9b7c25d48e3358945f6aa01da5ddb387462c7eaf61bb78ad'
-                ]
-            ],
-            'deviceSecret' => random_string(12),
-        ];
+    public function testSave() {
+        $data = data();
 
         // Create
         $deviceDetails = self::$ably->push->admin->deviceRegistrations->save($data);
@@ -62,20 +87,7 @@ class PushDeviceRegistrationsTest extends \PHPUnit_Framework_TestCase {
     }
 
     public function badValues() {
-        $data = [
-            'id' => random_string(26),
-            'clientId' => random_string(12),
-            'platform' => 'ios',
-            'formFactor' => 'phone',
-            'push' => [
-                'recipient' => [
-                    'transportType' => 'apns',
-                    'deviceToken' => '740f4707bebcf74f9b7c25d48e3358945f6aa01da5ddb387462c7eaf61bb78ad'
-                ]
-            ],
-            'deviceSecret' => random_string(12),
-        ];
-
+        $data = data();
         return [
             [
                 array_merge($data, [
@@ -91,7 +103,7 @@ class PushDeviceRegistrationsTest extends \PHPUnit_Framework_TestCase {
      * @dataProvider badValues
      * @expectedException Ably\Exceptions\AblyRequestException
      */
-    public function testAdminDeviceRegistrationsSaveInvalid($data) {
+    public function testSaveInvalid($data) {
         self::$ably->push->admin->deviceRegistrations->save($data);
     }
 
