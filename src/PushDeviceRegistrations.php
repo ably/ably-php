@@ -64,4 +64,14 @@ class PushDeviceRegistrations {
         return $this->ably->delete( $path, [], [], $returnHeaders );
     }
 
+    /**
+     * Deletes the subscriptions identified by the given parameters.
+     *
+     * @param array $params the parameters that identify the subscriptions to remove
+     */
+    public function removeWhere(array $params, $returnHeaders = false) {
+        $path = '/push/deviceRegistrations';
+        return $this->ably->delete( $path, [], $params, $returnHeaders );
+    }
+
 }

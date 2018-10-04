@@ -172,4 +172,55 @@ class PushDeviceRegistrationsTest extends \PHPUnit_Framework_TestCase {
         self::$ably->push->admin->deviceRegistrations->get($deviceId);
     }
 
+
+    /**
+     * RSH1b5
+     */
+    public function testRemoveWhere() {
+        $data = data();
+        self::$ably->push->admin->deviceRegistrations->save($data);
+
+        // Exists
+        $deviceId = $data['id'];
+        $deviceDetails = self::$ably->push->admin->deviceRegistrations->get($deviceId);
+        $this->assertEquals($deviceId, $deviceDetails->id);
+
+        // Remove
+        $response = self::$ably->push->admin->deviceRegistrations->removeWhere([ 'deviceId' => $deviceId ], true);
+        $this->assertEquals($response['info']['http_code'] , 204);
+
+        // Remove again, no matching params, doesn't fail
+        $response = self::$ably->push->admin->deviceRegistrations->removeWhere([ 'deviceId' => $deviceId ], true);
+        $this->assertEquals($response['info']['http_code'] , 204);
+
+        // It's gone
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40400);
+        self::$ably->push->admin->deviceRegistrations->get($deviceId);
+    }
+
+    public function testRemoveWhereClientId() {
+        $data = data();
+        self::$ably->push->admin->deviceRegistrations->save($data);
+
+        // Exists
+        $deviceId = $data['id'];
+        $clientId = $data['clientId'];
+        $deviceDetails = self::$ably->push->admin->deviceRegistrations->get($deviceId);
+        $this->assertEquals($clientId, $deviceDetails->clientId);
+
+        // Remove
+        $response = self::$ably->push->admin->deviceRegistrations->removeWhere([ 'clientId' => $clientId ], true);
+        $this->assertEquals($response['info']['http_code'] , 204);
+
+        // Remove again, no matching params, doesn't fail
+        $response = self::$ably->push->admin->deviceRegistrations->removeWhere([ 'clientId' => $clientId ], true);
+        $this->assertEquals($response['info']['http_code'] , 204);
+
+        // It's gone
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40400);
+        self::$ably->push->admin->deviceRegistrations->get($deviceId);
+    }
+
 }
