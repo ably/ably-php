@@ -130,6 +130,9 @@ class ChannelIdempotentTest extends \PHPUnit_Framework_TestCase {
 
         $this->assertEquals( $body[0]->id, "foobar" );
         $this->assertFalse( property_exists($body[1], 'id') );
+
+        $this->expectException(AblyRequestException::class);
+        $channel->publish($messages);
     }
 
     /**
