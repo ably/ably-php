@@ -2,6 +2,7 @@
 namespace Ably\Models;
 
 use Ably\Log;
+use Ably\AblyRest;
 
 /**
  * Client library options
@@ -92,6 +93,11 @@ class ClientOptions extends AuthOptions {
      * To allow mocking in tests.
      */
     public $httpClass = 'Ably\Http';
+
+    /**
+     * @var bool defaults to false for clients with version < 1.1, otherwise true
+     */
+    public $idempotentRestPublishing = AblyRest::API_VERSION >= '1.1';
 
     /**
      * @var string a class that should be used for Auth
