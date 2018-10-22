@@ -12,6 +12,7 @@ class PushAdmin {
     public function __construct( AblyRest $ably ) {
         $this->ably = $ably;
         $this->deviceRegistrations = new PushDeviceRegistrations( $ably );
+        $this->channelSubscriptions = new PushChannelSubscriptions ( $ably );
     }
 
     public function publish ( array $recipient, array $data, $returnHeaders = false ) {
