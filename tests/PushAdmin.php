@@ -26,11 +26,21 @@ class PushAdminTest extends \PHPUnit_Framework_TestCase {
      * RSH1a
      */
     public function testAdminPublish() {
-        $recipient = [ 'clientId' => 'ablyChannel' ];
+        $channelName = 'pushenabled:push_admin_publish-ok';
+        $recipient = [
+            'transportType' => 'ablyChannel',
+            'channel' => $channelName,
+            'ablyKey' => self::$ably->options->key,
+            'ablyUrl' => self::$testApp->server
+        ];
         $data = [ 'data' => [ 'foo' => 'bar' ] ];
 
         $res = self::$ably->push->admin->publish( $recipient, $data , true );
         $this->assertEquals($res['info']['http_code'] , 204 );
+
+        $channel = self::$ably->channel($channelName);
+        $history = $channel->history();
+        $this->assertEquals( 1, count($history->items), 'Expected 1 message' );
     }
 
     public function badValues() {
