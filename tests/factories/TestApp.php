@@ -18,7 +18,7 @@ class TestApp {
     private $fixture;
     private $appId;
     private $appKeys = [];
-    private $server;
+    public $server;
     private $debugRequests = false;
 
     public function __construct() {
