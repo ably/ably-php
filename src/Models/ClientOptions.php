@@ -95,9 +95,9 @@ class ClientOptions extends AuthOptions {
     public $httpClass = 'Ably\Http';
 
     /**
-     * @var bool defaults to false for clients with version < 1.1, otherwise true
+     * @var bool defaults to false for clients with version < 1.2, otherwise true
      */
-    public $idempotentRestPublishing = AblyRest::API_VERSION >= '1.1';
+    public $idempotentRestPublishing = AblyRest::API_VERSION >= '1.2';
 
     /**
      * @var string a class that should be used for Auth

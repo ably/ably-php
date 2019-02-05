@@ -161,7 +161,7 @@ class TypesTest extends \PHPUnit_Framework_TestCase {
     {
         // Test default value
         $co = new \Ably\Models\ClientOptions();
-        if (AblyRest::API_VERSION <= '1.0') {
+        if (AblyRest::API_VERSION <= '1.1') {
             $this->assertEquals( false, $co->idempotentRestPublishing );
         } else {
             $this->assertEquals( true, $co->idempotentRestPublishing );
