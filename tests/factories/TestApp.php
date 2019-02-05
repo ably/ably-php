@@ -26,7 +26,7 @@ class TestApp {
         $settings = [];
 
         $settings['environment'] = getenv( 'ABLY_ENV' ) ? : 'idempotent-dev';
-        $settings['logLevel'] = Log::VERBOSE;
+        //$settings['logLevel'] = Log::DEBUG;
 
         $clientOpts = new ClientOptions( $settings );
 
