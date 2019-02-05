@@ -76,8 +76,16 @@ class Http {
     }
 
     /**
+     * Wrapper to do a PATCH request
+     * @see Http::request()
+     */
+    public function patch( $url, $headers = [], $params = [] ) {
+        return $this->request( 'PATCH', $url, $headers, $params );
+    }
+
+    /**
      * Executes a cURL request
-     * @param string $method HTTP method (GET, POST, PUT, DELETE, ...)
+     * @param string $method HTTP method (GET, POST, PUT, DELETE, PATCH, ...)
      * @param string $url Absolute URL to make a request on
      * @param array $headers HTTP headers to send
      * @param array|string $params Array of parameters to submit or a JSON string
