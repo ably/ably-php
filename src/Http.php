@@ -158,7 +158,11 @@ class Http {
         $body = substr( $raw, $info['header_size'] );
         $decodedBody = json_decode( $body );
 
-        $response = [ 'headers' => $resHeaders, 'body' => $decodedBody ? $decodedBody : $body ];
+        $response = [
+            'headers' => $resHeaders,
+            'body' => $decodedBody ? $decodedBody : $body,
+            'info' => $info,
+        ];
 
         Log::v( 'cURL request response:', $info['http_code'], $response );
 
