@@ -89,7 +89,7 @@ class PushDeviceRegistrationsTest extends \PHPUnit_Framework_TestCase {
 
     /**
      * @dataProvider badValues
-     * @expectedException InvalidArgumentException
+     * @expectedException Ably\Exceptions\AblyRequestException
      */
     public function testAdminDeviceRegistrationsSaveInvalid($data) {
         self::$ably->push->admin->deviceRegistrations->save($data);
