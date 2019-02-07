@@ -118,7 +118,7 @@ class AblyRest {
      * Does a HTTP request, automatically injecting auth headers and handling fallback on server failure.
      * This method is used internally and `request` is the preferable method to use.
      *
-     * @param string $method HTTP method (GET, POST, PUT, DELETE, ...)
+     * @param string $method HTTP method (GET, POST, PUT, DELETE, PATCH, ...)
      * @param string $path root-relative path, e.g. /channels/example/messages
      * @param array $headers HTTP headers to send
      * @param array|string $params Array of parameters to submit or a JSON string
@@ -184,7 +184,7 @@ class AblyRest {
      * Does an HTTP request with automatic pagination, automatically injected
      * auth headers and automatic server failure handling using fallbackHosts.
      *
-     * @param string $method HTTP method (GET, POST, PUT, DELETE, ...)
+     * @param string $method HTTP method (GET, POST, PUT, DELETE, PATCH, ...)
      * @param string $path root-relative path, e.g. /channels/example/messages
      * @param array $params GET parameters to append to $path
      * @param array|object $body JSON-encodable structure to send in the body - leave empty for GET requests
