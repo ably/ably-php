@@ -31,6 +31,10 @@ class AblyRest {
      */
     public $channels;
 
+    // RSC15f Cached fallback host
+    private $cachedHost = null;
+    private $cachedHostExpires = null;
+
     /**
      * Constructor
      * @param \Ably\Models\ClientOptions|string array with options or a string with app key or token
@@ -211,29 +215,63 @@ class AblyRest {
     /**
      * Does a HTTP request backed up by fallback servers
      */
-    protected function requestWithFallback( $method, $path, $headers = [], $params = [], $attempt = 0 ) {
-        try {
-            if ( $attempt == 0 ) { // using default host
-                $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->restHost;
-            } else { // using a fallback host
-                Log::d( 'Connection failed, attempting with fallback server #' . $attempt );
-                // attempt 1 uses fallback host with index 0
-                $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->fallbackHosts[$attempt - 1];
+    private function getHosts() {
+        // The cached fallback host
+        if ( $this->cachedHost != null ) {
+            if ( $this->systemTime() > $this->cachedHostExpires ) {
+                $this->cachedHost = null;
+                $this->cachedHostExpires = null;
+            } else {
+                yield $this->cachedHost;
             }
-
-            return $this->http->request( $method, $server . $path, $headers, $params );
         }
-        catch (AblyRequestException $e) {
-            if ( $e->getCode() >= 50000 ) {
-                if ( $attempt < min( $this->options->httpMaxRetryCount, count( $this->options->fallbackHosts ) ) ) {
-                    return $this->requestWithFallback( $method, $path, $headers, $params, $attempt + 1);
-                } else {
+
+        // Default host
+        yield $this->options->restHost;
+
+        // Fallback hosts
+        foreach ($this->options->fallbackHosts as $host) {
+            if ( $host != $this->cachedHost ) { // Don't try twice the same host
+                yield $host;
+            }
+        }
+    }
+
+    protected function requestWithFallback( $method, $path, $headers = [], $params = [] ) {
+        $protocol = ($this->options->tls ? 'https://' : 'http://');
+        $maxAttempts = min( $this->options->httpMaxRetryCount, count( $this->options->fallbackHosts ) );
+        $attempt = 0;
+        foreach ($this->getHosts() as $host) {
+            $url = $protocol . $host . $path;
+            try {
+                $response = $this->http->request( $method, $url, $headers, $params );
+
+                // Keep fallback host for later (RSC15f)
+                if ( $attempt > 0 && $host != $this->options->restHost ) {
+                    $this->cachedHost = $host;
+                    $this->cachedHostExpires = $this->systemTime() + $this->options->fallbackRetryTimeout;
+                }
+
+                return $response;
+            } catch (AblyRequestException $e) {
+                // Clear cached host if it failed (RSC15f)
+                if ( $host == $this->cachedHost ) {
+                    $this->cachedHost = null;
+                    $this->cachedHostExpires = null;
+                }
+
+                // other error code than timeout, rethrow exception
+                if ( $e->getCode() < 50000 ) {
+                    throw $e;
+                }
+
+                if ( $attempt >= $maxAttempts ) {
                     Log::e( 'Failed to connect to server and all of the fallback servers.' );
                     throw $e;
                 }
-            }
 
-            throw $e; // other error code than timeout, rethrow exception
+                $attempt += 1;
+            }
         }
     }
 
