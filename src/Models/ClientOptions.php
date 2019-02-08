@@ -63,6 +63,12 @@ class ClientOptions extends AuthOptions {
     public $fallbackHosts;
 
     /**
+     * @var integer – default 600000 (10 minutes) the period in milliseconds
+     * before HTTP requests are retried against the default endpoint
+     */
+    public $fallbackRetryTimeout = 600000;
+
+    /**
      * @var \Ably\Models\TokenParams defaultTokenParams – overrides the client library defaults described in TokenParams
      */
     public $defaultTokenParams;
