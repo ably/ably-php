@@ -86,6 +86,12 @@ class PushDeviceRegistrationsTest extends \PHPUnit_Framework_TestCase {
         $response = self::$ably->push->admin->deviceRegistrations->list_([ 'limit' => 2 ]);
         $this->assertEquals(count($response->items), 2);
 
+        // pagination
+        $response = self::$ably->push->admin->deviceRegistrations->list_([ 'limit' => 1 ]);
+        $this->assertEquals(count($response->items), 1);
+        $response = $response->next();
+        $this->assertEquals(count($response->items), 1);
+
         // Filter by device id
         $first = $datas[0];
         $response = self::$ably->push->admin->deviceRegistrations->list_([ 'deviceId' => $first['id'] ]);
