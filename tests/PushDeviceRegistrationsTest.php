@@ -2,6 +2,7 @@
 namespace tests;
 use Ably\AblyRest;
 use Ably\Models\DeviceDetails;
+use Ably\Models\PaginatedResult;
 use Ably\Exceptions\AblyException;
 
 require_once __DIR__ . '/factories/TestApp.php';
@@ -63,6 +64,43 @@ class PushDeviceRegistrationsTest extends \PHPUnit_Framework_TestCase {
         // Not Found
         $this->expectException(AblyException::class);
         self::$ably->push->admin->deviceRegistrations->get("not-found");
+    }
+
+    /**
+     * RSH1b2
+     */
+    public function testList() {
+        $datas = [];
+        $ids = [];
+        foreach(range(1,10) as $index) {
+            $data = data();
+            self::$ably->push->admin->deviceRegistrations->save($data);
+            $datas[] = $data;
+            $ids[] = $data['id'];
+        }
+
+        $response = self::$ably->push->admin->deviceRegistrations->list_();
+        $this->assertInstanceOf(PaginatedResult::class, $response);
+        $this->assertGreaterThanOrEqual(10, count($response->items));
+        $this->assertInstanceOf(DeviceDetails::class, $response->items[0]);
+        $this->assertContains($response->items[0]->id, $ids);
+
+        // limit
+        $response = self::$ably->push->admin->deviceRegistrations->list_([ 'limit' => 2 ]);
+        $this->assertEquals(count($response->items), 2);
+
+        // Filter by device id
+        $first = $datas[0];
+        $response = self::$ably->push->admin->deviceRegistrations->list_([ 'deviceId' => $first['id'] ]);
+        $this->assertEquals(count($response->items), 1);
+        $response = self::$ably->push->admin->deviceRegistrations->list_([ 'deviceId' => random_string(26) ]);
+        $this->assertEquals(count($response->items), 0);
+
+        // Filter by client id
+        $response = self::$ably->push->admin->deviceRegistrations->list_([ 'clientId' => $first['clientId'] ]);
+        $this->assertEquals(count($response->items), 1);
+        $response = self::$ably->push->admin->deviceRegistrations->list_([ 'clientId' => random_string(12) ]);
+        $this->assertEquals(count($response->items), 0);
     }
 
     /**

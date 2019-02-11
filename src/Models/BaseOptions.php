@@ -27,4 +27,23 @@ abstract class BaseOptions {
         }
         return $properties;
     }
+
+    public function fromJSON( $json ) {
+        if (is_object( $json )) {
+            $obj = $json;
+        } else {
+            $obj = @json_decode($json);
+            if (!$obj) {
+                throw new AblyException( 'Invalid object or JSON encoded object' );
+            }
+        }
+
+        $class = get_class( $this );
+        foreach ($obj as $key => $value) {
+            if (property_exists( $class, $key )) {
+                $this->$key = $value;
+            }
+        }
+    }
+
 }
