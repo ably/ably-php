@@ -88,6 +88,7 @@ class Http {
     public function request( $method, $url, $headers = [], $params = [] ) {
 
         $ch = $this->curl->init($url);
+        $this->curl->setOpt( $ch, CURLOPT_CUSTOMREQUEST, $method );
 
         if (isset($_SERVER['http_proxy']) && is_string($_SERVER['http_proxy'])) {
             $this->curl->setOpt($ch, CURLOPT_PROXY, $_SERVER['http_proxy']);
@@ -109,15 +110,11 @@ class Http {
                     $this->curl->setOpt( $ch, CURLOPT_POST, true );
                     $this->curl->setOpt( $ch, CURLOPT_POSTFIELDS, $paramsQuery );
                 } else {
-                    $this->curl->setOpt( $ch, CURLOPT_CUSTOMREQUEST, $method );
                     $this->curl->setOpt( $ch, CURLOPT_POSTFIELDS, $paramsQuery );
                 }
             } else if (is_string( $params )) { // json or msgpack
-                if ($method == 'GET') {
-                } else if ($method == 'POST') {
+                if ($method == 'POST') {
                     $this->curl->setOpt( $ch, CURLOPT_POST, true );
-                } else {
-                    $this->curl->setOpt( $ch, CURLOPT_CUSTOMREQUEST, $method );
                 }
 
                 $this->curl->setOpt( $ch, CURLOPT_POSTFIELDS, $params );
