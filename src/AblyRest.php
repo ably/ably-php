@@ -12,8 +12,8 @@ use Ably\Exceptions\AblyRequestException;
  */
 class AblyRest {
 
-    const API_VERSION = '1.0';
-    const LIB_VERSION = '1.0.1';
+    const API_VERSION = '1.1';
+    const LIB_VERSION = '1.1.0';
 
     public $options;
     protected static $libFlavour = '';

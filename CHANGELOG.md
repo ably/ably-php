@@ -1,7 +1,54 @@
 # Change Log
 
-## [1.0.0](https://github.com/ably/ably-php/tree/1.0.0)
+## [1.1.0](https://github.com/ably/ably-php/tree/1.1.0)
 
+[Full Changelog](https://github.com/ably/ably-php/compare/1.0.1...1.1.0)
+
+**Implemented enhancements:**
+
+- Ensure request method accepts UPDATE, PATCH & DELETE verbs [\#57](https://github.com/ably/ably-php/issues/57)
+
+**Closed issues:**
+
+- cURL error: Operation timed out after 10001 milliseconds with 0 out of -1 bytes received [\#62](https://github.com/ably/ably-php/issues/62)
+- Idempotent publishing is not enabled in the upcoming 1.1 release [\#61](https://github.com/ably/ably-php/issues/61)
+- Add idempotent REST publishing [\#56](https://github.com/ably/ably-php/issues/56)
+- Ability to subscribe from the server [\#47](https://github.com/ably/ably-php/issues/47)
+
+**Merged pull requests:**
+
+- RSH1b4 New push.admin.device\_registrations.remove [\#69](https://github.com/ably/ably-php/pull/69) ([jdavid](https://github.com/jdavid))
+- RSH1b2 New push.admin.device\_registrations.list\_ [\#68](https://github.com/ably/ably-php/pull/68) ([jdavid](https://github.com/jdavid))
+- RSC15f Support for remembered REST fallback host [\#67](https://github.com/ably/ably-php/pull/67) ([jdavid](https://github.com/jdavid))
+- New RSH1b1 New push.admin.device\_registrations.get [\#66](https://github.com/ably/ably-php/pull/66) ([jdavid](https://github.com/jdavid))
+- RHS1b3 New push.admin.device\_registrations.save [\#65](https://github.com/ably/ably-php/pull/65) ([jdavid](https://github.com/jdavid))
+- Add patch [\#64](https://github.com/ably/ably-php/pull/64) ([jdavid](https://github.com/jdavid))
+- Idempotent only enabled in 1.2 [\#63](https://github.com/ably/ably-php/pull/63) ([jdavid](https://github.com/jdavid))
+- RSH1a New push.admin.publish [\#59](https://github.com/ably/ably-php/pull/59) ([jdavid](https://github.com/jdavid))
+- Idempotent [\#58](https://github.com/ably/ably-php/pull/58) ([jdavid](https://github.com/jdavid))
+- Add missing `$` to presence history example [\#55](https://github.com/ably/ably-php/pull/55) ([Quezler](https://github.com/Quezler))
+- Fix failing tests [\#53](https://github.com/ably/ably-php/pull/53) ([funkyboy](https://github.com/funkyboy))
+- Use "http\_proxy" env variable if defined to set the CURLOPT\_PROXY opt… [\#51](https://github.com/ably/ably-php/pull/51) ([DamienHarper](https://github.com/DamienHarper))
+- Add supported platforms to README [\#49](https://github.com/ably/ably-php/pull/49) ([funkyboy](https://github.com/funkyboy))
+- WIP: Update PHP versions tested on Travis [\#48](https://github.com/ably/ably-php/pull/48) ([funkyboy](https://github.com/funkyboy))
+
+## [1.0.1](https://github.com/ably/ably-php/tree/1.0.1) (2017-05-16)
+[Full Changelog](https://github.com/ably/ably-php/compare/1.0.0...1.0.1)
+
+**Implemented enhancements:**
+
+- Fix HttpRequest & HttpRetry timeouts [\#42](https://github.com/ably/ably-php/issues/42)
+
+**Closed issues:**
+
+- 0.9: implement TM3; TP4 \(fromEncoded, fromEncodedArray\) [\#40](https://github.com/ably/ably-php/issues/40)
+
+**Merged pull requests:**
+
+- v1.0.1 update [\#45](https://github.com/ably/ably-php/pull/45) ([jdavid](https://github.com/jdavid))
+- Fixes issues \#40 and \#42 [\#44](https://github.com/ably/ably-php/pull/44) ([jdavid](https://github.com/jdavid))
+
+## [1.0.0](https://github.com/ably/ably-php/tree/1.0.0) (2017-03-07)
 [Full Changelog](https://github.com/ably/ably-php/compare/0.9.0...1.0.0)
 
 ### v1.0 release and upgrade notes from v0.8
@@ -11,6 +58,10 @@
 **Implemented enhancements:**
 
 - PaginatedResult hasNext and isLast are attributes [\#41](https://github.com/ably/ably-php/issues/41)
+
+**Closed issues:**
+
+- 1.0 version bump [\#43](https://github.com/ably/ably-php/issues/43)
 
 ## [0.9.0](https://github.com/ably/ably-php/tree/0.9.0) (2016-08-12)
 [Full Changelog](https://github.com/ably/ably-php/compare/0.8.4...0.9.0)

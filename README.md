@@ -163,8 +163,9 @@ The client library uses the Ably sandbox environment to provision an app and run
 
 This library uses [semantic versioning](http://semver.org/). For each release, the following needs to be done:
 
-* Update the version number in [src/AblyRest.php](./src/AblyRest.php) and commit the change.
-* Run [`github_changelog_generator`](https://github.com/skywinder/Github-Changelog-Generator) to automate the update of the [CHANGELOG](./CHANGELOG.md). Once the `CHANGELOG` update has completed, manually change the `Unreleased` heading and link with the current version number such as `1.0.0`. Also ensure that the `Full Changelog` link points to the new version tag instead of the `HEAD`. Commit this change.
+* Update the version number in [src/AblyRest.php](./src/AblyRest.php)
+* Run [`github_changelog_generator`](https://github.com/skywinder/Github-Changelog-Generator) to automate the update of the [CHANGELOG](./CHANGELOG.md). Once the `CHANGELOG` update has completed, manually change the `Unreleased` heading and link with the current version number such as `1.0.0`. Also ensure that the `Full Changelog` link points to the new version tag instead of the `HEAD`.
+* Commit
 * Add a tag and push to origin such as `git tag 1.0.0 && git push origin 1.0.0`
 * Visit https://github.com/ably/ably-php/tags and add release notes for the release including links to the changelog entry.
 * Visit https://packagist.org/packages/ably/ably-php, log in to Packagist, and click the "Update" button.
