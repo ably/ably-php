@@ -19,8 +19,8 @@ This SDK is *not compatible* with some of the Ably features:
 
 | Feature | Spec reference |
 | --- | --- |
-| Remember fallback host during failures | [RSC15](https://docs.ably.io/client-lib-development-guide/features/#RSC15) |
-| MsgPack Binary Protocol | [RSC8a](https://docs.ably.io/client-lib-development-guide/features/#RSC8a) |
+| Remember fallback host during failures | [RSC15](https://ably.io/documentation/client-lib-development-guide/features/#RSC15) |
+| MsgPack Binary Protocol | [RSC8a](https://ably.io/documentation/client-lib-development-guide/features/#RSC8a) |
 
 
 ## Documentation
