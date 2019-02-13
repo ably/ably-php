@@ -1,5 +1,9 @@
 # [Ably](https://www.ably.io)
 
+[![Latest Stable Version](https://poser.pugx.org/ably/ably-php/v/stable)](https://packagist.org/packages/ably/ably-php)
+[![Total Downloads](https://poser.pugx.org/ably/ably-php/downloads)](https://packagist.org/packages/ably/ably-php)
+[![License](https://poser.pugx.org/ably/ably-php/license)](https://packagist.org/packages/ably/ably-php)
+
 A PHP REST client library for [www.ably.io](https://www.ably.io), the realtime messaging service.
 
 ## Supported Platforms
