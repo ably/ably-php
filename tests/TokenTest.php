@@ -74,7 +74,9 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         $tokenParams = array_merge(self::$tokenParams, [
             'timestamp' => $requestTime - 30 * 60 * 1000 // half an hour ago
         ]);
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', 'Timestamp not current', 40104 );
+        $this->expectException(AblyException::class);
+        $this->expectExceptionMessage('Timestamp not current');
+        $this->expectExceptionCode(40104);
         self::$ably->auth->requestToken( $tokenParams );
     }
 
@@ -172,7 +174,8 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
     public function testTokenGenerationWithExcessiveTTL() {
         $oneYearMs = 365*24*3600*1000;
         $tokenParams = [ 'ttl' => $oneYearMs ];
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40003);
         self::$ably->auth->requestToken( $tokenParams );
     }
 
@@ -181,7 +184,8 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
      */
     public function testTokenGenerationWithInvalidTTL() {
         $tokenParams = [ 'ttl' => -1 * 1000 ];
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40003);
         self::$ably->auth->requestToken( $tokenParams );
     }
 
@@ -284,7 +288,8 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
 
         sleep(3);
 
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40142 ); // token expired
+        $this->expectException(AblyException::class); // token expired
+        $this->expectExceptionCode(40142);
         $channel->publish( 'test', 'test' ); // token is no longer valid
     }
 
@@ -308,7 +313,8 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
 
         sleep(3);
 
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40101 );
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40101);
         $channel->publish( 'test', 'test' ); // this should fail
     }
 }

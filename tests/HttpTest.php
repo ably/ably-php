@@ -39,7 +39,7 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
 
         $curlParams = $ably->http->getCurlLastParams();
 
-        $expectedVersion = '1.0';
+        $expectedVersion = '1.1';
 
         $this->assertArrayHasKey( 'X-Ably-Version', $curlParams[CURLOPT_HTTPHEADER], 'Expected Ably version header in HTTP request' );
         $this->assertEquals( $expectedVersion, $curlParams[CURLOPT_HTTPHEADER]['X-Ably-Version'], 'Expected Ably version in HTTP header to match AblyRest constant' );

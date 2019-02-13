@@ -2,6 +2,7 @@
 namespace Ably\Models;
 
 use Ably\Log;
+use Ably\AblyRest;
 
 /**
  * Client library options
@@ -62,6 +63,12 @@ class ClientOptions extends AuthOptions {
     public $fallbackHosts;
 
     /**
+     * @var integer – default 600000 (10 minutes) the period in milliseconds
+     * before HTTP requests are retried against the default endpoint
+     */
+    public $fallbackRetryTimeout = 600000;
+
+    /**
      * @var \Ably\Models\TokenParams defaultTokenParams – overrides the client library defaults described in TokenParams
      */
     public $defaultTokenParams;
@@ -92,6 +99,11 @@ class ClientOptions extends AuthOptions {
      * To allow mocking in tests.
      */
     public $httpClass = 'Ably\Http';
+
+    /**
+     * @var bool defaults to false for clients with version < 1.2, otherwise true
+     */
+    public $idempotentRestPublishing = AblyRest::API_VERSION >= '1.2';
 
     /**
      * @var string a class that should be used for Auth

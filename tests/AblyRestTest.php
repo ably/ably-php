@@ -10,6 +10,18 @@ require_once __DIR__ . '/factories/TestApp.php';
 
 class AblyRestTest extends \PHPUnit_Framework_TestCase {
 
+    protected static $testApp;
+    protected static $defaultOptions;
+
+    public static function setUpBeforeClass() {
+        self::$testApp = new \tests\TestApp();
+        self::$defaultOptions = self::$testApp->getOptions();
+    }
+
+    public static function tearDownAfterClass() {
+        self::$testApp->release();
+    }
+
     /**
      * Init library with a key string
      */
@@ -308,6 +320,41 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
         }
     }
 
+
+    /**
+     * RSC15f Cached fallback host
+     */
+    public function testCachedFallback() {
+        $timeout = 2000;
+        $ably = new AblyRest( array_merge( self::$defaultOptions, [
+            'key' => self::$testApp->getAppKeyDefault()->string,
+            'fallbackRetryTimeout' => $timeout,
+            'httpClass' => 'tests\HttpMockCachedFallback',
+            'fallbackHosts' => [
+                'a.ably-realtime.com',
+                'b.ably-realtime.com',
+                'c.ably-realtime.com',
+                'd.ably-realtime.com',
+                'e.ably-realtime.com',
+            ],
+        ]));
+
+        // The main host is called and there's an error
+        $ably->time();
+        $this->assertEquals( 1, $ably->http->errors );
+
+        // The cached host is used: no error
+        $ably->time();
+        $ably->time();
+        $ably->time();
+        $this->assertEquals( 1, $ably->http->errors );
+
+        // The cached host has expired, we've an error again
+        sleep( $timeout / 1000 );
+        $ably->time();
+        $this->assertEquals( 2, $ably->http->errors );
+    }
+
     /**
      * Verify accuracy of time (to within 2 seconds of actual time)
      */
@@ -333,7 +380,7 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
             'restHost' => 'this.host.does.not.exist',
         ]);
 
-        $this->setExpectedException('Ably\Exceptions\AblyRequestException');
+        $this->expectException(AblyRequestException::class);
         $reportedTime = $ablyInvalidHost->time();
     }
 
@@ -352,7 +399,8 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
         ]);
 
         $ably->http->get('https://cdn.ably.io/lib/ably.js'); // should work
-        $this->setExpectedException('Ably\Exceptions\AblyRequestException', '', 50003);
+        $this->expectException(AblyRequestException::class);
+        $this->expectExceptionCode(50003);
         $ablyTimeout->http->get('https://cdn.ably.io/lib/ably.js'); // guaranteed to take more than 50 ms
     }
 }
@@ -394,5 +442,26 @@ class HttpMockInitTestTimeout extends Http {
             'headers' => 'HTTP/1.1 200 OK'."\n",
             'body' => [ 999999, 0 ],
         ];
+    }
+}
+
+
+class HttpMockCachedFallback extends Http {
+    private $restHost;
+    public $errors;
+
+    public function __construct( $clientOptions ) {
+        parent::__construct( $clientOptions );
+        $this->restHost = $clientOptions->restHost;
+        $this->errors = 0;
+    }
+
+    public function request( $method, $url, ...$args ) {
+        if ( parse_url($url, PHP_URL_HOST) == $this->restHost ) {
+            $this->errors++;
+            throw new AblyRequestException( 'fake error', 50000, 500 );
+        }
+
+        return parent::request($method, $url, ...$args);
     }
 }

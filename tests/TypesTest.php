@@ -146,6 +146,7 @@ class TypesTest extends \PHPUnit_Framework_TestCase {
             'httpOpenTimeout',
             'httpRequestTimeout',
             'httpMaxRetryCount',
+            'idempotentRestPublishing',
         ] );
 
         $co = new \Ably\Models\ClientOptions();
@@ -153,6 +154,25 @@ class TypesTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals( 10000, $co->httpRequestTimeout );
         $this->assertEquals( 3, $co->httpMaxRetryCount );
         $this->assertEquals( 15000, $co->httpMaxRetryDuration );
+    }
+
+    // TO3n
+    public function testClientOptionsIdempotent()
+    {
+        // Test default value
+        $co = new \Ably\Models\ClientOptions();
+        if (AblyRest::API_VERSION <= '1.1') {
+            $this->assertEquals( false, $co->idempotentRestPublishing );
+        } else {
+            $this->assertEquals( true, $co->idempotentRestPublishing );
+        }
+
+        // Test explicit value
+        $co = new \Ably\Models\ClientOptions( array( 'idempotentRestPublishing' => true ) );
+        $this->assertEquals( true, $co->idempotentRestPublishing );
+
+        $co = new \Ably\Models\ClientOptions( array( 'idempotentRestPublishing' => false ) );
+        $this->assertEquals( false, $co->idempotentRestPublishing );
     }
 
     public function testAuthOptionsType() {

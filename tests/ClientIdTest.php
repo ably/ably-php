@@ -3,6 +3,7 @@ namespace tests;
 use Ably\AblyRest;
 use Ably\Models\Message;
 use Ably\Models\TokenParams;
+use Ably\Exceptions\AblyException;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -40,7 +41,8 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
      * Init library with a key and a wildcard clientId; this should throw an exception as wildcard is not allowed here
      */
     public function testInitWithWildcardClientId() {
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40003 );
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40003);
 
         $ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key'      => self::$testApp->getAppKeyDefault()->string,
@@ -180,7 +182,8 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
         $msg->data = 'test';
         $msg->clientId = 'DIFFERENT_clientId';
 
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40102 );
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40102);
         $channel->publish( $msg ); // mismatched clientIds, should throw an exception
     }
 
@@ -248,7 +251,8 @@ class ClientIdTest extends \PHPUnit_Framework_TestCase {
 
         $channel = $ablyClient->channels->get( 'persisted:RSA8f2' );
 
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40102 );
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40102);
         $channel->publish( 'testEvent', 'testData', 'testClientId' );
     }
 

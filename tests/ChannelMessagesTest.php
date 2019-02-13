@@ -255,7 +255,8 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $msg->name = 'huge';
         $msg->data = str_repeat("~", 128 * 1024); // 128 kilobytes + message JSON
 
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40009 );
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40009);
         $channel->publish( $msg );
     }
 
@@ -272,7 +273,8 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $msg->connectionKey = 'fake.realtime_key';
 
         // publishing the message with an invalid key must fail
-        $this->setExpectedException( 'Ably\Exceptions\AblyException', '', 40006 );
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40006);
         $channel->publish( $msg );
     }
 

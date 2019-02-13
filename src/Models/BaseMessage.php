@@ -48,7 +48,7 @@ abstract class BaseMessage {
      * @var mixed Original received encoding, ignored when sending.
      */
     public $originalEncoding;
-    
+
     /**
      * @var CipherParams|null Cipher parameters for encrypted messages.
      */
@@ -143,7 +143,11 @@ abstract class BaseMessage {
 
             return $msg;
         }
-        
+
+        if ($this->id) {
+            $msg->id = $this->id;
+        }
+
         if ($this->clientId) {
             $msg->clientId = $this->clientId;
         }
@@ -164,7 +168,9 @@ abstract class BaseMessage {
         } else if ( !isset( $this->data ) || $this->data === null ) {
             return $msg;
         } else {
-            throw new AblyException( 'Message data must be either, string, string with binary data, JSON-encodable array or object, or null.', 40003, 400 );
+            throw new AblyException(
+                'Message data must be either, string, string with binary data, JSON-encodable array or object, or null.', 40003, 400
+            );
         }
 
         if ( $this->cipherParams ) {
@@ -226,7 +232,7 @@ abstract class BaseMessage {
                     }
 
                     $data = Crypto::decrypt( $this->data, $this->cipherParams );
-                    
+
                     if ($data === false) {
                         Log::e( 'Could not decrypt message data' );
                         break;

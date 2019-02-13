@@ -1,5 +1,9 @@
 # [Ably](https://www.ably.io)
 
+[![Latest Stable Version](https://poser.pugx.org/ably/ably-php/v/stable)](https://packagist.org/packages/ably/ably-php)
+[![Total Downloads](https://poser.pugx.org/ably/ably-php/downloads)](https://packagist.org/packages/ably/ably-php)
+[![License](https://poser.pugx.org/ably/ably-php/license)](https://packagist.org/packages/ably/ably-php)
+
 A PHP REST client library for [www.ably.io](https://www.ably.io), the realtime messaging service.
 
 ## Supported Platforms
@@ -77,7 +81,7 @@ $membersPage->hasNext(); // false, there are no more pages
 ### Querying the Presence History
 
 ```php
-$presencePage = channel->presence->history(); // => \Ably\Models\PaginatedResult
+$presencePage = $channel->presence->history(); // => \Ably\Models\PaginatedResult
 $presencePage->items[0]; // => \Ably\Models\PresenceMessage
 $presencePage->items[0]->clientId; // client ID of first member
 $presencePage->next(); // retrieves the next page => \Ably\Models\PaginatedResult
@@ -159,8 +163,9 @@ The client library uses the Ably sandbox environment to provision an app and run
 
 This library uses [semantic versioning](http://semver.org/). For each release, the following needs to be done:
 
-* Update the version number in [src/AblyRest.php](./src/AblyRest.php) and commit the change.
-* Run [`github_changelog_generator`](https://github.com/skywinder/Github-Changelog-Generator) to automate the update of the [CHANGELOG](./CHANGELOG.md). Once the `CHANGELOG` update has completed, manually change the `Unreleased` heading and link with the current version number such as `1.0.0`. Also ensure that the `Full Changelog` link points to the new version tag instead of the `HEAD`. Commit this change.
+* Update the version number in [src/AblyRest.php](./src/AblyRest.php)
+* Run [`github_changelog_generator`](https://github.com/skywinder/Github-Changelog-Generator) to automate the update of the [CHANGELOG](./CHANGELOG.md). Once the `CHANGELOG` update has completed, manually change the `Unreleased` heading and link with the current version number such as `1.0.0`. Also ensure that the `Full Changelog` link points to the new version tag instead of the `HEAD`.
+* Commit
 * Add a tag and push to origin such as `git tag 1.0.0 && git push origin 1.0.0`
 * Visit https://github.com/ably/ably-php/tags and add release notes for the release including links to the changelog entry.
 * Visit https://packagist.org/packages/ably/ably-php, log in to Packagist, and click the "Update" button.
