@@ -1,6 +1,11 @@
 # [Ably](https://www.ably.io)
 
+[![Latest Stable Version](https://poser.pugx.org/ably/ably-php/v/stable)](https://packagist.org/packages/ably/ably-php)
+[![Total Downloads](https://poser.pugx.org/ably/ably-php/downloads)](https://packagist.org/packages/ably/ably-php)
+[![License](https://poser.pugx.org/ably/ably-php/license)](https://packagist.org/packages/ably/ably-php)
+
 A PHP REST client library for [www.ably.io](https://www.ably.io), the realtime messaging service. This library currently targets the [Ably 1.1 client library specification](https://www.ably.io/documentation/client-lib-development-guide/features/). You can jump to the '[Known Limitations](#known-limitations)' section to see the features this client library does not yet support or visit the [Feature Support Matrix](https://www.ably.io/feature-support-matrix) to see the list of all the available features.
+
 
 ## Supported Platforms
 
