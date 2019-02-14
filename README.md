@@ -23,7 +23,7 @@ Currently, this SDK only supports [Ably REST](https://www.ably.io/documentation/
 This SDK is *not compatible* with some of the Ably features:
 
 | Feature |
-| --- |
+| :--- |
 | [Remember fallback host during failures](https://www.ably.io/documentation/realtime/usage#client-options) |
 | [MsgPack Binary Protocol](https://www.ably.io/documentation/realtime/usage#client-options) |
 
