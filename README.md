@@ -4,7 +4,8 @@
 [![Total Downloads](https://poser.pugx.org/ably/ably-php/downloads)](https://packagist.org/packages/ably/ably-php)
 [![License](https://poser.pugx.org/ably/ably-php/license)](https://packagist.org/packages/ably/ably-php)
 
-A PHP REST client library for [www.ably.io](https://www.ably.io), the realtime messaging service.
+A PHP REST client library for [www.ably.io](https://www.ably.io), the realtime messaging service. This library currently targets the [Ably 1.1 client library specification](https://www.ably.io/documentation/client-lib-development-guide/features/). You can jump to the '[Known Limitations](#known-limitations)' section to see the features this client library does not yet support or [view our client library SDKs feature support matrix](https://www.ably.io/download/sdk-feature-support-matrix) to see the list of all the available features.
+
 
 ## Supported Platforms
 
@@ -14,6 +15,18 @@ We regression-test the library against a selection of PHP versions (which will c
 
 We'll happily support (and investigate reported problems with) any reasonably-widely-used PHP version.
 If you find any compatibility issues, please [do raise an issue](https://github.com/ably/ably-php/issues/new) in this repository or [contact Ably customer support](https://support.ably.io/) for advice.
+
+## Known Limitations
+
+Currently, this SDK only supports [Ably REST](https://www.ably.io/documentation/rest). However, you can use the [MQTT adapter](https://www.ably.io/documentation/mqtt) to implement [Ably's Realtime](https://www.ably.io/documentation/realtime) features using Python. 
+
+This SDK is *not compatible* with some of the Ably features:
+
+| Feature |
+| --- |
+| [Remember fallback host during failures](https://www.ably.io/documentation/realtime/usage#client-options) |
+| [MsgPack Binary Protocol](https://www.ably.io/documentation/realtime/usage#client-options) |
+
 
 ## Documentation
 
