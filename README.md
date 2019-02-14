@@ -4,7 +4,7 @@
 [![Total Downloads](https://poser.pugx.org/ably/ably-php/downloads)](https://packagist.org/packages/ably/ably-php)
 [![License](https://poser.pugx.org/ably/ably-php/license)](https://packagist.org/packages/ably/ably-php)
 
-A PHP REST client library for [www.ably.io](https://www.ably.io), the realtime messaging service. This library currently targets the [Ably 1.1 client library specification](https://www.ably.io/documentation/client-lib-development-guide/features/). You can jump to the '[Known Limitations](#known-limitations)' section to see the features this client library does not yet support or visit the [Feature Support Matrix](https://www.ably.io/feature-support-matrix) to see the list of all the available features.
+A PHP REST client library for [www.ably.io](https://www.ably.io), the realtime messaging service. This library currently targets the [Ably 1.1 client library specification](https://www.ably.io/documentation/client-lib-development-guide/features/). You can jump to the '[Known Limitations](#known-limitations)' section to see the features this client library does not yet support or [view our client library SDKs feature support matrix](https://www.ably.io/download/sdk-feature-support-matrix) to see the list of all the available features.
 
 
 ## Supported Platforms
@@ -22,10 +22,10 @@ Currently, this SDK only supports [Ably REST](https://www.ably.io/documentation/
 
 This SDK is *not compatible* with some of the Ably features:
 
-| Feature | Spec reference |
-| --- | --- |
-| Remember fallback host during failures | [RSC15](https://ably.io/documentation/client-lib-development-guide/features/#RSC15) |
-| MsgPack Binary Protocol | [RSC8a](https://ably.io/documentation/client-lib-development-guide/features/#RSC8a) |
+| Feature |
+| --- |
+| [Remember fallback host during failures](https://www.ably.io/documentation/realtime/usage#client-options) |
+| [MsgPack Binary Protocol](https://www.ably.io/documentation/realtime/usage#client-options) |
 
 
 ## Documentation
