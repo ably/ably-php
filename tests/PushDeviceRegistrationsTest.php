@@ -217,6 +217,9 @@ class PushDeviceRegistrationsTest extends \PHPUnit_Framework_TestCase {
         $response = self::$ably->push->admin->deviceRegistrations->removeWhere([ 'clientId' => $clientId ], true);
         $this->assertEquals($response['info']['http_code'] , 204);
 
+        // Deletion is async: wait a few seconds
+        sleep(3);
+
         // It's gone
         $this->expectException(AblyException::class);
         $this->expectExceptionCode(40400);
