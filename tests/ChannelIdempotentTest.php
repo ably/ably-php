@@ -110,6 +110,9 @@ class ChannelIdempotentTest extends \PHPUnit_Framework_TestCase {
      * RSL1k3
      */
     public function testIdempotentMixedIds() {
+        if (self::$testApp->getOptions()['environment'] == 'sandbox') {
+            $this->markTestSkipped('idempotent not available in sandbox environment');
+        }
         $channel = self::$ably->channel( 'idempotentMixedIds' );
 
         $messages = [];
@@ -139,6 +142,9 @@ class ChannelIdempotentTest extends \PHPUnit_Framework_TestCase {
      * RSL1k4
      */
     public function testIdempotentLibraryGeneratedPublish() {
+        if (self::$testApp->getOptions()['environment'] == 'sandbox') {
+            $this->markTestSkipped('idempotent not available in sandbox environment');
+        }
         $ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
             'idempotentRestPublishing' => true,
@@ -166,6 +172,9 @@ class ChannelIdempotentTest extends \PHPUnit_Framework_TestCase {
      * RSL1k5
      */
     public function testIdempotentClientSuppliedPublish() {
+        if (self::$testApp->getOptions()['environment'] == 'sandbox') {
+            $this->markTestSkipped('idempotent not available in sandbox environment');
+        }
         $channel = self::$ably->channel( 'idempotentClientSuppliedPublish' );
 
         $msg = new Message();
