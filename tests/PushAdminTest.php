@@ -60,4 +60,22 @@ class PushAdminTest extends \PHPUnit_Framework_TestCase {
     public function testAdminPublishInvalid($recipient, $data) {
         self::$ably->push->admin->publish( $recipient, $data );
     }
+
+    public function errorValues() {
+        $recipient = [ 'clientId' => 'ablyChannel' ];
+        $data = [ 'data' => [ 'foo' => 'bar' ] ];
+
+        return [
+            [ $recipient, [ 'xxx' => 25 ] ],
+        ];
+    }
+
+    /**
+     * @dataProvider errorValues
+     * @expectedException Ably\Exceptions\AblyRequestException
+     */
+    public function testAdminPublishError($recipient, $data) {
+        self::$ably->push->admin->publish( $recipient, $data );
+    }
+
 }
