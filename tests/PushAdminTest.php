@@ -36,7 +36,7 @@ class PushAdminTest extends \PHPUnit_Framework_TestCase {
         $data = [ 'data' => [ 'foo' => 'bar' ] ];
 
         $res = self::$ably->push->admin->publish( $recipient, $data , true );
-        $this->assertEquals($res['info']['http_code'] , 204 );
+        $this->assertNull($res);
 
         $channel = self::$ably->channel($channelName);
         $history = $channel->history();
