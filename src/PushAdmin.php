@@ -25,7 +25,7 @@ class PushAdmin {
 
         $params = array_merge( $data, [ 'recipient' => $recipient ] );
         $params = json_encode( $params );
-        return $this->ably->post( '/push/publish', [], $params, $returnHeaders );
+        $this->ably->post( '/push/publish', [], $params, $returnHeaders );
     }
 
 }
