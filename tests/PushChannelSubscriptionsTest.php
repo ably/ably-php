@@ -6,11 +6,8 @@ use Ably\Models\PaginatedResult;
 use Ably\Exceptions\AblyException;
 
 require_once __DIR__ . '/factories/TestApp.php';
+require_once __DIR__ . '/Utils.php';
 
-
-function random_string ( $n ) {
-    return bin2hex(openssl_random_pseudo_bytes($n / 2));
-}
 
 function deviceData () {
     return [
