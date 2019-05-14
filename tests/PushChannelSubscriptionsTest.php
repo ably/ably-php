@@ -44,7 +44,7 @@ class PushChannelSubscriptionsTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * RSH1b3
+     * RSH1c3
      */
     public function testSave() {
         // Create
