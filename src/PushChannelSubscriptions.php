@@ -43,4 +43,15 @@ class PushChannelSubscriptions {
                                     $cipher = false, 'GET', $path, $params );
     }
 
+    /**
+     *  Returns a PaginatedResult object with the list of channel names.
+     *
+     *  @param array $params the parameters used to filter the list
+     */
+    public function listChannels (array $params = []) {
+        $path = '/push/channels';
+        return new PaginatedResult( $this->ably, NULL,
+                                    $cipher = false, 'GET', $path, $params );
+    }
+
 }
