@@ -111,6 +111,31 @@ class PushChannelSubscriptionsTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals(0, count($response->items));
     }
 
+
+    /**
+     * RSH1c2
+     */
+    public function testListChannels() {
+        $channelSubscriptions = self::$ably->push->admin->channelSubscriptions;
+
+        // Register several subscriptions
+        $clientId = random_string(12);
+        foreach ( ['pushenabled:test1', 'pushenabled:test2', 'pushenabled:test3' ] as $name ) {
+            $channelSubscriptions->save(['channel' => $name, 'clientId' => $clientId]);
+        }
+
+        $response = $channelSubscriptions->listChannels();
+        $this->assertInstanceOf(PaginatedResult::class, $response);
+        $this->assertTrue(is_array($response->items));
+        $this->assertTrue(is_string($response->items[0]));
+        $this->assertGreaterThanOrEqual(3, count($response->items));
+
+        // limit
+        $response = $channelSubscriptions->listChannels([ 'limit' => 2]);
+        $this->assertEquals(2, count($response->items));
+    }
+
+
     /**
      * RSH1c3
      */

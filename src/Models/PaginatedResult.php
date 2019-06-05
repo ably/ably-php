@@ -51,21 +51,28 @@ class PaginatedResult {
 
         if ( is_array( $body ) ) {
 
-            $transformedArray = [];
+            if ( is_null( $model ) ) {
+                $transformedArray = $body;
+            } else {
+                $transformedArray = [];
 
-            foreach ($body as $data) {
+                foreach ($body as $data) {
 
-                $instance = new $model;
+                    $instance = new $model;
 
-                if ( !method_exists( $model, 'fromJSON' ) ) {
-                    throw new AblyException( 'Invalid model class provided: ' . $model . '. The model needs to implement fromJSON method.' );
+                    if ( !method_exists( $model, 'fromJSON' ) ) {
+                        throw new AblyException(
+                            'Invalid model class provided: ' . $model .
+                            '. The model needs to implement fromJSON method.'
+                        );
+                    }
+                    if ( !empty( $cipherParams ) ) {
+                        $instance->setCipherParams( $cipherParams );
+                    }
+                    $instance->fromJSON( $data );
+
+                    $transformedArray[] = $instance;
                 }
-                if ( !empty( $cipherParams ) ) {
-                    $instance->setCipherParams( $cipherParams );
-                }
-                $instance->fromJSON( $data );
-
-                $transformedArray[] = $instance;
             }
 
             $this->items = $transformedArray;
