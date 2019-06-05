@@ -54,4 +54,14 @@ class PushChannelSubscriptions {
                                     $cipher = false, 'GET', $path, $params );
     }
 
+    /**
+     *  Removes the given channel subscription.
+     *
+     *  @param string $subscription the id of the device
+     */
+    public function remove ($subscription) {
+        $params = $subscription->toArray();
+        $path = '/push/channelSubscriptions';
+        return $this->ably->delete( $path, [], $params, false );
+    }
 }
