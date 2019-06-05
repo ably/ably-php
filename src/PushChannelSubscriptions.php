@@ -64,4 +64,14 @@ class PushChannelSubscriptions {
         $path = '/push/channelSubscriptions';
         return $this->ably->delete( $path, [], $params, false );
     }
+
+    /**
+     *  Removes the channel subscriptions identified by the given parameters.
+     *
+     *  @param string $subscription the id of the device
+     */
+    public function removeWhere (array $params = []) {
+        $path = '/push/channelSubscriptions';
+        return $this->ably->delete( $path, [], $params, false );
+    }
 }
