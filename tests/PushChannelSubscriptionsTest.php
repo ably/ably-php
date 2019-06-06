@@ -185,4 +185,94 @@ class PushChannelSubscriptionsTest extends \PHPUnit_Framework_TestCase {
         self::$ably->push->admin->channelSubscriptions->save($data);
     }
 
+
+    /**
+     * RSH1c4
+     */
+    public function testRemove() {
+        $admin = self::$ably->push->admin;
+        $channelSubscriptions = $admin->channelSubscriptions;
+
+        // Register device
+        $data = deviceData();
+        $admin->deviceRegistrations->save($data);
+        $deviceId = $data['id'];
+        $clientId = $data['clientId'];
+
+        // Remove by device id
+        $subscription = $channelSubscriptions->save([
+            'channel' => 'pushenabled:test',
+            'deviceId' => $deviceId,
+        ]);
+
+        $params = ['deviceId' => $deviceId];
+        $response = $channelSubscriptions->list_($params);
+        $this->assertEquals(1, count($response->items));
+        $channelSubscriptions->remove($subscription);
+        $response = $channelSubscriptions->list_($params);
+        $this->assertEquals(0, count($response->items));
+
+        // Remove by client id
+        $subscription = $channelSubscriptions->save([
+            'channel' => 'pushenabled:test',
+            'clientId' => $clientId,
+        ]);
+
+        $params = ['clientId' => $clientId];
+        $response = $channelSubscriptions->list_($params);
+        $this->assertEquals(1, count($response->items));
+        $channelSubscriptions->remove($subscription);
+        $response = $channelSubscriptions->list_($params);
+        $this->assertEquals(0, count($response->items));
+
+        // Remove again, no error
+        $channelSubscriptions->remove($subscription);
+   }
+
+
+    /**
+     * RSH1c5
+     */
+    public function testRemoveWhere() {
+        $admin = self::$ably->push->admin;
+        $channelSubscriptions = $admin->channelSubscriptions;
+
+        // Register device
+        $data = deviceData();
+        $admin->deviceRegistrations->save($data);
+        $deviceId = $data['id'];
+        $clientId = $data['clientId'];
+
+        // Remove by device id
+        $channelSubscriptions->save([
+            'channel' => 'pushenabled:test',
+            'deviceId' => $deviceId,
+        ]);
+
+        $params = ['deviceId' => $deviceId];
+        $response = $channelSubscriptions->list_($params);
+        $this->assertEquals(1, count($response->items));
+        $channelSubscriptions->removeWhere($params);
+        sleep(3); // Deletion is async: wait a few seconds
+        $response = $channelSubscriptions->list_($params);
+        $this->assertEquals(0, count($response->items));
+
+        // Remove by client id
+        $channelSubscriptions->save([
+            'channel' => 'pushenabled:test',
+            'clientId' => $clientId,
+        ]);
+
+        $params = ['clientId' => $clientId];
+        $response = $channelSubscriptions->list_($params);
+        $this->assertEquals(1, count($response->items));
+        $channelSubscriptions->removeWhere($params);
+        sleep(3); // Deletion is async: wait a few seconds
+        $response = $channelSubscriptions->list_($params);
+        $this->assertEquals(0, count($response->items));
+
+        // Remove again, no error
+        $channelSubscriptions->removeWhere($params);
+   }
+
 }
