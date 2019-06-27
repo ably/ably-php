@@ -1,7 +1,31 @@
 # Change Log
 
-## [1.1.0](https://github.com/ably/ably-php/tree/1.1.0)
+## [1.1.2](https://github.com/ably/ably-php/tree/1.1.2)
 
+[Full Changelog](https://github.com/ably/ably-php/compare/1.1.1...1.1.2)
+
+**Implemented enhancements:**
+
+- Add support for remembered REST fallback host  [\#60](https://github.com/ably/ably-php/issues/60)
+
+**Merged pull requests:**
+
+- Push [\#80](https://github.com/ably/ably-php/pull/80) ([jdavid](https://github.com/jdavid))
+- RSH1c4 and RSH1c5 [\#78](https://github.com/ably/ably-php/pull/78) ([jdavid](https://github.com/jdavid))
+- RSH1c2 push-\>admin-\>channelSubscriptions-\>listChannels [\#77](https://github.com/ably/ably-php/pull/77) ([jdavid](https://github.com/jdavid))
+- RSH1c1 New push-\>admin-\>channelSubscriptions-\>list\_ [\#76](https://github.com/ably/ably-php/pull/76) ([jdavid](https://github.com/jdavid))
+- RSH1c3 New push-\>admin-\>channelSubscriptions-\>save [\#75](https://github.com/ably/ably-php/pull/75) ([jdavid](https://github.com/jdavid))
+- RSH1b5 New push.admin.device\_registrations.removeWhere [\#73](https://github.com/ably/ably-php/pull/73) ([jdavid](https://github.com/jdavid))
+
+## [1.1.1](https://github.com/ably/ably-php/tree/1.1.1) (2019-02-19)
+[Full Changelog](https://github.com/ably/ably-php/compare/1.1.0...1.1.1)
+
+**Merged pull requests:**
+
+- Known Limitations [\#71](https://github.com/ably/ably-php/pull/71) ([Srushtika](https://github.com/Srushtika))
+- Use "https\_proxy" env variable if defined to set the CURLOPT\_PROXY option. [\#54](https://github.com/ably/ably-php/pull/54) ([DamienHarper](https://github.com/DamienHarper))
+
+## [1.1.0](https://github.com/ably/ably-php/tree/1.1.0) (2019-02-13)
 [Full Changelog](https://github.com/ably/ably-php/compare/1.0.1...1.1.0)
 
 **Implemented enhancements:**
