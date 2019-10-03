@@ -266,7 +266,6 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     public function testPublishConnectionKey() {
         $channel = self::$ably->channel( 'connKey' );
 
-
         $msg = new Message();
         $msg->name = 'delegatedMsg';
         $msg->data = 'test payload';
@@ -276,6 +275,32 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $this->expectException(AblyException::class);
         $this->expectExceptionCode(40006);
         $channel->publish( $msg );
+    }
+
+    /**
+     * RSL6a2
+     */
+    public function testPublishExtras() {
+        $channel = self::$ably->channel( 'pushenabled:extras' );
+
+        $msg = new Message();
+        $msg->name = 'test-name';
+        $msg->data = 'test-data';
+        $msg->extras = [
+            'push' => [
+                'notification' => [
+                    'title' => 'Testing'
+                ]
+            ]
+        ];
+
+        $channel->publish( $msg );
+
+        // Get the history for this channel
+        $messages = $channel->history();
+        $this->assertEquals( $msg->name, $messages->items[0]->name );
+        $this->assertEquals( $msg->data, $messages->items[0]->data );
+        $this->assertEquals( 'Testing', $messages->items[0]->extras->push->notification->title );
     }
 
     /**

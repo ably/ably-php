@@ -13,7 +13,7 @@ class Message extends BaseMessage {
      * when publishing on behalf of it.
      */
     public $connectionKey;
-    
+
     protected function encode() {
         $msg = parent::encode();
 

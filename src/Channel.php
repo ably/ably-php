@@ -59,15 +59,24 @@ class Channel {
 
         // Process arguments
         $messages = [];
-        if ( count($args) == 1 && is_a( $args[0], 'Ably\Models\Message' ) ) { // single Message
+        $argsn = count($args);
+        if ( $argsn == 1 && is_a( $args[0], 'Ably\Models\Message' ) ) { // single Message
             $messages[] = $args[0];
-        } else if ( count($args) == 1 && is_array( $args[0] ) ) { // array of Messages
+        } else if ( $argsn == 1 && is_array( $args[0] ) ) { // array of Messages
             $messages = $args[0];
-        } else if ( count($args) >= 2 && count($args) <= 3 ) { // eventName, data[, clientId]
+        } else if ( $argsn >= 2 && $argsn <= 4 ) { // eventName, data[, clientId][, extras]
             $msg = new Message();
             $msg->name = $args[0];
             $msg->data = $args[1];
-            if ( count($args) == 3 ) $msg->clientId = $args[2];
+            if ( $argsn == 3 ) {
+                if ( is_string($args[2]) )
+                    $msg->clientId = $args[2];
+                else if ( is_array($args[2]) )
+                    $msg->extras = $args[2];
+            } else if ( count($args) == 4 ) {
+                $msg->clientId = $args[2];
+                $msg->extras = $args[3];
+            }
 
             $messages[] = $msg;
         } else {

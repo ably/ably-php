@@ -12,27 +12,22 @@ use Ably\Log;
 abstract class BaseMessage {
 
     /**
-     * @var string Unique ID for this message. Populated by the system.
-     */
-    public $id;
-    /**
-     * @var mixed|null The message payload.
-     */
-    public $data;
-    /**
      * @var string|null The clientId of the client that published the message.
      * This property is populated by the system, where the clientId is known.
      */
     public $clientId;
+
     /**
      * @var string|null ID of the connection.
      * This property is populated by the system.
      */
     public $connectionId;
+
     /**
-     * @var int The timestamp of this message. Populated by the system.
+     * @var mixed|null The message payload.
      */
-    public $timestamp;
+    public $data;
+
     /**
      * @var string|null Transformations to be applied to this message.
      * If specified for new messages, it is assumed that $data is already encoded
@@ -40,10 +35,27 @@ abstract class BaseMessage {
      * Otherwise the encoding is automatically inferred from $data.
      */
     public $encoding;
+
+    /**
+     * @var array
+     */
+    public $extras;
+
+    /**
+     * @var string Unique ID for this message. Populated by the system.
+     */
+    public $id;
+
+    /**
+     * @var int The timestamp of this message. Populated by the system.
+     */
+    public $timestamp;
+
     /**
      * @var mixed Original received data, without any transformations, ignored when sending.
      */
     public $originalData;
+
     /**
      * @var mixed Original received encoding, ignored when sending.
      */
@@ -150,6 +162,10 @@ abstract class BaseMessage {
 
         if ($this->clientId) {
             $msg->clientId = $this->clientId;
+        }
+
+        if ($this->extras) {
+            $msg->extras = $this->extras;
         }
 
         $isBinary = false;
