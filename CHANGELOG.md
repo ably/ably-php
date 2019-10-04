@@ -1,7 +1,13 @@
 # Change Log
 
-## [1.1.2](https://github.com/ably/ably-php/tree/1.1.2)
+## [1.1.3](https://github.com/ably/ably-php/tree/1.1.3) (2019-10-04)
+[Full Changelog](https://github.com/ably/ably-php/compare/1.1.2...1.1.3)
 
+**Implemented enhancements:**
+
+- Add support for extras in publish [\#82](https://github.com/ably/ably-php/issues/82)
+
+## [1.1.2](https://github.com/ably/ably-php/tree/1.1.2) (2019-06-27)
 [Full Changelog](https://github.com/ably/ably-php/compare/1.1.1...1.1.2)
 
 **Implemented enhancements:**
