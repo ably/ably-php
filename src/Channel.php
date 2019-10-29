@@ -52,33 +52,17 @@ class Channel {
 
     /**
      * Posts a message to this channel
-     * @param mixed ... Either a Message, array of Message-s, or (string eventName, string data, [string clientId])
+     * @param mixed ... Either a Message, array of Message-s, or (string eventName, string data)
      * @throws \Ably\Exceptions\AblyException
      */
-    public function __publish_request_body(...$args) {
-
+    public function __publish_request_body($first) {
         // Process arguments
         $messages = [];
-        $argsn = count($args);
-        if ( $argsn == 1 && is_a( $args[0], 'Ably\Models\Message' ) ) { // single Message
-            $messages[] = $args[0];
-        } else if ( $argsn == 1 && is_array( $args[0] ) ) { // array of Messages
-            $messages = $args[0];
-        } else if ( $argsn >= 2 && $argsn <= 4 ) { // eventName, data[, clientId][, extras]
-            $msg = new Message();
-            $msg->name = $args[0];
-            $msg->data = $args[1];
-            if ( $argsn == 3 ) {
-                if ( is_string($args[2]) )
-                    $msg->clientId = $args[2];
-                else if ( is_array($args[2]) )
-                    $msg->extras = $args[2];
-            } else if ( count($args) == 4 ) {
-                $msg->clientId = $args[2];
-                $msg->extras = $args[3];
-            }
 
-            $messages[] = $msg;
+        if ( is_a( $first, 'Ably\Models\Message' ) ) { // single Message
+            $messages[] = $first;
+        } else if ( is_array( $first ) ) { // array of Messages
+            $messages = $first;
         } else {
             throw new AblyException(
                 'Wrong parameters provided, use either Message, array of Messages, or name and data', 40003, 400
@@ -129,10 +113,39 @@ class Channel {
     }
 
     public function publish(...$args) {
+        $first = $args[0];
+        $params = [];
 
-        $json = $this->__publish_request_body(...$args);
+        if ( is_string( $first ) ) { // eventName, data[, clientId][, extras]
+            $msg = new Message();
+            $msg->name = $first;
+            $msg->data = $args[1];
+            // TODO RSL1h: Remove clientId/extras extras support for 2.0
+            if ( $argsn == 3 ) {
+                if ( is_string($args[2]) )
+                    $msg->clientId = $args[2];
+                else if ( is_array($args[2]) )
+                    $msg->extras = $args[2];
+            } else if ( count($args) == 4 ) {
+                $msg->clientId = $args[2];
+                $msg->extras = $args[3];
+            }
 
-        $this->ably->post( $this->channelPath . '/messages', $headers = [], $json );
+            $json = $this->__publish_request_body($msg);
+        } else {
+            $json = $this->__publish_request_body($first);
+            if ( count($args) > 1 ) {
+                $params = $args[1];
+            }
+        }
+
+        $url = $this->channelPath . '/messages';
+        if (!empty($params)) {
+            $paramsQuery = http_build_query( $params );
+            $url .= '?' . $paramsQuery;
+        }
+
+        $this->ably->post( $url, $headers = [], $json );
         return true;
     }
 
@@ -142,7 +155,10 @@ class Channel {
      * @return PaginatedResult
      */
     public function history( $params = [] ) {
-        return new PaginatedResult( $this->ably, 'Ably\Models\Message', $this->getCipherParams(), 'GET', $this->getPath() . '/messages', $params );
+        return new PaginatedResult( $this->ably, 'Ably\Models\Message',
+                                    $this->getCipherParams(),
+                                    'GET', $this->getPath() . '/messages',
+                                    $params );
     }
 
     /**

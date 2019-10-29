@@ -63,7 +63,10 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
                     strpos( $msgJSON->encoding, $channel->getCipherParams()->getAlgorithmString() ) !== false,
                     'Expected message encoding to contain a cipher algorithm'
                 );
-                $this->assertFalse( $msgJSON->data === $payload, 'Expected encrypted message payload not to match original data' );
+                $this->assertFalse(
+                    $msgJSON->data === $payload,
+                    'Expected encrypted message payload not to match original data'
+                );
             } else {
                 // check if the messages are unencrypted
                 $msgJSON = json_decode( $msg->toJSON() );
@@ -88,11 +91,17 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
             
             // payload must exactly match the one that was sent and must be decrypted automatically
             $originalPayload = $data[$message->name];
-            $this->assertEquals( $originalPayload, $message->data, 'Expected retrieved message\'s data to match the original data (' . $message->name . ')' );
+            $this->assertEquals(
+                $originalPayload, $message->data,
+                'Expected retrieved message\'s data to match the original data (' . $message->name . ')'
+            );
         }
 
         // verify message order
-        $this->assertEquals( array_reverse( array_keys( $data ) ), $actual_message_order, 'Expected messages in reverse order' );
+        $this->assertEquals(
+            array_reverse( array_keys( $data ) ), $actual_message_order,
+            'Expected messages in reverse order'
+        );
     }
 
     /**
@@ -275,6 +284,23 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         $this->expectException(AblyException::class);
         $this->expectExceptionCode(40006);
         $channel->publish( $msg );
+    }
+
+    /**
+     * RSL1l1
+     */
+
+    public function testMessageWithParams() {
+        $channel = self::$ably->channel( 'testparams' );
+
+        $msg = new Message();
+        $msg->name = 'test-name';
+        $msg->data = 'test-data';
+        $params = [ '_forceNack' => true ];
+
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40099);
+        $channel->publish( $msg, $params );
     }
 
     /**
