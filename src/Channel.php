@@ -122,12 +122,13 @@ class Channel {
             $msg->name = $first;
             $msg->data = $args[1];
             // TODO RSL1h: Remove clientId/extras extras support for 2.0
+            $argsn = count($args);
             if ( $argsn == 3 ) {
                 if ( is_string($args[2]) )
                     $msg->clientId = $args[2];
                 else if ( is_array($args[2]) )
                     $msg->extras = $args[2];
-            } else if ( count($args) == 4 ) {
+            } else if ( $argsn == 4 ) {
                 $msg->clientId = $args[2];
                 $msg->extras = $args[3];
             }
