@@ -5,6 +5,7 @@ use Ably\Exceptions\AblyException;
 use Ably\Models\ChannelOptions;
 use Ably\Models\Message;
 use Ably\Models\PaginatedResult;
+use Ably\Utils\Stringifiable;
 
 /**
  * Represents a channel
@@ -141,8 +142,7 @@ class Channel {
 
         $url = $this->channelPath . '/messages';
         if (!empty($params)) {
-            $paramsQuery = http_build_query( $params );
-            $url .= '?' . $paramsQuery;
+            $url .= '?' . Stringifiable::buildQuery( $params );
         }
 
         $this->ably->post( $url, $headers = [], $json );
