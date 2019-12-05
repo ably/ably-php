@@ -198,12 +198,15 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-            $this->assertEquals( $hostWithFallbacks[0], $ably->http->failedHosts[0], 'Expected to try restHost first' );
-            $this->assertNotEquals( $hostWithFallbacks, $ably->http->failedHosts, 'Expected to have fallback hosts randomized' );
+            $this->assertEquals( $hostWithFallbacks[0], $ably->http->failedHosts[0],
+                                 'Expected to try restHost first' );
+            $this->assertNotEquals( $hostWithFallbacks, $ably->http->failedHosts,
+                                    'Expected to have fallback hosts randomized' );
 
             $failedHostsSorted = $ably->http->failedHosts; // copied by value;
             sort($failedHostsSorted);
-            $this->assertEquals( $hostWithFallbacksSorted, $failedHostsSorted, 'Expected to have tried all the fallback hosts' );
+            $this->assertEquals( $hostWithFallbacksSorted, $failedHostsSorted,
+                                 'Expected to have tried all the fallback hosts' );
         }
     }
 
@@ -456,12 +459,12 @@ class HttpMockCachedFallback extends Http {
         $this->errors = 0;
     }
 
-    public function request( $method, $url, ...$args ) {
+    public function request( $method, $url, $headers = [], $params = [] ) {
         if ( parse_url($url, PHP_URL_HOST) == $this->restHost ) {
             $this->errors++;
             throw new AblyRequestException( 'fake error', 50000, 500 );
         }
 
-        return parent::request($method, $url, ...$args);
+        return parent::request($method, $url, $headers, $params);
     }
 }
