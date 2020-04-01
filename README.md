@@ -183,7 +183,3 @@ This library uses [semantic versioning](http://semver.org/). For each release, t
 * Visit https://github.com/ably/ably-php/tags and add release notes for the release including links to the changelog entry.
 * Visit https://packagist.org/packages/ably/ably-php, log in to Packagist, and click the "Update" button.
 * Remember to release an update for the [PHP Laravel library](https://github.com/ably/ably-php-laravel)
-
-## License
-
-Copyright (c) 2017 Ably Real-time Ltd, Licensed under the Apache License, Version 2.0.  Refer to [LICENSE](LICENSE) for the license terms.
