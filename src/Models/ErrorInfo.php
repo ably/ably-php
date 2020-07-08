@@ -6,7 +6,7 @@ namespace Ably\Models;
  */
 class ErrorInfo {
     /**
-     * @var int $code Exception code @see https://github.com/ably/ably-common/blob/master/protocol/errors.json
+     * @var int $code Exception code @see https://github.com/ably/ably-common/blob/main/protocol/errors.json
      */
     public $code;
     /**
