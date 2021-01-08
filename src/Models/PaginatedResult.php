@@ -157,7 +157,11 @@ class PaginatedResult {
                 throw new AblyException( "Server error - only relative URLs are supported in pagination" );
             }
 
-            $this->paginationHeaders[$rel] = $path.substr($link, 2);
+            // attempts to fix incorrectly built relative paths.. 
+            // '/push/' no longer becomes '/push/push'
+            $path = $path . str_replace( $path, '', substr($link, 1) );
+
+            $this->paginationHeaders[$rel] = $path;
         }
     }
 }
