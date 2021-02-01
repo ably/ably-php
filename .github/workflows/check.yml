@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        fail-fast: false
         php-version: [5.6, 7.0, 7.1, 7.2, 7.3, 7.4]
 
     steps:
