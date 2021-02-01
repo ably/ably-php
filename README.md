@@ -11,7 +11,7 @@ A PHP REST client library for [www.ably.io](https://www.ably.io), the realtime m
 
 This SDK supports PHP 5.6 and 7.0+
 
-We regression-test the library against a selection of PHP versions (which will change over time, but usually consists of the versions that are supported upstream). Please refer to [.travis.yml](./.travis.yml) for the set of versions that currently undergo CI testing.
+We regression-test the library against a selection of PHP versions (which will change over time, but usually consists of the versions that are supported upstream). Please refer to [the check workflow](.github/workflows/check.yml) for the set of versions that currently undergo CI testing.
 
 We'll happily support (and investigate reported problems with) any reasonably-widely-used PHP version.
 If you find any compatibility issues, please [do raise an issue](https://github.com/ably/ably-php/issues/new) in this repository or [contact Ably customer support](https://support.ably.io/) for advice.
