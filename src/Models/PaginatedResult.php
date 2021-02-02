@@ -143,7 +143,7 @@ class PaginatedResult {
 
         $path = preg_replace('/\/[^\/]*$/', '/', $this->path);
 
-        preg_match_all('/Link: *\<([^\>]*)\>; *rel="([^"]*)"/', $headers, $matches, PREG_SET_ORDER);
+        preg_match_all('/Link: *\<([^\>]*)\>; *rel="([^"]*)"/i', $headers, $matches, PREG_SET_ORDER);
 
         if (!$matches) return;
 
