@@ -80,7 +80,8 @@ class PushDeviceRegistrationsTest extends \PHPUnit_Framework_TestCase {
         $this->assertInstanceOf(PaginatedResult::class, $response);
         $this->assertGreaterThanOrEqual(10, count($response->items));
         $this->assertInstanceOf(DeviceDetails::class, $response->items[0]);
-        $this->assertContains($response->items[0]->id, $ids);
+        $response_ids = array_map(function($x) {return $x->id;}, $response->items);
+        $this->assertContains($ids[0], $response_ids);
 
         // limit
         $response = self::$ably->push->admin->deviceRegistrations->list_([ 'limit' => 2 ]);

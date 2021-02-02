@@ -109,7 +109,8 @@ class Crypto {
     }
 
     /**
-     * Updates CipherParams' Initialization Vector by encrypting a fixed string with current CipherParams state, thus randomizing it.
+     * Updates CipherParams' Initialization Vector by encrypting a fixed string
+     * with current CipherParams state, thus randomizing it.
      */
     protected static function updateIV( CipherParams $cipherParams ) {
         $raw = defined( 'OPENSSL_RAW_DATA' ) ? OPENSSL_RAW_DATA : true;

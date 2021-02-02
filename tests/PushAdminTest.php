@@ -37,6 +37,7 @@ class PushAdminTest extends \PHPUnit_Framework_TestCase {
 
         $res = self::$ably->push->admin->publish( $recipient, $data , true );
         $this->assertNull($res);
+        sleep(3); // It takes some time for the message to show up in the history
 
         $channel = self::$ably->channel($channelName);
         $history = $channel->history();
