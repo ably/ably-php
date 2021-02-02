@@ -30,7 +30,10 @@ class CipherParams {
     }
 
     public function generateIV() {
-        $this->iv = openssl_random_pseudo_bytes( openssl_cipher_iv_length( $this->getAlgorithmString() ) );
+        $length = openssl_cipher_iv_length( $this->getAlgorithmString() );
+        if ( $length > 0 ) {
+            $this->iv = openssl_random_pseudo_bytes( $length );
+        }
     }
 
     public function checkValidAlgorithm() {

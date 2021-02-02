@@ -54,31 +54,36 @@ class CryptoTest extends \PHPUnit_Framework_TestCase {
         try {
             Crypto::getDefaultParams( [] );
         } catch (\Exception $ex) {
-            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex, 'Expected to check for key being provided' );
+            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex,
+                                     'Expected to check for key being provided' );
         }
 
         try {
             Crypto::getDefaultParams([ 'key' => 'abcd', 'keyLength' => 128 ]); // 32-bit key
         } catch (\Exception $ex) {
-            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex, 'Expected to check for key and keyLength mismatch' );
+            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex,
+                                     'Expected to check for key and keyLength mismatch' );
         }
 
         try {
             Crypto::getDefaultParams([ 'key' => 'abcd', 'keyLength' => 32 ]); // 32-bit key
         } catch (\Exception $ex) {
-            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex, 'Expected to check for an unacceptable key length' );
+            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex,
+                                     'Expected to check for an unacceptable key length' );
         }
 
         try {
             Crypto::getDefaultParams([ 'key' => Crypto::generateRandomKey(), 'algorithm' => 'fake' ]);
         } catch (\Exception $ex) {
-            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex, 'Expected to raise an exception on unknown encryption algorithm' );
+            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex,
+                                     'Expected to raise an exception on unknown encryption algorithm' );
         }
 
         try {
             Crypto::getDefaultParams([ 'key' => Crypto::generateRandomKey(), 'mode' => 'fake' ]);
         } catch (\Exception $ex) {
-            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex, 'Expected to raise an exception on unknown encryption mode' );
+            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex,
+                                     'Expected to raise an exception on unknown encryption mode' );
         }
     }
 
