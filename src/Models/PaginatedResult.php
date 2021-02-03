@@ -35,7 +35,8 @@ class PaginatedResult {
      * @param array $headers Headers to be sent with the request
      * @throws AblyException
      */
-    public function __construct( \Ably\AblyRest $ably, $model, $cipherParams, $method, $path, $params = [], $headers = [] ) {
+    public function __construct( \Ably\AblyRest $ably, $model, $cipherParams,
+                                 $method, $path, $params = [], $headers = [] ) {
         $this->ably = $ably;
         $this->model = $model;
         $this->cipherParams = $cipherParams;
@@ -140,7 +141,6 @@ class PaginatedResult {
      * Parses HTTP headers for pagination links
      */
     private function parsePaginationHeaders($headers) {
-
         $path = preg_replace('/\/[^\/]*$/', '/', $this->path);
 
         preg_match_all('/Link: *\<([^\>]*)\>; *rel="([^"]*)"/i', $headers, $matches, PREG_SET_ORDER);
@@ -148,7 +148,6 @@ class PaginatedResult {
         if (!$matches) return;
 
         $this->paginationHeaders = [];
-
         foreach ($matches as $m) {
             $link = $m[1];
             $rel =  $m[2];
@@ -157,7 +156,10 @@ class PaginatedResult {
                 throw new AblyException( "Server error - only relative URLs are supported in pagination" );
             }
 
-            $this->paginationHeaders[$rel] = $path.substr($link, 2);
+            $link = $path . substr($link, 2);
+            $link = str_replace( '/push/push/', '/push/', $link ); // cf. https://github.com/ably/ably-php/pull/81
+
+            $this->paginationHeaders[$rel] = $link;
         }
     }
 }
