@@ -44,7 +44,8 @@ class HttpPaginatedResponse extends PaginatedResult {
      * @param array $headers Headers to be sent with the request
      * @throws AblyRequestException Thrown when the server and all the fallbacks are unreachable
      */
-    public function __construct( \Ably\AblyRest $ably, $model, $cipherParams, $method, $path, $params = [], $headers = [] ) {
+    public function __construct( \Ably\AblyRest $ably, $model, $cipherParams,
+                                 $method, $path, $params = [], $headers = [] ) {
         try {
             parent::__construct( $ably, $model, $cipherParams, $method, $path, $params, $headers );
         } catch (AblyRequestException $ex) {
@@ -83,7 +84,14 @@ class HttpPaginatedResponse extends PaginatedResult {
         foreach($headers as $header) {
             if(!trim($header)) continue;
             list($key, $value) = explode(':', $header, 2);
-            $this->headers[trim($key)] = trim($value);
+            $key = trim($key);
+
+            // Title-Case
+            $key = preg_replace_callback('/\w+/', function ($match) {
+                return ucfirst(strtolower($match[0]));
+            }, $key);
+
+            $this->headers[$key] = trim($value);
         }
     }
 }
