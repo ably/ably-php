@@ -20,11 +20,15 @@ class CurlWrapper {
     }
 
     public function setOpt( $handle, $option, $value ) {
-        if ( $option == CURLOPT_URL ) $this->commands[(int) $handle]['url'] = $value;
-        else if ( $option == CURLOPT_POST && $value ) $this->commands[(int) $handle]['command'] .= '-X POST ';
-        else if ( $option == CURLOPT_CUSTOMREQUEST ) $this->commands[(int) $handle]['command'] .= '-X ' . $value . ' ';
-        else if ( $option == CURLOPT_POSTFIELDS ) $this->commands[(int) $handle]['command'] .= '--data "'. str_replace( '"', '\"', $value ) .'" ';
-        else if ( $option == CURLOPT_HTTPHEADER ) {
+        if ( $option == CURLOPT_URL ) {
+            $this->commands[(int) $handle]['url'] = $value;
+        } else if ( $option == CURLOPT_POST && $value ) {
+            $this->commands[(int) $handle]['command'] .= '-X POST ';
+        } else if ( $option == CURLOPT_CUSTOMREQUEST ) {
+            $this->commands[(int) $handle]['command'] .= '-X ' . $value . ' ';
+        } else if ( $option == CURLOPT_POSTFIELDS ) {
+            $this->commands[(int) $handle]['command'] .= '--data "'. str_replace( '"', '\"', $value ) .'" ';
+        } else if ( $option == CURLOPT_HTTPHEADER ) {
             foreach($value as $header) {
                 $this->commands[(int) $handle]['command'] .= '-H "' . str_replace( '"', '\"', $header ).'" ';
             }
