@@ -156,8 +156,8 @@ class PaginatedResult {
                 throw new AblyException( "Server error - only relative URLs are supported in pagination" );
             }
 
-            $link = $path . substr($link, 2);
-            $link = str_replace( '/push/push/', '/push/', $link ); // cf. https://github.com/ably/ably-php/pull/81
+            $link = explode('/', $link);
+            $link = $path . end($link);
 
             $this->paginationHeaders[$rel] = $link;
         }
