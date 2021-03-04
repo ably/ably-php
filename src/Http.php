@@ -175,7 +175,8 @@ class Http {
 
         if ( $info['http_code'] < 200 || $info['http_code'] >= 300 ) {
             $ablyCode = empty( $decodedBody->error->code ) ? $info['http_code'] * 100 : $decodedBody->error->code * 1;
-            $errorMessage = empty( $decodedBody->error->message ) ? 'cURL request failed' : $decodedBody->error->message;
+            $errorMessage = empty( $decodedBody->error->message ) ? 'cURL request failed'
+                                                                  : $decodedBody->error->message;
 
             throw new AblyRequestException( $errorMessage, $ablyCode, $info['http_code'], $response );
         }

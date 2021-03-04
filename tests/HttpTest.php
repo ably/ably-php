@@ -41,18 +41,23 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
 
         $expectedVersion = '1.1';
 
-        $this->assertArrayHasKey( 'X-Ably-Version', $curlParams[CURLOPT_HTTPHEADER], 'Expected Ably version header in HTTP request' );
-        $this->assertEquals( $expectedVersion, $curlParams[CURLOPT_HTTPHEADER]['X-Ably-Version'], 'Expected Ably version in HTTP header to match AblyRest constant' );
+        $this->assertArrayHasKey( 'X-Ably-Version', $curlParams[CURLOPT_HTTPHEADER],
+                                  'Expected Ably version header in HTTP request' );
+        $this->assertEquals( $expectedVersion, $curlParams[CURLOPT_HTTPHEADER]['X-Ably-Version'],
+                             'Expected Ably version in HTTP header to match AblyRest constant' );
 
-        $this->assertArrayHasKey( 'X-Ably-Lib', $curlParams[CURLOPT_HTTPHEADER], 'Expected Ably lib header in HTTP request' );
-        $this->assertContains( 'php-' . $expectedVersion, $curlParams[CURLOPT_HTTPHEADER]['X-Ably-Lib'], 'Expected Ably lib in HTTP header to match AblyRest constant' );
+        $this->assertArrayHasKey( 'X-Ably-Lib', $curlParams[CURLOPT_HTTPHEADER],
+                                  'Expected Ably lib header in HTTP request' );
+        $this->assertContains( 'php-' . $expectedVersion, $curlParams[CURLOPT_HTTPHEADER]['X-Ably-Lib'],
+                               'Expected Ably lib in HTTP header to match AblyRest constant' );
 
         AblyRest::setLibraryFlavourString( 'test' );
         $ably = new AblyRest( $opts );
         $ably->time(); // make a request
 
         $curlParams = $ably->http->getCurlLastParams();
-        $this->assertContains( 'php-test-' . $expectedVersion, $curlParams[CURLOPT_HTTPHEADER]['X-Ably-Lib'], 'Expected X-Ably-Lib to contain library flavour string' );
+        $this->assertContains( 'php-test-' . $expectedVersion, $curlParams[CURLOPT_HTTPHEADER]['X-Ably-Lib'],
+                               'Expected X-Ably-Lib to contain library flavour string' );
 
         AblyRest::setLibraryFlavourString();
     }
@@ -114,8 +119,10 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
 
         $curlParams = $ably->http->getCurlLastParams();
 
-        $this->assertEquals( 'http://test.test/tokenRequest', $curlParams[CURLOPT_URL], 'Expected URL to match authUrl' );
-        $this->assertEquals( http_build_query($expectedParams), $curlParams[CURLOPT_POSTFIELDS], 'Expected POST params to contain encoded params' );
+        $this->assertEquals( 'http://test.test/tokenRequest', $curlParams[CURLOPT_URL],
+                             'Expected URL to match authUrl' );
+        $this->assertEquals( http_build_query($expectedParams), $curlParams[CURLOPT_POSTFIELDS],
+                             'Expected POST params to contain encoded params' );
     }
 
     /**
@@ -140,17 +147,21 @@ class HttpTest extends \PHPUnit_Framework_TestCase {
 
         $this->assertTrue($res2->success, 'Expected retrieving the message via custom request to succeed');
         $this->assertLessThan(300, $res2->statusCode, 'Expected statusCode < 300');
-        $this->assertArrayHasKey('Content-Type', $res2->headers, 'Expected headers to be an array containing key `Content-Type`');
+        $this->assertArrayHasKey('Content-Type', $res2->headers,
+                                 'Expected headers to be an array containing key `Content-Type`');
         $this->assertEquals(1, count($res2->items), 'Expected to receive 1 message');
-        $this->assertEquals($msg->name, $res2->items[0]->name, 'Expected to receive matching message contents');
+        $this->assertEquals($msg->name, $res2->items[0]->name,
+                            'Expected to receive matching message contents');
 
         $res3 = $ably->request('GET', '/this-does-not-exist');
 
         $this->assertEquals(404, $res3->statusCode, 'Expected statusCode 404');
         $this->assertEquals(40400, $res3->errorCode, 'Expected errorCode 40400');
         $this->assertNotEmpty($res3->errorMessage, 'Expected errorMessage to be set');
-        $this->assertArrayHasKey('X-Ably-Errorcode', $res3->headers, 'Expected X-Ably-Errorcode header to be present');
-        $this->assertArrayHasKey('X-Ably-Errormessage', $res3->headers, 'Expected X-Ably-Errormessage header to be present');
+        $this->assertArrayHasKey('X-Ably-Errorcode', $res3->headers,
+                                 'Expected X-Ably-Errorcode header to be present');
+        $this->assertArrayHasKey('X-Ably-Errormessage', $res3->headers,
+                                 'Expected X-Ably-Errormessage header to be present');
     }
 
     /**
