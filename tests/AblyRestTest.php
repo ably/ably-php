@@ -398,13 +398,13 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
 
         $ablyTimeout = new AblyRest( [
             'key' => 'fake.key:veryFake',
-            'httpRequestTimeout' => 50, // 50 ms
+            'httpRequestTimeout' => 20, // 20 ms
         ]);
 
         $ably->http->get('https://cdn.ably.io/lib/ably.js'); // should work
         $this->expectException(AblyRequestException::class);
         $this->expectExceptionCode(50003);
-        $ablyTimeout->http->get('https://cdn.ably.io/lib/ably.js'); // guaranteed to take more than 50 ms
+        $ablyTimeout->http->get('https://cdn.ably.io/lib/ably.js'); // guaranteed to take more than 20 ms
     }
 }
 
