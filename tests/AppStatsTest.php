@@ -4,7 +4,7 @@ use Ably\AblyRest;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
-class AppStatsTest extends \PHPUnit_Framework_TestCase {
+class AppStatsTest extends \PHPUnit\Framework\TestCase {
 
     protected static $testApp;
     protected static $defaultOptions;
@@ -14,7 +14,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
     protected static $timestampMs;
     protected static $timestampOlderMs;
 
-    public static function setUpBeforeClass() {
+    public static function setUpBeforeClass(): void {
         self::$testApp = new TestApp();
         self::$defaultOptions = self::$testApp->getOptions();
         self::$ably = new AblyRest( array_merge( self::$defaultOptions, [
@@ -61,7 +61,7 @@ class AppStatsTest extends \PHPUnit_Framework_TestCase {
         self::$ably->post( '/stats', [], $fixtureJSON );
     }
 
-    public static function tearDownAfterClass() {
+    public static function tearDownAfterClass(): void {
         self::$testApp->release();
     }
 

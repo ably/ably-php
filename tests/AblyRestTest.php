@@ -8,17 +8,17 @@ use Ably\Models\TokenDetails;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
-class AblyRestTest extends \PHPUnit_Framework_TestCase {
+class AblyRestTest extends \PHPUnit\Framework\TestCase {
 
     protected static $testApp;
     protected static $defaultOptions;
 
-    public static function setUpBeforeClass() {
+    public static function setUpBeforeClass(): void {
         self::$testApp = new \tests\TestApp();
         self::$defaultOptions = self::$testApp->getOptions();
     }
 
-    public static function tearDownAfterClass() {
+    public static function tearDownAfterClass(): void {
         self::$testApp->release();
     }
 
@@ -97,7 +97,11 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
         ];
         $ably = new AblyRest( $opts );
         $ably->time(); // make a request
-        $this->assertContains( 'https://' . $opts['restHost'] . ':' . $opts['tlsPort'], $ably->http->lastUrl, 'Unexpected host/port mismatch' );
+        $this->assertStringContainsString(
+            'https://' . $opts['restHost'] . ':' . $opts['tlsPort'],
+            $ably->http->lastUrl,
+            'Unexpected host/port mismatch'
+        );
 
         $opts = [
             'token' => 'fakeToken',
@@ -108,7 +112,11 @@ class AblyRestTest extends \PHPUnit_Framework_TestCase {
         ];
         $ably = new AblyRest( $opts );
         $ably->time(); // make a request
-        $this->assertContains( 'http://' . $opts['restHost'] . ':' . $opts['port'], $ably->http->lastUrl, 'Unexpected host/port mismatch' );
+        $this->assertStringContainsString(
+            'http://' . $opts['restHost'] . ':' . $opts['port'],
+            $ably->http->lastUrl,
+            'Unexpected host/port mismatch'
+        );
     }
 
     /**

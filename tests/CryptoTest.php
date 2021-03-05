@@ -7,12 +7,12 @@ use Ably\Utils\Crypto;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
-class CryptoTest extends \PHPUnit_Framework_TestCase {
+class CryptoTest extends \PHPUnit\Framework\TestCase {
 
     public function testGenerateRandomKey() {
         $keyDefault = Crypto::generateRandomKey();
         $this->assertEquals( 256, strlen( $keyDefault ) * 8, 'Expected the default key length to be 256 bits' );
-        $this->assertInternalType( 'string', $keyDefault, 'Expected to return a binary string' );
+        $this->assertIsString( $keyDefault, 'Expected to return a binary string' );
 
         $key128 = Crypto::generateRandomKey( 128 );
         $this->assertEquals( 128, strlen( $key128 ) * 8, 'Expected to return a random key of specified length (128 bits)' );

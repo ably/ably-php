@@ -6,12 +6,12 @@ use Ably\Exceptions\AblyException;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
-class TypesTest extends \PHPUnit_Framework_TestCase {
+class TypesTest extends \PHPUnit\Framework\TestCase {
 
-    public static function setUpBeforeClass() {
+    public static function setUpBeforeClass(): void {
     }
 
-    public static function tearDownAfterClass() {
+    public static function tearDownAfterClass(): void {
     }
 
     protected function verifyClassMembers( $class, $expectedMembers ) {

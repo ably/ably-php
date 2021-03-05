@@ -22,12 +22,12 @@ class HttpMockIdempotent extends Http {
 }
 
 
-class ChannelIdempotentTest extends \PHPUnit_Framework_TestCase {
+class ChannelIdempotentTest extends \PHPUnit\Framework\TestCase {
     protected static $testApp;
     protected static $defaultOptions;
     protected static $ably;
 
-    public static function setUpBeforeClass() {
+    public static function setUpBeforeClass(): void {
         self::$testApp = new TestApp();
         self::$defaultOptions = self::$testApp->getOptions();
         self::$ably = new AblyRest( array_merge( self::$defaultOptions, [
@@ -36,7 +36,7 @@ class ChannelIdempotentTest extends \PHPUnit_Framework_TestCase {
         ] ) );
     }
 
-    public static function tearDownAfterClass() {
+    public static function tearDownAfterClass(): void {
         self::$testApp->release();
     }
 
@@ -76,12 +76,12 @@ class ChannelIdempotentTest extends \PHPUnit_Framework_TestCase {
 
         $id = explode ( ":", $body->id);
         $this->assertEquals( count($id), 2);
-        $this->assertGreaterThanOrEqual( base64_decode($id[0]), 9);
+        $this->assertGreaterThanOrEqual( 9, strlen(base64_decode($id[0])) );
         $this->assertEquals( $id[1], "0");
 
         $channel->publish($msg);
         $messages = $channel->history();
-        $this->assertEquals(count($messages->items), 1);
+        $this->assertEquals(1, count($messages->items));
         $this->assertEquals($messages->items[0]->id, $msg->id);
     }
 

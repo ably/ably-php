@@ -1,9 +1,9 @@
 <?php
 namespace tests;
 use Ably\AblyRest;
+use Ably\Exceptions\AblyException;
 use Ably\Models\PushChannelSubscription;
 use Ably\Models\PaginatedResult;
-use Ably\Exceptions\AblyException;
 
 require_once __DIR__ . '/factories/TestApp.php';
 require_once __DIR__ . '/Utils.php';
@@ -26,12 +26,12 @@ function deviceData () {
 }
 
 
-class PushChannelSubscriptionsTest extends \PHPUnit_Framework_TestCase {
+class PushChannelSubscriptionsTest extends \PHPUnit\Framework\TestCase {
     protected static $testApp;
     protected static $defaultOptions;
     protected static $ably;
 
-    public static function setUpBeforeClass() {
+    public static function setUpBeforeClass(): void {
         self::$testApp = new TestApp();
         self::$defaultOptions = self::$testApp->getOptions();
         self::$ably = new AblyRest( array_merge( self::$defaultOptions, [
@@ -39,7 +39,7 @@ class PushChannelSubscriptionsTest extends \PHPUnit_Framework_TestCase {
         ] ) );
     }
 
-    public static function tearDownAfterClass() {
+    public static function tearDownAfterClass(): void {
         self::$testApp->release();
     }
 
@@ -179,9 +179,9 @@ class PushChannelSubscriptionsTest extends \PHPUnit_Framework_TestCase {
 
     /**
      * @dataProvider badValues
-     * @expectedException Ably\Exceptions\AblyException
      */
     public function testSaveInvalid($data) {
+        $this->expectException(AblyException::class);
         self::$ably->push->admin->channelSubscriptions->save($data);
     }
 

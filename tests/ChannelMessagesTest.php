@@ -10,12 +10,12 @@ use Ably\Utils\Crypto;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
-class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
+class ChannelMessagesTest extends \PHPUnit\Framework\TestCase {
     protected static $testApp;
     protected static $defaultOptions;
     protected static $ably;
 
-    public static function setUpBeforeClass() {
+    public static function setUpBeforeClass(): void {
         self::$testApp = new TestApp();
         self::$defaultOptions = self::$testApp->getOptions();
         self::$ably = new AblyRest( array_merge( self::$defaultOptions, [
@@ -23,7 +23,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
         ] ) );
     }
 
-    public static function tearDownAfterClass() {
+    public static function tearDownAfterClass(): void {
         self::$testApp->release();
     }
 
@@ -204,54 +204,44 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
     /**
      * Verify that publishing invalid types fails
      */
-    public function testInvalidTypes() {
+    public function testInvalidTypesInt() {
         $channel = self::$ably->channel( 'invalidTypes' );
-        
         $msg = new Message();
         $msg->name = 'int';
         $msg->data = 81403;
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40003);
+        $channel->publish( $msg );
+    }
 
-        try {
-            $channel->publish( $msg );
-            $this->fail( 'Expected an exception' );
-        } catch (AblyException $e) {
-            if ( $e->getCode() != 40003 ) $this->fail('Expected exception error code 40003');
-        }
-
+    public function testInvalidTypesBool() {
+        $channel = self::$ably->channel( 'invalidTypes' );
         $msg = new Message();
         $msg->name = 'bool';
         $msg->data = true;
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40003);
+        $channel->publish( $msg );
+    }
 
-        try {
-            $channel->publish( $msg );
-            $this->fail( 'Expected an exception' );
-        } catch (AblyException $e) {
-            if ( $e->getCode() != 40003 ) $this->fail('Expected exception error code 40003');
-        }
-
+    public function testInvalidTypesFloat() {
+        $channel = self::$ably->channel( 'invalidTypes' );
         $msg = new Message();
         $msg->name = 'float';
         $msg->data = 42.23;
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40003);
+        $channel->publish( $msg );
+    }
 
-        try {
-            $channel->publish( $msg );
-            $this->fail( 'Expected an exception' );
-        } catch (AblyException $e) {
-            if ( $e->getCode() != 40003 ) $this->fail('Expected exception error code 40003');
-        }
-
+    public function testInvalidTypesFunction() {
+        $channel = self::$ably->channel( 'invalidTypes' );
         $msg = new Message();
         $msg->name = 'function';
-        $msg->data = function($param) {
-            return "mock function";
-        };
-
-        try {
-            $channel->publish( $msg );
-            $this->fail( 'Expected an exception' );
-        } catch (AblyException $e) {
-            if ( $e->getCode() != 40003 ) $this->fail('Expected exception error code 40003');
-        }
+        $msg->data = function($param) { return "mock function"; };
+        $this->expectException(AblyException::class);
+        $this->expectExceptionCode(40003);
+        $channel->publish( $msg );
     }
 
     /**
@@ -259,7 +249,7 @@ class ChannelMessagesTest extends \PHPUnit_Framework_TestCase {
      */
     public function testTooLargeMessage() {
         $channel = self::$ably->channel( 'huge' );
-        
+
         $msg = new Message();
         $msg->name = 'huge';
         $msg->data = str_repeat("~", 128 * 1024); // 128 kilobytes + message JSON

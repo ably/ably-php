@@ -1,9 +1,10 @@
 <?php
 namespace tests;
 use Ably\AblyRest;
+use Ably\Exceptions\AblyException;
+use Ably\Exceptions\AblyRequestException;
 use Ably\Models\DeviceDetails;
 use Ably\Models\PaginatedResult;
-use Ably\Exceptions\AblyException;
 
 require_once __DIR__ . '/factories/TestApp.php';
 require_once __DIR__ . '/Utils.php';
@@ -26,12 +27,12 @@ function data () {
 }
 
 
-class PushDeviceRegistrationsTest extends \PHPUnit_Framework_TestCase {
+class PushDeviceRegistrationsTest extends \PHPUnit\Framework\TestCase {
     protected static $testApp;
     protected static $defaultOptions;
     protected static $ably;
 
-    public static function setUpBeforeClass() {
+    public static function setUpBeforeClass(): void {
         self::$testApp = new TestApp();
         self::$defaultOptions = self::$testApp->getOptions();
         self::$ably = new AblyRest( array_merge( self::$defaultOptions, [
@@ -39,7 +40,7 @@ class PushDeviceRegistrationsTest extends \PHPUnit_Framework_TestCase {
         ] ) );
     }
 
-    public static function tearDownAfterClass() {
+    public static function tearDownAfterClass(): void {
         self::$testApp->release();
     }
 
@@ -143,9 +144,9 @@ class PushDeviceRegistrationsTest extends \PHPUnit_Framework_TestCase {
 
     /**
      * @dataProvider badValues
-     * @expectedException Ably\Exceptions\AblyRequestException
      */
     public function testSaveInvalid($data) {
+        $this->expectException(AblyRequestException::class);
         self::$ably->push->admin->deviceRegistrations->save($data);
     }
 
