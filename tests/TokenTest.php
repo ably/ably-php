@@ -6,7 +6,7 @@ use Ably\Exceptions\AblyException;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
-class TokenTest extends \PHPUnit_Framework_TestCase {
+class TokenTest extends \PHPUnit\Framework\TestCase {
 
     protected static $testApp;
     protected static $defaultOptions;
@@ -17,7 +17,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
     protected static $tokenParams = [];
     protected static $defaultTTLms = 3600000; // 1 hour in milliseconds
 
-    public static function setUpBeforeClass() {
+    public static function setUpBeforeClass(): void {
         self::$testApp = new TestApp();
         self::$defaultOptions = self::$testApp->getOptions();
         self::$ably = new AblyRest( array_merge( self::$defaultOptions, [
@@ -27,7 +27,7 @@ class TokenTest extends \PHPUnit_Framework_TestCase {
         self::$capabilityAll = json_decode(json_encode(['*' => ['*']]));
     }
 
-    public static function tearDownAfterClass() {
+    public static function tearDownAfterClass(): void {
         self::$testApp->release();
     }
 

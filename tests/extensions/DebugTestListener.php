@@ -1,21 +1,28 @@
 <?php
-class DebugTestListener extends PHPUnit_Framework_BaseTestListener {
+use PHPUnit\Framework\TestListener;
+use PHPUnit\Framework\TestListenerDefaultImplementation;
 
-    public function startTestSuite(PHPUnit_Framework_TestSuite $suite)
+final class DebugTestListener implements TestListener
+{
+    use TestListenerDefaultImplementation;
+
+    public function startTestSuite(PHPUnit\Framework\TestSuite $suite): void
     {
         echo "Suite \"" . $suite->getName() . "\"\n";
     }
 
-    public function endTestSuite(PHPUnit_Framework_TestSuite $suite)
+    public function endTestSuite(PHPUnit\Framework\TestSuite $suite): void
     {
         echo "\n\n";
     }
     
-    public function startTest(PHPUnit_Framework_Test $test) {
+    public function startTest(PHPUnit\Framework\Test $test): void
+    {
         echo "\n" . $test->getName().'... ';
     }
 
-    public function endTest(PHPUnit_Framework_Test $test, $time) {
+    public function endTest(PHPUnit\Framework\Test $test, $time): void
+    {
         echo "(" . round($time * 1000) . " ms)";
     }
 }

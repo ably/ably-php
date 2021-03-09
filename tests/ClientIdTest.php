@@ -7,17 +7,17 @@ use Ably\Exceptions\AblyException;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
-class ClientIdTest extends \PHPUnit_Framework_TestCase {
+class ClientIdTest extends \PHPUnit\Framework\TestCase {
 
     protected static $testApp;
     protected static $defaultOptions;
 
-    public static function setUpBeforeClass() {
+    public static function setUpBeforeClass(): void {
         self::$testApp = new TestApp();
         self::$defaultOptions = self::$testApp->getOptions();
     }
 
-    public static function tearDownAfterClass() {
+    public static function tearDownAfterClass(): void {
         self::$testApp->release();
     }
 

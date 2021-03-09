@@ -5,9 +5,9 @@ use Ably\Log;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
-class LogTest extends \PHPUnit_Framework_TestCase {
+class LogTest extends \PHPUnit\Framework\TestCase {
 
-    public static function tearDownAfterClass() {
+    public static function tearDownAfterClass(): void {
         // ensure the logger is reset to default
         $ably = new AblyRest( [
             'key' => 'fake.key:totallyFake'
@@ -37,21 +37,11 @@ class LogTest extends \PHPUnit_Framework_TestCase {
 
         $this->logMessages();
 
-        if (strpos($out, 'This is a test warning.') === false) {
-            $this->fail('Expected warning level to be logged.');
-        }
-
-        if (strpos($out, 'This is a test error.') === false) {
-            $this->fail('Expected error level to be logged.');
-        }
-
-        if (strpos($out, 'This is a test verbose message.') !== false) {
-            $this->fail('Expected verbose level NOT to be logged.');
-        }
-
-        if (strpos($out, 'This is a test debug message.') !== false) {
-            $this->fail('Expected debug level NOT to be logged.');
-        }
+        $this->assertIsInt( strpos($out, 'This is a test warning.'), 'Expected warning level to be logged.' );
+        $this->assertIsInt( strpos($out, 'This is a test error.'), 'Expected error level to be logged.' );
+        $this->assertFalse( strpos($out, 'This is a test verbose message.'),
+                            'Expected verbose level NOT to be logged.' );
+        $this->assertFalse( strpos($out, 'This is a test debug message.'), 'Expected debug level NOT to be logged.' );
     }
 
     /**
@@ -71,21 +61,10 @@ class LogTest extends \PHPUnit_Framework_TestCase {
         $ably = new AblyRest( $opts );
         $this->logMessages();
         
-        if (strpos($out, 'This is a test warning.') === false) {
-            $this->fail('Expected warning level to be logged.');
-        }
-
-        if (strpos($out, 'This is a test error.') === false) {
-            $this->fail('Expected error level to be logged.');
-        }
-
-        if (strpos($out, 'This is a test verbose message.') === false) {
-            $this->fail('Expected verbose level to be logged.');
-        }
-
-        if (strpos($out, 'This is a test debug message.') === false) {
-            $this->fail('Expected debug level to be logged.');
-        }
+        $this->assertIsInt( strpos($out, 'This is a test warning.'), 'Expected warning level to be logged.' );
+        $this->assertIsInt( strpos($out, 'This is a test error.'), 'Expected error level to be logged.' );
+        $this->assertIsInt( strpos($out, 'This is a test verbose message.'), 'Expected verbose level to be logged.' );
+        $this->assertIsInt( strpos($out, 'This is a test debug message.'), 'Expected debug level to be logged.' );
     }
 
     /**

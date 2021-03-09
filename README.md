@@ -9,7 +9,7 @@ A PHP REST client library for [www.ably.io](https://www.ably.io), the realtime m
 
 ## Supported Platforms
 
-This SDK supports PHP 5.6 and 7.0+
+This SDK supports PHP 7.2+ and 8.0
 
 We regression-test the library against a selection of PHP versions (which will change over time, but usually consists of the versions that are supported upstream). Please refer to [the check workflow](.github/workflows/check.yml) for the set of versions that currently undergo CI testing.
 
