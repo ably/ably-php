@@ -1,5 +1,32 @@
 # Change Log
 
+## [1.1.4](https://github.com/ably/ably-php/tree/1.1.4) (2021-03-10)
+[Full Changelog](https://github.com/ably/ably-php/compare/1.1.3...1.1.4)
+
+**Implemented enhancements:**
+
+- PHP 8.0 support [\#88](https://github.com/ably/ably-php/issues/88)
+- Support Channel\#publish\(Message, params\) [\#83](https://github.com/ably/ably-php/issues/83)
+
+**Fixed bugs:**
+
+- Need to support Push payloads in  publish\(\) [\#82](https://github.com/ably/ably-php/issues/82)
+
+**Closed issues:**
+
+- Trying to get property 'items' of non-object [\#92](https://github.com/ably/ably-php/issues/92)
+
+**Merged pull requests:**
+
+- Support PHP 8.0; Drop 5.6, 7.0 & 7.1 [\#96](https://github.com/ably/ably-php/pull/96) ([jdavid](https://github.com/jdavid))
+- Fix test case in local environment [\#95](https://github.com/ably/ably-php/pull/95) ([jdavid](https://github.com/jdavid))
+- Amend workflow branch name [\#94](https://github.com/ably/ably-php/pull/94) ([owenpearson](https://github.com/owenpearson))
+- Fix parsePaginationHeaders [\#93](https://github.com/ably/ably-php/pull/93) ([jdavid](https://github.com/jdavid))
+- Replace Travis with GitHub workflow [\#91](https://github.com/ably/ably-php/pull/91) ([QuintinWillison](https://github.com/QuintinWillison))
+- Add maintainers file [\#90](https://github.com/ably/ably-php/pull/90) ([niksilver](https://github.com/niksilver))
+- Rename master to main [\#86](https://github.com/ably/ably-php/pull/86) ([QuintinWillison](https://github.com/QuintinWillison))
+- RSH1b2 list pagination, test next\(\) [\#81](https://github.com/ably/ably-php/pull/81) ([jdavid](https://github.com/jdavid))
+
 ## [1.1.3](https://github.com/ably/ably-php/tree/1.1.3) (2019-10-04)
 [Full Changelog](https://github.com/ably/ably-php/compare/1.1.2...1.1.3)
 
