@@ -368,6 +368,9 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
 
     /**
      * Verify accuracy of time (to within 2 seconds of actual time)
+     *
+     * RSC16 RestClient#time function sends a get request to rest.ably.io/time
+     * and returns the server time in milliseconds since epoch
      */
     public function testTimeAndAccuracy() {
         $opts = [
@@ -375,11 +378,13 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
         ];
         $ably = new AblyRest( $opts );
 
-        $reportedTime = intval($ably->time());
-        $actualTime = intval(microtime(true)*1000);
+        $time = $ably->time();
+        $this->assertIsInt( $time );
 
-        $this->assertTrue( abs($reportedTime - $actualTime) < 2000,
-            'The time difference was larger than 2000ms: ' . ($reportedTime - $actualTime) .'. Please check your system clock.' );
+        $systemTime = $ably->systemTime();
+        $this->assertIsInt( $systemTime );
+
+        $this->assertLessThan ( 2000, abs($time - $systemTime) );
     }
 
     /**

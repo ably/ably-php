@@ -343,48 +343,59 @@ class AuthTest extends \PHPUnit\Framework\TestCase {
             'queryTime' => true,
         ];
 
-        $tokenReqLib = $ablyKey->auth->createTokenRequest();
-        $this->assertEquals([
-            'ttl' => 1000000,
-            'capability' => '{"test":"dtp"}',
-            'clientId' =>  'libClientId',
-            'keyName' => self::$testApp->getAppKeyDefault()->name,
-        ], $this->stripTokenRequestVariableParams($tokenReqLib), 'Unexpected values in TokenRequest built from ClientOptions');
-        $this->assertNotNull( $tokenReqLib->mac, 'Expected hmac to be generated' );
+        $tokenRequest = $ablyKey->auth->createTokenRequest();
+        $this->assertIsInt( $tokenRequest->timestamp );
+        $this->assertEquals(
+            [
+                'ttl' => 1000000,
+                'capability' => '{"test":"dtp"}',
+                'clientId' =>  'libClientId',
+                'keyName' => self::$testApp->getAppKeyDefault()->name,
+            ],
+            $this->stripTokenRequestVariableParams($tokenRequest));
+
+        $this->assertNotNull( $tokenRequest->mac, 'Expected hmac to be generated' );
         $this->assertFalse( $ablyKey->http->timeQueried, 'Expected server NOT to be queried for time' );
 
-        $tokenReqTokenParams = $ablyKey->auth->createTokenRequest($tokenParamsOverride);
-        $this->assertEquals([
-            'ttl' => 2000000,
-            'capability' => '{"test":"tp"}',
-            'clientId' =>  'tokenParamsClientId',
-            'keyName' => self::$testApp->getAppKeyDefault()->name,
-        ], $this->stripTokenRequestVariableParams($tokenReqTokenParams), 'Unexpected values in TokenRequest built from ClientOptions + TokenParams');
-        $this->assertNotNull( $tokenReqTokenParams->mac, 'Expected hmac to be generated' );
+        $tokenRequest = $ablyKey->auth->createTokenRequest($tokenParamsOverride);
+        $this->assertIsInt( $tokenRequest->timestamp );
+        $this->assertEquals(
+            [
+                'ttl' => 2000000,
+                'capability' => '{"test":"tp"}',
+                'clientId' =>  'tokenParamsClientId',
+                'keyName' => self::$testApp->getAppKeyDefault()->name,
+            ],
+            $this->stripTokenRequestVariableParams($tokenRequest));
+        $this->assertNotNull( $tokenRequest->mac, 'Expected hmac to be generated' );
         $this->assertFalse( $ablyKey->http->timeQueried, 'Expected server NOT to be queried for time' );
 
         $tokenReqAuthOptions = $ablyKey->auth->createTokenRequest([], $authOptionsOverride);
-        $this->assertEquals([
-            'ttl' => 1000000,
-            'capability' => '{"test":"dtp"}',
-            'clientId' => 'authOptionsClientId',
-            'keyName' => 'testKey.Name',
-        ], $this->stripTokenRequestVariableParams($tokenReqAuthOptions), 'Unexpected values in TokenRequest built from ClientOptions + AuthOptions');
+        $this->assertIsInt( $tokenRequest->timestamp );
+        $this->assertEquals(
+            [
+                'ttl' => 1000000,
+                'capability' => '{"test":"dtp"}',
+                'clientId' => 'authOptionsClientId',
+                'keyName' => 'testKey.Name',
+            ],
+            $this->stripTokenRequestVariableParams($tokenReqAuthOptions));
         $this->assertNotNull( $tokenReqAuthOptions->mac, 'Expected hmac to be generated' );
         $this->assertTrue( $ablyKey->http->timeQueried, 'Expected server to be queried for time' );
         $ablyKey->http->timeQueried = false;
 
-        $tokenReqTokenParamsAuthOptions = $ablyKey->auth->createTokenRequest($tokenParamsOverride, $authOptionsOverride);
+        $tokenRequest = $ablyKey->auth->createTokenRequest($tokenParamsOverride, $authOptionsOverride);
+        $this->assertIsInt( $tokenRequest->timestamp );
         $this->assertEquals(
             [
                 'ttl' => 2000000,
                 'capability' => '{"test":"tp"}',
                 'clientId' =>  'tokenParamsClientId',
                 'keyName' => 'testKey.Name',
-            ], $this->stripTokenRequestVariableParams($tokenReqTokenParamsAuthOptions),
+            ], $this->stripTokenRequestVariableParams($tokenRequest),
             'Unexpected values in TokenRequest built from ClientOptions + TokenParams + AuthOptions'
         );
-        $this->assertNotNull( $tokenReqTokenParamsAuthOptions->mac, 'Expected hmac to be generated' );
+        $this->assertNotNull( $tokenRequest->mac, 'Expected hmac to be generated' );
         $this->assertTrue( $ablyKey->http->timeQueried, 'Expected server to be queried for time' );
         $ablyKey->http->timeQueried = false;
     }

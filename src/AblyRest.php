@@ -100,7 +100,7 @@ class AblyRest {
      * @return integer system time in milliseconds
      */
     public function systemTime() {
-        return round( microtime(true) * 1000 );
+        return intval( round( microtime(true) * 1000 ) );
     }
 
     /**
