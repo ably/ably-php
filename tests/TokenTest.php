@@ -43,8 +43,10 @@ class TokenTest extends \PHPUnit\Framework\TestCase {
             && ($tokenDetails->issued <= $requestTime + self::$errorMarginMs),
             'Unexpected issued time'
         );
-        $this->assertEquals( $tokenDetails->issued + self::$defaultTTLms, $tokenDetails->expires, 'Unexpected expires time' );
-        $this->assertEquals( self::$capabilityAll, json_decode($tokenDetails->capability), 'Unexpected default capability' );
+        $this->assertEquals( $tokenDetails->issued + self::$defaultTTLms, $tokenDetails->expires,
+                             'Unexpected expires time' );
+        $this->assertEquals( self::$capabilityAll, json_decode($tokenDetails->capability),
+                             'Unexpected default capability' );
     }
 
     /**
@@ -62,7 +64,8 @@ class TokenTest extends \PHPUnit\Framework\TestCase {
             && ($tokenDetails->issued <= $requestTime + self::$errorMarginMs),
             'Unexpected issued time'
         );
-        $this->assertEquals( $tokenDetails->issued + self::$defaultTTLms, $tokenDetails->expires, 'Unexpected expires time' );
+        $this->assertEquals( $tokenDetails->issued + self::$defaultTTLms, $tokenDetails->expires,
+                             'Unexpected expires time' );
         $this->assertEquals( self::$capabilityAll, json_decode($tokenDetails->capability), 'Unexpected capability' );
     }
 
@@ -93,7 +96,8 @@ class TokenTest extends \PHPUnit\Framework\TestCase {
             && ($tokenDetails->issued <= $requestTime + self::$errorMarginMs),
             'Unexpected issued time'
         );
-        $this->assertEquals( $tokenDetails->issued + self::$defaultTTLms, $tokenDetails->expires, 'Unexpected expires time' );
+        $this->assertEquals( $tokenDetails->issued + self::$defaultTTLms, $tokenDetails->expires,
+                             'Unexpected expires time' );
         $this->assertEquals( self::$capabilityAll, json_decode($tokenDetails->capability), 'Unexpected capability' );
     }
 
@@ -112,7 +116,8 @@ class TokenTest extends \PHPUnit\Framework\TestCase {
             && ($tokenDetails->issued <= $requestTime + self::$errorMarginMs),
             'Unexpected issued time'
         );
-        $this->assertEquals( $tokenDetails->issued + self::$defaultTTLms, $tokenDetails->expires, 'Unexpected expires time' );
+        $this->assertEquals( $tokenDetails->issued + self::$defaultTTLms, $tokenDetails->expires,
+                             'Unexpected expires time' );
         $this->assertEquals( self::$capabilityAll, json_decode($tokenDetails->capability), 'Unexpected capability' );
         $this->assertEquals( $tokenParams['clientId'], $tokenDetails->clientId, 'Unexpected clientId' );
     }

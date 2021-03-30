@@ -12,7 +12,8 @@ use Ably\Exceptions\AblyException;
 
 /**
  * Provides authentification methods for AblyRest instances
- * @property-read string|null $clientId ClientId currently in use. Null if not authenticated yet or when using anonymous auth.
+ * @property-read string|null $clientId ClientId currently in use. Null if not
+ * authenticated yet or when using anonymous auth.
  */
 class Auth {
     protected $defaultAuthOptions;
@@ -29,7 +30,10 @@ class Auth {
         $this->defaultTokenParams = $options->defaultTokenParams;
         $this->ably = $ably;
 
-        if ( empty( $this->defaultAuthOptions->useTokenAuth ) && $this->defaultAuthOptions->key && empty( $this->defaultAuthOptions->clientId ) ) {
+        if ( empty( $this->defaultAuthOptions->useTokenAuth ) &&
+             $this->defaultAuthOptions->key &&
+             empty( $this->defaultAuthOptions->clientId )
+        ) {
             $this->basicAuth = true;
             Log::d( 'Auth: anonymous, using basic auth' );
 
@@ -58,7 +62,7 @@ class Auth {
         $this->tokenDetails = $this->defaultAuthOptions->tokenDetails;
 
         if ( $this->defaultAuthOptions->clientId == '*' ) {
-            throw new AblyException ( 'Instantiating AblyRest with a wildcard clientId (`*`) not allowed.', 40003, 400 );
+            throw new AblyException ('Instantiating AblyRest with a wildcard clientId (`*`) not allowed.', 40003, 400);
         }
     }
 

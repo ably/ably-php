@@ -17,7 +17,8 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
     protected function verifyClassMembers( $class, $expectedMembers ) {
         $valid = true;
         foreach( $expectedMembers as $member ) {
-            $this->assertTrue( property_exists( $class, $member ), "Expected class `$class` to contain a field named `$member`." );
+            $this->assertTrue( property_exists( $class, $member ),
+                               "Expected class `$class` to contain a field named `$member`." );
         }
     }
 
