@@ -30,10 +30,14 @@ class Auth {
         $this->defaultTokenParams = $options->defaultTokenParams;
         $this->ably = $ably;
 
-        if ( empty( $this->defaultAuthOptions->useTokenAuth ) &&
-             $this->defaultAuthOptions->key &&
-             empty( $this->defaultAuthOptions->clientId )
-        ) {
+        $this->basicAuth = empty( $this->defaultAuthOptions->useTokenAuth ) && $this->defaultAuthOptions->key;
+
+        if ( $this->defaultAuthOptions->key && $this->defaultAuthOptions->clientId == '*' ) {
+            throw new AblyException ('Instantiating AblyRest with a wildcard clientId (`*`) not allowed.', 40012, 400);
+        }
+
+        // Basic authentication
+        if ( $this->basicAuth ) {
             $this->basicAuth = true;
             Log::d( 'Auth: anonymous, using basic auth' );
 
@@ -44,9 +48,8 @@ class Auth {
             return;
         }
 
-        $this->basicAuth = false;
-
-        if(!empty( $this->defaultAuthOptions->authCallback )) {
+        // Token authentication
+        if (!empty( $this->defaultAuthOptions->authCallback )) {
             Log::d( 'Auth: using token auth with authCallback' );
         } else if(!empty( $this->defaultAuthOptions->authUrl )) {
             Log::d( 'Auth: using token auth with authUrl' );
@@ -60,10 +63,6 @@ class Auth {
         }
 
         $this->tokenDetails = $this->defaultAuthOptions->tokenDetails;
-
-        if ( $this->defaultAuthOptions->clientId == '*' ) {
-            throw new AblyException ('Instantiating AblyRest with a wildcard clientId (`*`) not allowed.', 40003, 400);
-        }
     }
 
     /**
@@ -159,7 +158,12 @@ class Auth {
             $headers[] = 'Authorization: Basic ' . base64_encode( $this->defaultAuthOptions->key );
         } else {
             $this->authorizeInternal( [], [], $force = false ); // authorize only if necessary
-            $headers[] = 'Authorization: Bearer '. base64_encode( $this->tokenDetails->token );
+            $headers[] = 'Authorization: Bearer ' . base64_encode( $this->tokenDetails->token );
+        }
+
+        // RSA7e2
+        if ( ! empty( $this->defaultAuthOptions->clientId ) ) {
+            $headers[] = 'X-Ably-ClientId: ' . base64_encode( $this->defaultAuthOptions->clientId );
         }
 
         return $headers;
