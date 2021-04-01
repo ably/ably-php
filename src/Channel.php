@@ -100,16 +100,6 @@ class Channel {
             $json = '[' . implode( ',', $jsonArray ) . ']';
         }
 
-        // if the message has a clientId set and we're using token based auth,
-        // the clientIds must match unless we're a wildcard client
-        $authClientId = $this->ably->auth->clientId;
-        if ( !empty( $msg->clientId ) && !$this->ably->auth->isUsingBasicAuth()
-             && $authClientId != '*' && $msg->clientId != $authClientId) {
-            throw new AblyException(
-                'Message\'s clientId does not match the clientId of the authorisation token.', 40102, 401
-            );
-        }
-
         return $json;
     }
 
