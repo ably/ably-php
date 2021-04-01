@@ -33,12 +33,15 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
         $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
 
         $ably->auth->authorize();
-        $this->assertEquals( 'testClientId', $ably->auth->clientId, 'Expected clientId result to match the provided id' );
-        $this->assertEquals( 'testClientId', $ably->auth->getTokenDetails()->clientId, 'Expected clientId in tokenDetails to match the provided id' );
+        $this->assertEquals( 'testClientId', $ably->auth->clientId,
+                             'Expected clientId result to match the provided id' );
+        $this->assertEquals( 'testClientId', $ably->auth->getTokenDetails()->clientId,
+                             'Expected clientId in tokenDetails to match the provided id' );
     }
 
     /**
-     * Init library with a key and a wildcard clientId; this should throw an exception as wildcard is not allowed here
+     * Init library with a key and a wildcard clientId; this should throw an
+     * exception as wildcard is not allowed here
      */
     public function testInitWithWildcardClientId() {
         $this->expectException(AblyException::class);
@@ -76,7 +79,8 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
 
         $ablyImplicitCId->auth->authorize();
 
-        $this->assertEquals( 'testClientId', $ablyImplicitCId->auth->clientId, 'Expected clientId to match after authorising' );
+        $this->assertEquals( 'testClientId', $ablyImplicitCId->auth->clientId,
+                             'Expected clientId to match after authorising' );
     }
 
     /**
@@ -94,7 +98,8 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
             'tokenDetails' => $wildcardToken,
         ] ) );
 
-        $this->assertEquals( '*', $ablyWildcard->auth->getTokenDetails()->clientId, 'Expected tokenDetails clientId to be *' );
+        $this->assertEquals( '*', $ablyWildcard->auth->getTokenDetails()->clientId,
+                             'Expected tokenDetails clientId to be *' );
         $this->assertEquals( '*', $ablyWildcard->auth->clientId, 'Expected clientId to be *' );
 
         // test specified clientId specified in ClientOptions
@@ -138,7 +143,7 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
         $retrievedMsg = $keyChan->history()->items[0];
 
         $this->assertEquals( $clientId, $retrievedMsg->clientId, 'Expected clientIds to match');
-        
+
         $tokenChan = $ablyWildcard->channels->get( 'persisted:clientIdTestToken' );
         $tokenChan->publish( $msg );
         $retrievedMsg = $tokenChan->history()->items[0];
@@ -158,7 +163,8 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
             'clientId' => $clientId,
         ] ) );
 
-        $this->assertEquals( $clientId, $ablyCId->auth->clientId, 'Expected a token with specified clientId to be used' );
+        $this->assertEquals( $clientId, $ablyCId->auth->clientId,
+                             'Expected a token with specified clientId to be used' );
 
         $msg = new Message();
         $msg->data = 'test';
@@ -169,7 +175,8 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
 
         $this->assertEquals( $clientId, $retrievedMsg->clientId, 'Expected clientIds to match');
         $this->assertFalse( $ablyCId->auth->isUsingBasicAuth(), 'Expected library to switch to token auth');
-        $this->assertEquals( $clientId, $ablyCId->auth->getTokenDetails()->clientId, 'Expected auth token to be bound to the provided clientId');
+        $this->assertEquals( $clientId, $ablyCId->auth->getTokenDetails()->clientId,
+                             'Expected auth token to be bound to the provided clientId');
 
         $msg = new Message();
         $msg->data = 'test';
@@ -188,8 +195,10 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * (RSA7a4) When a clientId value is provided in both ClientOptions#clientId and ClientOptions#defaultTokenParams,
-     * the ClientOptions#clientId takes precendence and is used for all Auth operations 
+     * (RSA7a4) When a clientId value is provided in both
+     * ClientOptions#clientId and ClientOptions#defaultTokenParams, the
+     * ClientOptions#clientId takes precendence and is used for all Auth
+     * operations
      */
     public function testClientIdPrecedence() {
         $ablyCId = new AblyRest( array_merge( self::$defaultOptions, [
@@ -202,18 +211,20 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
         ] ) );
 
         $ablyCId->auth->authorize(); // obtain a token
-        $this->assertEquals( 'overriddenClientId', $ablyCId->auth->clientId, 'Expected defaultTokenParams to override provided clientId' );
+        $this->assertEquals( 'overriddenClientId', $ablyCId->auth->clientId,
+                             'Expected defaultTokenParams to override provided clientId' );
 
         $channel = $ablyCId->channels->get( 'persisted:testClientIdPrecedence' );
         $channel->publish( 'testEvent', 'testData' );
 
-        $this->assertEquals( 'overriddenClientId', $channel->history()->items[0]->clientId, 'Expected message clientId to match' );
+        $this->assertEquals( 'overriddenClientId', $channel->history()->items[0]->clientId,
+                             'Expected message clientId to match' );
     }
 
     /**
      * (RSA8f1) Request a token with a null value clientId, authenticate a client with the token,
      * publish a message without an explicit clientId, and ensure the message published does not
-     * have a clientId. Check that Auth#clientId is null   
+     * have a clientId. Check that Auth#clientId is null
      */
     public function testRSA8f1() {
         $ablyMain = new AblyRest( array_merge( self::$defaultOptions, [
@@ -236,7 +247,7 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
 
     /**
      * (RSA8f2) Request a token with a null value clientId, authenticate a client with the token,
-     * publish a message with an explicit clientId value, and ensure that the message is rejected    
+     * publish a message with an explicit clientId value, and ensure that the message is rejected
      */
     public function testRSA8f2() {
         $ablyMain = new AblyRest( array_merge( self::$defaultOptions, [
@@ -299,7 +310,8 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
         $channel = $ablyClient->channels->get( 'persisted:RSA8f4' );
         $channel->publish( 'testEvent', 'testData', 'testClientId' );
 
-        $this->assertEquals( 'testClientId', $channel->history()->items[0]->clientId, 'Expected message clientId to match' );
+        $this->assertEquals( 'testClientId', $channel->history()->items[0]->clientId,
+                             'Expected message clientId to match' );
         $this->assertEquals( 'testData', $channel->history()->items[0]->data, 'Expected message payload to match' );
     }
 }

@@ -84,7 +84,7 @@ class Channel {
         if ($emptyId && $this->ably->options->idempotentRestPublishing) {
             $baseId = base64_encode( openssl_random_pseudo_bytes(12) );
             foreach ( $messages as $key => $msg ) {
-              $msg->id = $baseId . ":" . $key;
+                $msg->id = $baseId . ":" . $key;
             }
         }
 

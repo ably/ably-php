@@ -100,7 +100,7 @@ class AblyRest {
      * @return integer system time in milliseconds
      */
     public function systemTime() {
-        return round( microtime(true) * 1000 );
+        return intval( round( microtime(true) * 1000 ) );
     }
 
     /**
@@ -145,10 +145,13 @@ class AblyRest {
      * @param array|string $params Array of parameters to submit or a JSON string
      * @param boolean $returnHeaders if true, returns both headers and body as array, otherwise returns just body
      * @param boolean $auth if authentication headers should be automatically injected
-     * @return mixed either array with 'headers' and 'body' fields or just body, depending on $returnHeaders, body is automatically decoded
+     * @return mixed either array with 'headers' and 'body' fields or just
+     *         body, depending on $returnHeaders, body is automatically decoded
      * @throws AblyRequestException if the request fails
      */
-    public function requestInternal( $method, $path, $headers = [], $params = [], $returnHeaders = false, $auth = true ) {
+    public function requestInternal( $method, $path, $headers = [], $params = [], $returnHeaders = false,
+                                     $auth = true ) {
+
         $mergedHeaders = array_merge( [
             'Accept', 'application/json',
             'X-Ably-Version' => self::API_VERSION,
@@ -175,7 +178,8 @@ class AblyRest {
                 $res = $this->http->request( $method, $server . $path, $mergedHeaders, $params );
             }
         } catch (AblyRequestException $e) {
-            // check if the exception was caused by an expired token = authorised request + using token auth + specific error message
+            // check if the exception was caused by an expired
+            // token = authorised request + using token auth + specific error message
             $res = $e->getResponse();
 
             $causedByExpiredToken = $auth
@@ -189,7 +193,7 @@ class AblyRest {
                 // merge headers now and use auth = false to prevent potential endless recursion
                 $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $headers );
 
-                return $this->requestInternal( $method, $path, $mergedHeaders, $params, $returnHeaders, $auth = false );
+                return $this->requestInternal($method, $path, $mergedHeaders, $params, $returnHeaders, $auth = false);
             } else {
                 throw $e;
             }
