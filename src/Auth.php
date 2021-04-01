@@ -33,7 +33,7 @@ class Auth {
         $this->basicAuth = empty( $this->defaultAuthOptions->useTokenAuth ) && $this->defaultAuthOptions->key;
 
         if ( $this->defaultAuthOptions->key && $this->defaultAuthOptions->clientId == '*' ) {
-            throw new AblyException ('Instantiating AblyRest with a wildcard clientId (`*`) not allowed.', 40003, 400);
+            throw new AblyException ('Instantiating AblyRest with a wildcard clientId (`*`) not allowed.', 40012, 400);
         }
 
         // Basic authentication

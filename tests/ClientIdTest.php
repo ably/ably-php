@@ -46,7 +46,7 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
      */
     public function testInitWithWildcardClientId() {
         $this->expectException(AblyException::class);
-        $this->expectExceptionCode(40003);
+        $this->expectExceptionCode(40012);
 
         $ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key'      => self::$testApp->getAppKeyDefault()->string,
