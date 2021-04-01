@@ -30,7 +30,7 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
             'clientId' => 'testClientId',
         ] ) );
 
-        $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
+        $this->assertTrue( $ably->auth->isUsingBasicAuth(), 'Expected basic auth to be used' );
 
         $ably->auth->authorize();
         $this->assertEquals( 'testClientId', $ably->auth->clientId,
@@ -40,8 +40,9 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * Init library with a key and a wildcard clientId; this should throw an
-     * exception as wildcard is not allowed here
+     * (RSA7c) A clientId provided in the ClientOptions when instancing the
+     * library must be either null or a string, and cannot contain only a
+     * wildcard '*' string value as that client ID value is reserved
      */
     public function testInitWithWildcardClientId() {
         $this->expectException(AblyException::class);
@@ -141,13 +142,11 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
         $keyChan = $ablyKey->channels->get( 'persisted:clientIdTestKey' );
         $keyChan->publish( $msg );
         $retrievedMsg = $keyChan->history()->items[0];
-
         $this->assertEquals( $clientId, $retrievedMsg->clientId, 'Expected clientIds to match');
 
         $tokenChan = $ablyWildcard->channels->get( 'persisted:clientIdTestToken' );
         $tokenChan->publish( $msg );
         $retrievedMsg = $tokenChan->history()->items[0];
-
         $this->assertEquals( $clientId, $retrievedMsg->clientId, 'Expected clientIds to match');
     }
 
@@ -161,6 +160,7 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
         $ablyCId = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
             'clientId' => $clientId,
+            'useTokenAuth' => true,
         ] ) );
 
         $this->assertEquals( $clientId, $ablyCId->auth->clientId,
