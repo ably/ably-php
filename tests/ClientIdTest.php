@@ -190,7 +190,7 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
         $msg->clientId = 'DIFFERENT_clientId';
 
         $this->expectException(AblyException::class);
-        $this->expectExceptionCode(40102);
+        $this->expectExceptionCode(40012);
         $channel->publish( $msg ); // mismatched clientIds, should throw an exception
     }
 
@@ -263,7 +263,7 @@ class ClientIdTest extends \PHPUnit\Framework\TestCase {
         $channel = $ablyClient->channels->get( 'persisted:RSA8f2' );
 
         $this->expectException(AblyException::class);
-        $this->expectExceptionCode(40102);
+        $this->expectExceptionCode(40012);
         $channel->publish( 'testEvent', 'testData', 'testClientId' );
     }
 

@@ -270,7 +270,9 @@ class Auth {
             $authHeaders = false
         );
 
-        if ( empty( $res->token ) ) { // just in case.. an AblyRequestException should be thrown on the previous step with a 4XX error code on failure
+        // just in case.. an AblyRequestException should be thrown on the
+        // previous step with a 4XX error code on failure
+        if ( empty( $res->token ) ) {
             throw new AblyException( 'Failed to get a token', 40100, 401 );
         }
 
