@@ -153,9 +153,9 @@ class AblyRest {
                                      $auth = true ) {
 
         $mergedHeaders = array_merge( [
-            'Accept', 'application/json',
-            'X-Ably-Version' => self::API_VERSION,
-            'X-Ably-Lib' => 'php-' . self::$libFlavour . self::LIB_VERSION,
+            'Accept: application/json',
+            'X-Ably-Version: ' . self::API_VERSION,
+            'X-Ably-Lib: php-' . self::$libFlavour . self::LIB_VERSION,
         ], $headers );
 
         if ( $auth ) { // inject auth headers
