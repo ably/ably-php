@@ -13,7 +13,7 @@ use Ably\Exceptions\AblyRequestException;
 class AblyRest {
 
     const API_VERSION = '1.1';
-    const LIB_VERSION = '1.1.4';
+    const LIB_VERSION = '1.1.5';
 
     public $options;
     protected static $libFlavour = '';
