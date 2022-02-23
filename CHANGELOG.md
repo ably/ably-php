@@ -1,5 +1,30 @@
 # Change Log
 
+## [1.1.4](https://github.com/ably/ably-php/tree/1.1.5) (2022-02-23)
+[Full Changelog](https://github.com/ably/ably-php/compare/1.1.4...1.1.5)
+
+**Fixed bugs:**
+
+- Using a clientId should no longer be forcing token auth in the 1.1 spec [\#74](https://github.com/ably/ably-php/issues/74)
+
+**Closed issues:**
+
+- ably php issue [\#131](https://github.com/ably/ably-php/issues/131)
+- Installing removes Symfony-Packages [\#106](https://github.com/ably/ably-php/issues/106)
+- Create code snippets for homepage \(php\) [\#105](https://github.com/ably/ably-php/issues/105)
+- The library should not be throwing an exception when a message is sent with different `clientId` from `auth.clientId` [\#101](https://github.com/ably/ably-php/issues/101)
+- TokenRequest: timestamp is integer in PHPDoc, string at runtime, Flutter expects int [\#99](https://github.com/ably/ably-php/issues/99)
+- Batch Mode, sending multiple messages to multiple channels [\#98](https://github.com/ably/ably-php/issues/98)
+
+**Merged pull requests:**
+
+- Fix setting X-Ably-\* and Accept headers [\#133](https://github.com/ably/ably-php/pull/133) ([lmars](https://github.com/lmars))
+- Add standard "About Ably" info to all public repos [\#130](https://github.com/ably/ably-php/pull/130) ([marklewin](https://github.com/marklewin))
+- RSL1m4 If clientId is different, error from server [\#103](https://github.com/ably/ably-php/pull/103) ([jdavid](https://github.com/jdavid))
+- Allow basic auth with clientId [\#102](https://github.com/ably/ably-php/pull/102) ([jdavid](https://github.com/jdavid))
+- Now TokenRequest.timestamp is an integer [\#100](https://github.com/ably/ably-php/pull/100) ([jdavid](https://github.com/jdavid))
+- Conform license and copyright [\#97](https://github.com/ably/ably-php/pull/97) ([QuintinWillison](https://github.com/QuintinWillison))
+
 ## [1.1.4](https://github.com/ably/ably-php/tree/1.1.4) (2021-03-10)
 [Full Changelog](https://github.com/ably/ably-php/compare/1.1.3...1.1.4)
 
