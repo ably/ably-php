@@ -94,6 +94,7 @@ class Http {
      * @return array with 'headers' and 'body' fields, body is automatically decoded
      */
     public function request( $method, $url, $headers = [], $params = [] ) {
+        $method = strtoupper($method);
 
         $ch = $this->curl->init($url);
         $this->curl->setOpt( $ch, CURLOPT_CUSTOMREQUEST, $method );
