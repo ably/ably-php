@@ -57,6 +57,12 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
         AblyRest::setLibraryFlavourString();
     }
 
+    /**
+     * Verify proper agent header is set as per RSC7d
+     */
+    public function testAblyAgentHeader() {
+
+    }
 
     /**
      * Verify that GET requests are encoded properly (using requestToken)
