@@ -5,7 +5,6 @@ use Ably\AblyRest;
 use Ably\Http;
 use Ably\Utils\CurlWrapper;
 use Ably\Models\Untyped;
-use SebastianBergmann\CodeCoverage\Report\PHP;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
