@@ -6,7 +6,7 @@ use Ably\Models\PaginatedResult;
 use Ably\Models\HttpPaginatedResponse;
 use Ably\Exceptions\AblyException;
 use Ably\Exceptions\AblyRequestException;
-
+use Ably\Utils\Miscellaneous;
 /**
  * Ably REST client
  */
@@ -18,10 +18,10 @@ class AblyRest {
     public $options;
     protected static $libFlavour = '';
 
-    public static function ablyAgentHeader()
+    static function ablyAgentHeader()
     {
         $sdk_identifier = 'ably-php/'.self::LIB_VERSION;
-        $runtime_identifier = 'php/'.phpversion(null);
+        $runtime_identifier = 'php/'.Miscellaneous::getNumeric(phpversion(null));
         $agent_identifier = $sdk_identifier.' '.$runtime_identifier;
         if (self::$libFlavour == 'laravel') {
             $agent_identifier.= ' laravel';
@@ -163,7 +163,7 @@ class AblyRest {
 
         $mergedHeaders = array_merge( [
             'Accept: application/json',
-            'X-Ably-Version: ' . self::API_VERSION,
+            'X-Ably-Version: ' .self::API_VERSION,
             'Ably-Agent: ' .self::ablyAgentHeader(),
         ], $headers );
 
