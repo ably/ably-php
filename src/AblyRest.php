@@ -20,9 +20,9 @@ class AblyRest {
 
     static function ablyAgentHeader()
     {
-        $sdk_identifier = 'ably-php/'.self::LIB_VERSION;
-        $runtime_identifier = 'php/'.Miscellaneous::getNumeric(phpversion(null));
-        $agent_identifier = $sdk_identifier.' '.$runtime_identifier;
+        $sdk_identifier = 'ably-php/'. self::LIB_VERSION;
+        $runtime_identifier = 'php/'. phpversion(null);
+        $agent_identifier = $sdk_identifier . ' ' . $runtime_identifier;
         if (self::$libFlavour == 'laravel') {
             $agent_identifier.= ' laravel';
         }
