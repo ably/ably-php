@@ -6,6 +6,9 @@ class Miscellaneous
     public static function getNumeric($text)
     {
         preg_match("#^\d+(\.\d+)*#", $text, $match);
-        return $match[0];
+        if (isset($match[0])) {
+            return $match[0];
+        }
+        return "";
     }
 }
