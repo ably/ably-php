@@ -18,6 +18,16 @@ class AblyRest {
     public $options;
     protected static $libFlavour = '';
 
+    public static function ablyAgentHeader()
+    {
+        $sdk_identifier = 'ably-php/'.self::LIB_VERSION;
+        $runtime_identifier = 'php/'.phpversion(null);
+        $agent_identifier = $sdk_identifier.' '.$runtime_identifier;
+        if (self::$libFlavour == 'laravel') {
+            $agent_identifier.= ' laravel';
+        }
+        return $agent_identifier;
+    }
     /**
      * @var \Ably\Http $http object for making HTTP requests
      */
@@ -134,7 +144,6 @@ class AblyRest {
     public function delete( $path, $headers = [], $params = [], $returnHeaders = false, $auth = true ) {
         return $this->requestInternal( 'DELETE', $path, $headers, $params, $returnHeaders, $auth );
     }
-
     /**
      * Does a HTTP request, automatically injecting auth headers and handling fallback on server failure.
      * This method is used internally and `request` is the preferable method to use.
@@ -155,7 +164,7 @@ class AblyRest {
         $mergedHeaders = array_merge( [
             'Accept: application/json',
             'X-Ably-Version: ' . self::API_VERSION,
-            'X-Ably-Lib: php-' . self::$libFlavour . self::LIB_VERSION,
+            'Ably-Agent: ' .self::ablyAgentHeader(),
         ], $headers );
 
         if ( $auth ) { // inject auth headers
@@ -297,11 +306,11 @@ class AblyRest {
     }
 
     /**
-     * Sets a "flavour string", that is sent in the `X-Ably-Lib` request header.
+     * Sets a "flavour string", that is sent in the `Ably-Agent` request header.
      * Used for internal statistics.
-     * For instance setting 'laravel' results in: `X-Ably-Lib: php-laravel-1.0.0`
+     * For instance setting 'laravel' results in: `Ably-Agent: laravel`
      */
     public static function setLibraryFlavourString( $flavour = '' ) {
-        self::$libFlavour = $flavour ? $flavour.'-' : '';
+        self::$libFlavour = $flavour;
     }
 }
