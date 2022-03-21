@@ -38,7 +38,6 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
         $ably->time(); // make a request
 
         $curlParams = $ably->http->getCurlLastParams();
-
         $this->assertContains( 'X-Ably-Version: ' . AblyRest::API_VERSION, $curlParams[CURLOPT_HTTPHEADER],
                                   'Expected Ably version header in HTTP request' );
 
@@ -58,6 +57,8 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
         $curlParams = $ably->http->getCurlLastParams();
 
         $expected_agent_header = 'ably-php/'.AblyRest::LIB_VERSION.' '.'php/'.phpversion();
+        var_dump($curlParams[CURLOPT_HTTPHEADER]);
+        ob_flush();
         $this->assertContains( 'Ably-Agent: '. $expected_agent_header, $curlParams[CURLOPT_HTTPHEADER],
             'Expected Ably agent header in HTTP request' );
 
