@@ -5,6 +5,7 @@ use Ably\AblyRest;
 use Ably\Http;
 use Ably\Utils\CurlWrapper;
 use Ably\Models\Untyped;
+use Ably\Utils\Miscellaneous;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -56,9 +57,7 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
         $ably->time(); // make a request
         $curlParams = $ably->http->getCurlLastParams();
 
-        $expected_agent_header = 'ably-php/'.AblyRest::LIB_VERSION.' '.'php/'.phpversion();
-        var_dump($curlParams[CURLOPT_HTTPHEADER]);
-        ob_flush();
+        $expected_agent_header = 'ably-php/'.AblyRest::LIB_VERSION.' '.'php/'.Miscellaneous::getNumeric(phpversion());
         $this->assertContains( 'Ably-Agent: '. $expected_agent_header, $curlParams[CURLOPT_HTTPHEADER],
             'Expected Ably agent header in HTTP request' );
 
@@ -77,7 +76,7 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
 
         $curlParams = $ably->http->getCurlLastParams();
 
-        $expected_agent_header = 'ably-php/'.AblyRest::LIB_VERSION.' '.'php/'.phpversion().' laravel';
+        $expected_agent_header = 'ably-php/'.AblyRest::LIB_VERSION.' '.'php/'.Miscellaneous::getNumeric(phpversion()).' laravel';
         $this->assertContains( 'Ably-Agent: '. $expected_agent_header, $curlParams[CURLOPT_HTTPHEADER],
             'Expected Ably agent header in HTTP request' );
 
