@@ -71,12 +71,13 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
             'Expected Ably agent header in HTTP request' );
 
         AblyRest::setLibraryFlavourString( 'laravel');
+        AblyRest::setAblyAgentHeader('customLib', '2.3.5');
         $ably = new AblyRest( $opts );
         $ably->time(); // make a request
 
         $curlParams = $ably->http->getCurlLastParams();
 
-        $expected_agent_header = 'ably-php/'.AblyRest::LIB_VERSION.' '.'php/'.Miscellaneous::getNumeric(phpversion()).' laravel';
+        $expected_agent_header = 'ably-php/'.AblyRest::LIB_VERSION.' '.'php/'.Miscellaneous::getNumeric(phpversion()).' laravel'.' customLib/2.3.5';
         $this->assertContains( 'Ably-Agent: '. $expected_agent_header, $curlParams[CURLOPT_HTTPHEADER],
             'Expected Ably agent header in HTTP request' );
 
