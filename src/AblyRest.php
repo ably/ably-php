@@ -18,15 +18,32 @@ class AblyRest {
     public $options;
     protected static $libFlavour = '';
 
+    /**
+     * Map of agents that will be appended to the agent header.
+     *
+     * This should only be used by Ably-authored SDKs.
+     * If you need to use this then you have to add the agent to the agents.json file:
+     * https://github.com/ably/ably-common/blob/main/protocol/agents.json
+     * The keys represent agent names and its corresponding values represent agent versions.
+     */
+    protected static $agents = array();
+
     static function ablyAgentHeader()
     {
         $sdk_identifier = 'ably-php/'.self::LIB_VERSION;
         $runtime_identifier = 'php/'.Miscellaneous::getNumeric(phpversion());
-        $agent_identifier = $sdk_identifier.' '.$runtime_identifier;
+        $agent_header = $sdk_identifier.' '.$runtime_identifier;
+        // TODO -  remove $libFlavour check once deprecated method setLibraryFlavourString is deleted
         if (self::$libFlavour == 'laravel') {
-            $agent_identifier.= ' laravel';
+            $agent_header.= ' laravel';
         }
-        return $agent_identifier;
+        foreach(self::$agents as $agent_identifier => $agent_version) {
+            $agent_header.= ' '.$agent_identifier;
+            if (!empty($agent_version)) {
+                $agent_header.= '/'.$agent_version;
+            }
+        }
+        return $agent_header;
     }
     /**
      * @var \Ably\Http $http object for making HTTP requests
@@ -306,11 +323,25 @@ class AblyRest {
     }
 
     /**
+     * @deprecated
      * Sets a "flavour string", that is sent in the `Ably-Agent` request header.
      * Used for internal statistics.
      * For instance setting 'laravel' results in: `Ably-Agent: laravel`
      */
     public static function setLibraryFlavourString( $flavour = '' ) {
         self::$libFlavour = $flavour;
+    }
+
+    /**
+     * @param string $agentName represents agent_identifier
+     * @param string $agentVersion represents agent_identifier_version (optional)
+     * @return void
+     * @throws AblyException
+     */
+    public static function setAblyAgentHeader($agentName, $agentVersion = '' ) {
+        if (empty($agentName)) {
+            throw new AblyException("agentName cannot be empty");
+        }
+        self::$agents[$agentName] = $agentVersion;
     }
 }
