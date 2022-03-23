@@ -103,8 +103,6 @@ class TestApp {
         $ch = curl_init($url);
 
         curl_setopt($ch, CURLOPT_FAILONERROR, true); // Required for HTTP error codes to be reported via call to curl_error($ch)
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2); // Check the existence of a common name and also verify that it matches the hostname provided
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Disable local SSL certificate verification
 
         if ( $mode == 'DELETE') curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, 'DELETE' );
         if ( $mode == 'POST' )  curl_setopt ( $ch, CURLOPT_POST, 1 );
