@@ -16,8 +16,6 @@ class AblyRest {
     const LIB_VERSION = '1.1.5';
 
     public $options;
-    protected static $libFlavour = '';
-
     /**
      * Map of agents that will be appended to the agent header.
      *
@@ -33,10 +31,6 @@ class AblyRest {
         $sdk_identifier = 'ably-php/'.self::LIB_VERSION;
         $runtime_identifier = 'php/'.Miscellaneous::getNumeric(phpversion());
         $agent_header = $sdk_identifier.' '.$runtime_identifier;
-        // TODO -  remove $libFlavour check once deprecated method setLibraryFlavourString is deleted
-        if (self::$libFlavour == 'laravel') {
-            $agent_header.= ' laravel';
-        }
         foreach(self::$agents as $agent_identifier => $agent_version) {
             $agent_header.= ' '.$agent_identifier;
             if (!empty($agent_version)) {
@@ -329,7 +323,9 @@ class AblyRest {
      * For instance setting 'laravel' results in: `Ably-Agent: laravel`
      */
     public static function setLibraryFlavourString( $flavour = '' ) {
-        self::$libFlavour = $flavour;
+        if (!empty($flavour)) {
+            self::setAblyAgentHeader($flavour);
+        }
     }
 
     /**

@@ -61,7 +61,6 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
         $this->assertContains( 'Ably-Agent: '. $expected_agent_header, $curlParams[CURLOPT_HTTPHEADER],
             'Expected Ably agent header in HTTP request' );
 
-        AblyRest::setLibraryFlavourString( 'test');
         $ably = new AblyRest( $opts );
         $ably->time(); // make a request
 
