@@ -6,7 +6,7 @@ use Ably\Models\PaginatedResult;
 use Ably\Models\HttpPaginatedResponse;
 use Ably\Exceptions\AblyException;
 use Ably\Exceptions\AblyRequestException;
-
+use Ably\Utils\Miscellaneous;
 /**
  * Ably REST client
  */
@@ -16,8 +16,29 @@ class AblyRest {
     const LIB_VERSION = '1.1.5';
 
     public $options;
-    protected static $libFlavour = '';
+    /**
+     * Map of agents that will be appended to the agent header.
+     *
+     * This should only be used by Ably-authored SDKs.
+     * If you need to use this then you have to add the agent to the agents.json file:
+     * https://github.com/ably/ably-common/blob/main/protocol/agents.json
+     * The keys represent agent names and its corresponding values represent agent versions.
+     */
+    protected static $agents = array();
 
+    static function ablyAgentHeader()
+    {
+        $sdk_identifier = 'ably-php/'.self::LIB_VERSION;
+        $runtime_identifier = 'php/'.Miscellaneous::getNumeric(phpversion());
+        $agent_header = $sdk_identifier.' '.$runtime_identifier;
+        foreach(self::$agents as $agent_identifier => $agent_version) {
+            $agent_header.= ' '.$agent_identifier;
+            if (!empty($agent_version)) {
+                $agent_header.= '/'.$agent_version;
+            }
+        }
+        return $agent_header;
+    }
     /**
      * @var \Ably\Http $http object for making HTTP requests
      */
@@ -134,7 +155,6 @@ class AblyRest {
     public function delete( $path, $headers = [], $params = [], $returnHeaders = false, $auth = true ) {
         return $this->requestInternal( 'DELETE', $path, $headers, $params, $returnHeaders, $auth );
     }
-
     /**
      * Does a HTTP request, automatically injecting auth headers and handling fallback on server failure.
      * This method is used internally and `request` is the preferable method to use.
@@ -154,8 +174,8 @@ class AblyRest {
 
         $mergedHeaders = array_merge( [
             'Accept: application/json',
-            'X-Ably-Version: ' . self::API_VERSION,
-            'X-Ably-Lib: php-' . self::$libFlavour . self::LIB_VERSION,
+            'X-Ably-Version: ' .self::API_VERSION,
+            'Ably-Agent: ' .self::ablyAgentHeader(),
         ], $headers );
 
         if ( $auth ) { // inject auth headers
@@ -297,11 +317,27 @@ class AblyRest {
     }
 
     /**
-     * Sets a "flavour string", that is sent in the `X-Ably-Lib` request header.
+     * @deprecated
+     * Sets a "flavour string", that is sent in the `Ably-Agent` request header.
      * Used for internal statistics.
-     * For instance setting 'laravel' results in: `X-Ably-Lib: php-laravel-1.0.0`
+     * For instance setting 'laravel' results in: `Ably-Agent: laravel`
      */
     public static function setLibraryFlavourString( $flavour = '' ) {
-        self::$libFlavour = $flavour ? $flavour.'-' : '';
+        if (!empty($flavour)) {
+            self::setAblyAgentHeader($flavour);
+        }
+    }
+
+    /**
+     * @param string $agentName represents agent_identifier
+     * @param string $agentVersion represents agent_identifier_version (optional)
+     * @return void
+     * @throws AblyException
+     */
+    public static function setAblyAgentHeader($agentName, $agentVersion = '' ) {
+        if (empty($agentName)) {
+            throw new AblyException("agentName cannot be empty");
+        }
+        self::$agents[$agentName] = $agentVersion;
     }
 }

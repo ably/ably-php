@@ -5,6 +5,7 @@ use Ably\AblyRest;
 use Ably\Http;
 use Ably\Utils\CurlWrapper;
 use Ably\Models\Untyped;
+use Ably\Utils\Miscellaneous;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -38,25 +39,49 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
         $ably->time(); // make a request
 
         $curlParams = $ably->http->getCurlLastParams();
-
         $this->assertContains( 'X-Ably-Version: ' . AblyRest::API_VERSION, $curlParams[CURLOPT_HTTPHEADER],
                                   'Expected Ably version header in HTTP request' );
-
-        $this->assertContains( 'X-Ably-Lib: php-' . AblyRest::LIB_VERSION, $curlParams[CURLOPT_HTTPHEADER],
-                                  'Expected Ably lib header in HTTP request' );
-
-        AblyRest::setLibraryFlavourString( 'test' );
-        $ably = new AblyRest( $opts );
-        $ably->time(); // make a request
-
-        $curlParams = $ably->http->getCurlLastParams();
-        $this->assertContains( 'X-Ably-Lib: php-test-' . AblyRest::LIB_VERSION,
-                                           $curlParams[CURLOPT_HTTPHEADER],
-                                           'Expected X-Ably-Lib to contain library flavour string' );
 
         AblyRest::setLibraryFlavourString();
     }
 
+    /**
+     * Verify proper agent header is set as per RSC7d
+     */
+    public function testAblyAgentHeader() {
+        $opts = [
+            'key' => 'fake.key:totallyFake',
+            'httpClass' => 'tests\HttpMock',
+        ];
+        $ably = new AblyRest( $opts );
+        $ably->time(); // make a request
+        $curlParams = $ably->http->getCurlLastParams();
+
+        $expected_agent_header = 'ably-php/'.AblyRest::LIB_VERSION.' '.'php/'.Miscellaneous::getNumeric(phpversion());
+        $this->assertContains( 'Ably-Agent: '. $expected_agent_header, $curlParams[CURLOPT_HTTPHEADER],
+            'Expected Ably agent header in HTTP request' );
+
+        $ably = new AblyRest( $opts );
+        $ably->time(); // make a request
+
+        $curlParams = $ably->http->getCurlLastParams();
+
+        $this->assertContains( 'Ably-Agent: '. $expected_agent_header, $curlParams[CURLOPT_HTTPHEADER],
+            'Expected Ably agent header in HTTP request' );
+
+        AblyRest::setLibraryFlavourString( 'laravel');
+        AblyRest::setAblyAgentHeader('customLib', '2.3.5');
+        $ably = new AblyRest( $opts );
+        $ably->time(); // make a request
+
+        $curlParams = $ably->http->getCurlLastParams();
+
+        $expected_agent_header = 'ably-php/'.AblyRest::LIB_VERSION.' '.'php/'.Miscellaneous::getNumeric(phpversion()).' laravel'.' customLib/2.3.5';
+        $this->assertContains( 'Ably-Agent: '. $expected_agent_header, $curlParams[CURLOPT_HTTPHEADER],
+            'Expected Ably agent header in HTTP request' );
+
+        AblyRest::setLibraryFlavourString();
+    }
 
     /**
      * Verify that GET requests are encoded properly (using requestToken)
