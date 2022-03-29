@@ -20,7 +20,7 @@ If you find any compatibility issues, please [do raise an issue](https://github.
 
 ## Known Limitations
 
-Currently, this SDK only supports [Ably REST](https://www.ably.io/documentation/rest). However, you can use the [MQTT adapter](https://www.ably.io/documentation/mqtt) to implement [Ably's Realtime](https://www.ably.io/documentation/realtime) features using [PHP](https://github.com/mgdm/Mosquitto-PHP).
+Currently, this SDK only supports [Ably REST](https://www.ably.io/documentation/rest). However, you can use the [MQTT adapter](https://www.ably.io/documentation/mqtt) to implement [Ably's Realtime](https://www.ably.io/documentation/realtime) features using [Mosquitto PHP](https://github.com/mgdm/Mosquitto-PHP).
 
 This SDK is *not compatible* with some of the Ably features:
 
