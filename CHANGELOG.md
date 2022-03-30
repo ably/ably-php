@@ -1,5 +1,23 @@
 # Change Log
 
+## [1.1.6](https://github.com/ably/ably-php/tree/1.1.5) (2022-03-30)
+[Full Changelog](https://github.com/ably/ably-php/compare/1.1.5...1.1.6)
+
+**Implemented enhancements:**
+
+- Implement RSC7d \(Ably-Agent header\) [\#104](https://github.com/ably/ably-php/issues/104)
+- Add support for PHP 8.1
+
+**Closed issues:**
+
+- X-Ably-Lib header not being set correctly [\#132](https://github.com/ably/ably-php/issues/132)
+
+**Merged pull requests:**
+
+- PHP 8.1 [\#138](https://github.com/ably/ably-php/pull/138) ([sacOO7](https://github.com/sacOO7))
+- Feature/rsc7d ably agent header [\#137](https://github.com/ably/ably-php/pull/137) ([sacOO7](https://github.com/sacOO7))
+- Add case insensitive method to http request [\#135](https://github.com/ably/ably-php/pull/135) ([andydunstall](https://github.com/andydunstall))
+
 ## [1.1.5](https://github.com/ably/ably-php/tree/1.1.5) (2022-02-23)
 [Full Changelog](https://github.com/ably/ably-php/compare/1.1.4...1.1.5)
 
