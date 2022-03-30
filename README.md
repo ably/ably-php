@@ -20,7 +20,7 @@ If you find any compatibility issues, please [do raise an issue](https://github.
 
 ## Known Limitations
 
-Currently, this SDK only supports [Ably REST](https://www.ably.io/documentation/rest). However, you can use the [MQTT adapter](https://www.ably.io/documentation/mqtt) to implement [Ably's Realtime](https://www.ably.io/documentation/realtime) features using Python. 
+Currently, this SDK only supports [Ably REST](https://www.ably.io/documentation/rest). However, you can use the [MQTT adapter](https://www.ably.io/documentation/mqtt) to implement [Ably's Realtime](https://www.ably.io/documentation/realtime) features using [Mosquitto PHP](https://github.com/mgdm/Mosquitto-PHP).
 
 This SDK is *not compatible* with some of the Ably features:
 
@@ -164,6 +164,8 @@ The client library uses the Ably sandbox environment to provision an app and run
     git submodule init
     git submodule update
     ./vendor/bin/phpunit
+
+Note - If there is a issue while running tests [SSL certificate error: unable to get local issuer certificate], please set SSL cert path in `php.ini`.  For more information, follow https://aboutssl.org/fix-ssl-certificate-problem-unable-to-get-local-issuer-certificate/
 
 ## Contributing
 

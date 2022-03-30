@@ -102,6 +102,8 @@ class TestApp {
     private function request( $mode, $url, $headers = [], $params = '' ) {
         $ch = curl_init($url);
 
+        curl_setopt($ch, CURLOPT_FAILONERROR, true); // Required for HTTP error codes to be reported via call to curl_error($ch)
+
         if ( $mode == 'DELETE') curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, 'DELETE' );
         if ( $mode == 'POST' )  curl_setopt ( $ch, CURLOPT_POST, 1 );
 
@@ -120,6 +122,11 @@ class TestApp {
         } 
 
         $raw = curl_exec($ch);
+
+        if (curl_errno($ch)) {
+            var_dump(curl_error($ch));  // Prints curl request error if exists
+        }
+
         curl_close ($ch);
 
         if ($this->debugRequests) {
