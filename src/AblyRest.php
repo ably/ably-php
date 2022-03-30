@@ -13,7 +13,7 @@ use Ably\Utils\Miscellaneous;
 class AblyRest {
 
     const API_VERSION = '1.1';
-    const LIB_VERSION = '1.1.5';
+    const LIB_VERSION = '1.1.6';
 
     public $options;
     /**
