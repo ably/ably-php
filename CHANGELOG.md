@@ -1,6 +1,6 @@
 # Change Log
 
-## [1.1.6](https://github.com/ably/ably-php/tree/1.1.5) (2022-03-30)
+## [1.1.6](https://github.com/ably/ably-php/tree/1.1.6) (2022-03-30)
 [Full Changelog](https://github.com/ably/ably-php/compare/1.1.5...1.1.6)
 
 **Implemented enhancements:**
