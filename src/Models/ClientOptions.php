@@ -111,6 +111,24 @@ class ClientOptions extends AuthOptions {
      */
     public $authClass = 'Ably\Auth';
 
+    static $defaultFallbackHosts = array([
+        'a.ably-realtime.com',
+        'b.ably-realtime.com',
+        'c.ably-realtime.com',
+        'd.ably-realtime.com',
+        'e.ably-realtime.com',
+    ]);
+
+    static function getEnvironmentFallbackHosts($environment) {
+        return array([
+            $environment."-a-fallback.ably-realtime.com",
+            $environment."-b-fallback.ably-realtime.com",
+            $environment."-c-fallback.ably-realtime.com",
+            $environment."-d-fallback.ably-realtime.com",
+            $environment."-e-fallback.ably-realtime.com"
+        ]);
+    }
+
     public function __construct( $options = [] ) {
         parent::__construct( $options );
 
@@ -119,14 +137,7 @@ class ClientOptions extends AuthOptions {
 
             if ( empty( $this->environment ) ) {
                 // default fallback hosts are used only with the default host and default environment
-                $this->fallbackHosts = [
-                    'a.ably-realtime.com',
-                    'b.ably-realtime.com',
-                    'c.ably-realtime.com',
-                    'd.ably-realtime.com',
-                    'e.ably-realtime.com',
-                ];
-
+                $this->fallbackHosts = self::$defaultFallbackHosts;
                 shuffle( $this->fallbackHosts );
             }
         } else { // custom host
