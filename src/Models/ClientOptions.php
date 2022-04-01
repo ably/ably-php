@@ -152,6 +152,13 @@ class ClientOptions extends AuthOptions {
         return $this->restHost;
     }
 
+    public function getFallbackHosts() {
+        if (empty($this->fallbackHosts) && empty($this->restHost) && $this->isDefaultPort()) {
+            return $this->isProductionEnvironment() ? self::$defaultFallbackHosts : self::getEnvironmentFallbackHosts($this->environment);
+        }
+        return $this->fallbackHosts ?? [];
+    }
+
     public function __construct( $options = [] ) {
         parent::__construct( $options );
 
