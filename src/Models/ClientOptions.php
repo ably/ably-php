@@ -111,6 +111,19 @@ class ClientOptions extends AuthOptions {
      */
     public $authClass = 'Ably\Auth';
 
+    static $defaultRestHost = "rest.ably.io";
+    static $defaultRealtimeHost = "realtime.ably.io";
+    static $defaultPort = 80;
+    static $defaultTlsPort = 443;
+
+    private function isProductionEnvironment() {
+        return empty($this->environment) || strcasecmp($this->environment, "production") == 0;
+    }
+
+    private function isDefaultPort () {
+        return $this->tls ? $this->tlsPort == self::$defaultTlsPort : $this->port == self::$defaultPort;
+    }
+
     static $defaultFallbackHosts = [
         'a.ably-realtime.com',
         'b.ably-realtime.com',
@@ -129,11 +142,21 @@ class ClientOptions extends AuthOptions {
         ];
     }
 
+    private function fullRestHost() {
+        if (empty($this-> restHost)) {
+            $this->restHost = self::$defaultRestHost;
+        }
+        if ($this->restHost == self::$defaultRestHost) {
+            return $this->isProductionEnvironment() ? $this->restHost : $this->environment.'-'.$this->restHost;
+        }
+        return $this->restHost;
+    }
+
     public function __construct( $options = [] ) {
         parent::__construct( $options );
 
         if ( empty( $this->restHost ) ) {
-            $this->restHost = 'rest.ably.io';
+            $this->restHost = self::$defaultRestHost;
 
             if ( empty( $this->environment ) ) {
                 // default fallback hosts are used only with the default host and default environment
