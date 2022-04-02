@@ -1,8 +1,10 @@
 <?php
 namespace Ably\Models;
 
+use Ably\Defaults;
 use Ably\Log;
 use Ably\AblyRest;
+use function PHPUnit\Framework\isEmpty;
 
 /**
  * Client library options
@@ -60,7 +62,7 @@ class ClientOptions extends AuthOptions {
     /**
      * @var string[] fallback hosts, used when connection to default host fails, populated automatically
      */
-    private $fallbackHosts;
+    private $fallbackHosts = [] ;
 
     /**
      * @var integer – default 600000 (10 minutes) the period in milliseconds
@@ -111,39 +113,17 @@ class ClientOptions extends AuthOptions {
      */
     public $authClass = 'Ably\Auth';
 
-    static $defaultRestHost = "rest.ably.io";
-    static $defaultRealtimeHost = "realtime.ably.io";
-    static $defaultPort = 80;
-    static $defaultTlsPort = 443;
 
     private function isProductionEnvironment() {
         return empty($this->environment) || strcasecmp($this->environment, "production") == 0;
     }
 
     private function isDefaultPort () {
-        return $this->tls ? $this->tlsPort == self::$defaultTlsPort : $this->port == self::$defaultPort;
+        return $this->tls ? $this->tlsPort == Defaults::$tlsPort : $this->port == Defaults::$port;
     }
 
     private function isDefaultRestHost() {
-        return empty($this-> restHost) || $this->restHost == self::$defaultRestHost;
-    }
-
-    static $defaultFallbackHosts = [
-        'a.ably-realtime.com',
-        'b.ably-realtime.com',
-        'c.ably-realtime.com',
-        'd.ably-realtime.com',
-        'e.ably-realtime.com',
-    ];
-
-    static function getEnvironmentFallbackHosts($environment) {
-        return [
-            $environment."-a-fallback.ably-realtime.com",
-            $environment."-b-fallback.ably-realtime.com",
-            $environment."-c-fallback.ably-realtime.com",
-            $environment."-d-fallback.ably-realtime.com",
-            $environment."-e-fallback.ably-realtime.com"
-        ];
+        return $this->restHost == Defaults::$restHost;
     }
 
     public function getRestHost() {
@@ -156,7 +136,7 @@ class ClientOptions extends AuthOptions {
     public function getFallbackHosts() {
         $fallbacks = $this->fallbackHosts ?? [];
         if (empty($this->fallbackHosts) && $this->isDefaultRestHost() && $this->isDefaultPort()) {
-            $fallbacks = $this->isProductionEnvironment() ? self::$defaultFallbackHosts : self::getEnvironmentFallbackHosts($this->environment);
+            $fallbacks = $this->isProductionEnvironment() ? Defaults::$fallbackHosts : Defaults::getEnvironmentFallbackHosts($this->environment);
         }
         shuffle($fallbacks);
         return $fallbacks;
@@ -164,7 +144,16 @@ class ClientOptions extends AuthOptions {
 
     public function __construct( $options = [] ) {
         parent::__construct( $options );
-        if ( empty( $this->defaultTokenParams ) ) {
+        if (empty($this->restHost)) {
+            $this->restHost = Defaults::$restHost;
+        }
+        if (empty($this->port)) {
+            $this->port = Defaults::$port;
+        }
+        if (empty($this->tlsPort)) {
+            $this->tlsPort = Defaults::$tlsPort;
+        }
+        if (empty($this->defaultTokenParam)) {
             $this->defaultTokenParams = new TokenParams();
         }
     }

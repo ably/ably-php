@@ -3,7 +3,7 @@ namespace tests;
 use Ably\Defaults;
 use Ably\Models\ClientOptions;
 
-class ClientOptionsTest extends \PHPUnit\Framework\TestCase {
+class DefaultTest extends \PHPUnit\Framework\TestCase {
 
     public function testFallbackHosts() {
         $expectedFallbackHosts = [
