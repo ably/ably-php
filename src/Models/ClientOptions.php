@@ -39,7 +39,7 @@ class ClientOptions extends AuthOptions {
      * @var string alternate server domain
      * For development environments only.
      */
-    private $restHost;
+    protected $restHost;
 
     /**
      * @var integer Allows a non-default Ably non-TLS port to be used.
@@ -62,7 +62,7 @@ class ClientOptions extends AuthOptions {
     /**
      * @var string[] fallback hosts, used when connection to default host fails, populated automatically
      */
-    private $fallbackHosts = [] ;
+    protected $fallbackHosts = [] ;
 
     /**
      * @var integer – default 600000 (10 minutes) the period in milliseconds
