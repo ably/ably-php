@@ -460,7 +460,7 @@ class ChannelMessagesTest extends \PHPUnit\Framework\TestCase {
 
         $defaultOpts = new \Ably\Models\ClientOptions( self::$defaultOptions );
         $http = new \Ably\Http( $defaultOpts ); // initialize http class for raw requests with default timeouts
-        $server = 'https://' . $defaultOpts->restHost;
+        $server = 'https://' . $defaultOpts->getRestHost();
 
         $messages = [];
         foreach ($fixture->messages as $i => $testMsgData) {
@@ -506,7 +506,7 @@ class ChannelMessagesTest extends \PHPUnit\Framework\TestCase {
 
         $defaultOpts = new \Ably\Models\ClientOptions( self::$defaultOptions );
         $http = new \Ably\Http( $defaultOpts ); // initialize http class for raw requests with default timeouts
-        $server = 'https://' . $defaultOpts->restHost;
+        $server = 'https://' . $defaultOpts->getRestHost();
 
         $messages = [];
         foreach ($fixture->messages as $i => $testMsgData) {

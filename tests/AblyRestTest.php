@@ -192,7 +192,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
      */
     public function testFallbackHosts() {
         $defaultOpts = new ClientOptions();
-        $hostWithFallbacks = array_merge( [ $defaultOpts->restHost ], $defaultOpts->fallbackHosts );
+        $hostWithFallbacks = array_merge( [ $defaultOpts->getRestHost() ], $defaultOpts->getFallbackHosts() );
         $hostWithFallbacksSorted = $hostWithFallbacks; // copied by value
         sort($hostWithFallbacksSorted);
 
@@ -230,7 +230,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
                 'third-fallback.custom.com',
             ],
         ]);
-        $hostWithFallbacks = array_merge( [ $defaultOpts->restHost ], $defaultOpts->fallbackHosts );
+        $hostWithFallbacks = array_merge( [ $defaultOpts->getRestHost() ], $defaultOpts->getFallbackHosts() );
         $hostWithFallbacksSorted = $hostWithFallbacks; // copied by value
         sort($hostWithFallbacksSorted);
 
