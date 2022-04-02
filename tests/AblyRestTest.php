@@ -129,21 +129,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             'httpClass' => 'tests\HttpMockInitTest',
         ] );
         $ably->time(); // make a request
-        $this->assertRegExp( '/^https?:\/\/sandbox-rest\.ably\.io\//', $ably->http->lastUrl, 'Unexpected host mismatch' );
-    }
-
-    /**
-     * Init library with specified environment AND host
-     */
-    public function testInitLibWithSpecifiedEnvHost() {
-        $ably = new AblyRest( [
-            'key' => 'fake.key:veryFake',
-            'restHost'  => 'some.other.host',
-            'environment'  => 'sandbox',
-            'httpClass' => 'tests\HttpMockInitTest',
-        ] );
-        $ably->time(); // make a request
-        $this->assertRegExp( '/^https?:\/\/sandbox-some\.other\.host\//', $ably->http->lastUrl, 'Unexpected host mismatch' );
+        $this->assertEquals( 'https://sandbox-rest.ably.io:443/time', $ably->http->lastUrl, 'Unexpected host mismatch' );
     }
 
     /**
@@ -465,7 +451,7 @@ class HttpMockCachedFallback extends Http {
 
     public function __construct( $clientOptions ) {
         parent::__construct( $clientOptions );
-        $this->restHost = $clientOptions->restHost;
+        $this->restHost = $clientOptions-> getRestHost();
         $this->errors = 0;
     }
 
