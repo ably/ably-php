@@ -125,7 +125,7 @@ class ClientOptions extends AuthOptions {
     }
 
     private function isDefaultRestHost() {
-        return $this->restHost == self::$defaultRestHost;
+        return empty($this-> restHost) || $this->restHost == self::$defaultRestHost;
     }
 
     static $defaultFallbackHosts = [
@@ -147,7 +147,7 @@ class ClientOptions extends AuthOptions {
     }
 
     public function getRestHost() {
-        if ($this->restHost == self::$defaultRestHost) {
+        if ($this->isDefaultRestHost()) {
             return $this->isProductionEnvironment() ? $this->restHost : $this->environment.'-'.$this->restHost;
         }
         return $this->restHost;
@@ -164,15 +164,8 @@ class ClientOptions extends AuthOptions {
 
     public function __construct( $options = [] ) {
         parent::__construct( $options );
-
-        // Code added
-        if (empty($this-> restHost)) {
-            $this->restHost = self::$defaultRestHost;
-        }
-
         if ( empty( $this->defaultTokenParams ) ) {
             $this->defaultTokenParams = new TokenParams();
         }
-
     }
 }
