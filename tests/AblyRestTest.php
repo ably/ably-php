@@ -446,11 +446,8 @@ class HttpMockInitTestTimeout extends Http {
     public function request($method, $url, $headers = [], $params = []) {
 
         if ($this->failAttempts > 0) {
-            preg_match('/\/\/([a-z0-9\.\-]+)\//', $url, $m);
-            $this->failedHosts[] = $m[1];
-            
+            $this->failedHosts[] = parse_url($url, PHP_URL_HOST) ;
             $this->failAttempts--;
-
             throw new AblyRequestException( 'Fake error', $this->errorCode, $this->httpErrorCode );
         }
 

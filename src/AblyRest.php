@@ -186,16 +186,8 @@ class AblyRest {
             if ( !empty( $this->options->getFallbackHosts() ) ) {
                 $res = $this->requestWithFallback( $method, $path, $mergedHeaders, $params );
             } else {
-                $server = ($this->options->tls ? 'https://' : 'http://') . $this->options->getRestHost();
-
-                if ( $this->options->tls && !empty( $this->options->tlsPort ) ) {
-                    $server .= ':' . $this->options->tlsPort;
-                }
-                if ( !$this->options->tls && !empty( $this->options->port ) ) {
-                    $server .= ':' . $this->options->port;
-                }
-
-                $res = $this->http->request( $method, $server . $path, $mergedHeaders, $params );
+                $hostUrl = $this->options->getHostUrl($this->options->getRestHost()). $path;
+                $res = $this->http->request( $method, $hostUrl , $mergedHeaders, $params );
             }
         } catch (AblyRequestException $e) {
             // check if the exception was caused by an expired
@@ -279,13 +271,12 @@ class AblyRest {
     }
 
     protected function requestWithFallback( $method, $path, $headers = [], $params = [] ) {
-        $protocol = ($this->options->tls ? 'https://' : 'http://');
         $maxAttempts = min( $this->options->httpMaxRetryCount, count( $this->options->getFallbackHosts() ));
         $attempt = 0;
         foreach ($this->getHosts() as $host) {
-            $url = $protocol . $host . $path;
+            $hostUrl = $this->options->getHostUrl($host). $path;
             try {
-                $response = $this->http->request( $method, $url, $headers, $params );
+                $response = $this->http->request( $method, $hostUrl, $headers, $params );
 
                 // Keep fallback host for later (RSC15f)
                 if ( $attempt > 0 && $host != $this->options->getRestHost()) {

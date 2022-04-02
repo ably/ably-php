@@ -118,8 +118,12 @@ class ClientOptions extends AuthOptions {
         return empty($this->environment) || strcasecmp($this->environment, "production") == 0;
     }
 
-    private function isDefaultPort () {
+    private function isDefaultPort() {
         return $this->tls ? $this->tlsPort == Defaults::$tlsPort : $this->port == Defaults::$port;
+    }
+
+    private function activePort() {
+        return $this->tls ? $this->tlsPort : $this->port;
     }
 
     private function isDefaultRestHost() {
@@ -140,6 +144,10 @@ class ClientOptions extends AuthOptions {
         }
         shuffle($fallbacks);
         return $fallbacks;
+    }
+
+    public function getHostUrl($host) {
+        return ($this-> tls ? 'https://' : 'http://') . $host. ':' .$this->activePort();
     }
 
     public function __construct( $options = [] ) {
