@@ -161,7 +161,7 @@ class ClientOptions extends AuthOptions {
         if (empty($this->tlsPort)) {
             $this->tlsPort = Defaults::$tlsPort;
         }
-        if (empty($this->defaultTokenParam)) {
+        if (empty($this->defaultTokenParams)) {
             $this->defaultTokenParams = new TokenParams();
         }
     }
