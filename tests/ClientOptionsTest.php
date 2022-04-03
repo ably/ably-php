@@ -89,6 +89,7 @@ class ClientOptionsTest extends \PHPUnit\Framework\TestCase {
         self::assertTrue($clientOptions->tls);
         self::assertEquals(443, $clientOptions->tlsPort);
         $fallbackHosts = $clientOptions->getFallbackHosts();
+        sort($fallbackHosts);
         self::assertEquals(["a.example.com", "b.example.com"], $fallbackHosts);
     }
 }
