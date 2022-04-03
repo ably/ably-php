@@ -3,8 +3,11 @@ namespace tests;
 use Ably\Defaults;
 use Ably\Models\ClientOptions;
 
-class DefaultTest extends \PHPUnit\Framework\TestCase {
+class DefaultsTest extends \PHPUnit\Framework\TestCase {
 
+    /**
+     * @testdox RSC15h
+     */
     public function testFallbackHosts() {
         $expectedFallbackHosts = [
             "a.ably-realtime.com",
@@ -17,6 +20,9 @@ class DefaultTest extends \PHPUnit\Framework\TestCase {
         $this->assertEquals($expectedFallbackHosts, $fallbackHosts);
     }
 
+    /**
+     * @testdox RSC15i
+     */
     public function testEnvironmentFallbackHosts() {
         $expectedFallbackHosts = [
             "sandbox-a-fallback.ably-realtime.com",
