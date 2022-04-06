@@ -62,7 +62,7 @@ class ClientOptions extends AuthOptions {
     /**
      * @var string[] fallback hosts, used when connection to default host fails, populated automatically
      */
-    public $fallbackHosts = [] ;
+    public $fallbackHosts = [];
 
     /**
      * @var integer – default 600000 (10 minutes) the period in milliseconds
