@@ -32,8 +32,7 @@ class TestApp {
 
         $this->options = $settings;
 
-        $scheme = 'http' . ($clientOpts->tls ? 's' : '');
-        $this->server = $scheme .'://'. $clientOpts->restHost;
+        $this->server = $clientOpts->getHostUrl($clientOpts->getRestHost());
         $this->init();
 
         return $this;

@@ -1,8 +1,10 @@
 <?php
 namespace Ably\Models;
 
+use Ably\Defaults;
 use Ably\Log;
 use Ably\AblyRest;
+use function PHPUnit\Framework\isEmpty;
 
 /**
  * Client library options
@@ -13,7 +15,7 @@ class ClientOptions extends AuthOptions {
      * @var boolean value indicating whether or not a TLS (“SSL”) secure connection should be used.
      */
     public $tls = true;
-    
+
     /**
      * integer a number controlling the verbosity of the output from 1 (minimum, errors only) to 4 (most verbose);
      * @see \Ably\Log
@@ -60,7 +62,7 @@ class ClientOptions extends AuthOptions {
     /**
      * @var string[] fallback hosts, used when connection to default host fails, populated automatically
      */
-    public $fallbackHosts;
+    public $fallbackHosts = [];
 
     /**
      * @var integer – default 600000 (10 minutes) the period in milliseconds
@@ -111,36 +113,56 @@ class ClientOptions extends AuthOptions {
      */
     public $authClass = 'Ably\Auth';
 
+
+    private function isProductionEnvironment() {
+        return empty($this->environment) || strcasecmp($this->environment, "production") == 0;
+    }
+
+    private function isDefaultPort() {
+        return $this->tls ? $this->tlsPort == Defaults::$tlsPort : $this->port == Defaults::$port;
+    }
+
+    private function activePort() {
+        return $this->tls ? $this->tlsPort : $this->port;
+    }
+
+    private function isDefaultRestHost() {
+        return $this->restHost == Defaults::$restHost;
+    }
+
+    public function getRestHost() {
+        if ($this->isDefaultRestHost()) {
+            return $this->isProductionEnvironment() ? $this->restHost : $this->environment.'-'.$this->restHost;
+        }
+        return $this->restHost;
+    }
+
+    public function getFallbackHosts() {
+        $fallbacks = $this->fallbackHosts ?? [];
+        if (empty($this->fallbackHosts) && $this->isDefaultRestHost() && $this->isDefaultPort()) {
+            $fallbacks = $this->isProductionEnvironment() ? Defaults::$fallbackHosts : Defaults::getEnvironmentFallbackHosts($this->environment);
+        }
+        shuffle($fallbacks);
+        return $fallbacks;
+    }
+
+    public function getHostUrl($host) {
+        return ($this-> tls ? 'https://' : 'http://') . $host. ':' .$this->activePort();
+    }
+
     public function __construct( $options = [] ) {
         parent::__construct( $options );
-
-        if ( empty( $this->restHost ) ) {
-            $this->restHost = 'rest.ably.io';
-
-            if ( empty( $this->environment ) ) {
-                // default fallback hosts are used only with the default host and default environment
-                $this->fallbackHosts = [
-                    'a.ably-realtime.com',
-                    'b.ably-realtime.com',
-                    'c.ably-realtime.com',
-                    'd.ably-realtime.com',
-                    'e.ably-realtime.com',
-                ];
-
-                shuffle( $this->fallbackHosts );
-            }
-        } else { // custom host
-            if ( !empty( $this->fallbackHosts ) ) {
-                shuffle( $this->fallbackHosts );
-            }
+        if (empty($this->restHost)) {
+            $this->restHost = Defaults::$restHost;
         }
-
-        if ( empty( $this->defaultTokenParams ) ) {
+        if (empty($this->port)) {
+            $this->port = Defaults::$port;
+        }
+        if (empty($this->tlsPort)) {
+            $this->tlsPort = Defaults::$tlsPort;
+        }
+        if (empty($this->defaultTokenParams)) {
             $this->defaultTokenParams = new TokenParams();
-        }
-
-        if ( !empty( $this->environment ) ) {
-            $this->restHost = $this->environment . '-' . $this->restHost;
         }
     }
 }

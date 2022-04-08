@@ -129,21 +129,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             'httpClass' => 'tests\HttpMockInitTest',
         ] );
         $ably->time(); // make a request
-        $this->assertRegExp( '/^https?:\/\/sandbox-rest\.ably\.io\//', $ably->http->lastUrl, 'Unexpected host mismatch' );
-    }
-
-    /**
-     * Init library with specified environment AND host
-     */
-    public function testInitLibWithSpecifiedEnvHost() {
-        $ably = new AblyRest( [
-            'key' => 'fake.key:veryFake',
-            'restHost'  => 'some.other.host',
-            'environment'  => 'sandbox',
-            'httpClass' => 'tests\HttpMockInitTest',
-        ] );
-        $ably->time(); // make a request
-        $this->assertRegExp( '/^https?:\/\/sandbox-some\.other\.host\//', $ably->http->lastUrl, 'Unexpected host mismatch' );
+        $this->assertEquals( 'https://sandbox-rest.ably.io:443/time', $ably->http->lastUrl, 'Unexpected host mismatch' );
     }
 
     /**
@@ -192,7 +178,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
      */
     public function testFallbackHosts() {
         $defaultOpts = new ClientOptions();
-        $hostWithFallbacks = array_merge( [ $defaultOpts->restHost ], $defaultOpts->fallbackHosts );
+        $hostWithFallbacks = array_merge( [ $defaultOpts->getRestHost() ], $defaultOpts->getFallbackHosts() );
         $hostWithFallbacksSorted = $hostWithFallbacks; // copied by value
         sort($hostWithFallbacksSorted);
 
@@ -230,7 +216,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
                 'third-fallback.custom.com',
             ],
         ]);
-        $hostWithFallbacks = array_merge( [ $defaultOpts->restHost ], $defaultOpts->fallbackHosts );
+        $hostWithFallbacks = array_merge( [ $defaultOpts->getRestHost() ], $defaultOpts->getFallbackHosts() );
         $hostWithFallbacksSorted = $hostWithFallbacks; // copied by value
         sort($hostWithFallbacksSorted);
 
@@ -446,11 +432,8 @@ class HttpMockInitTestTimeout extends Http {
     public function request($method, $url, $headers = [], $params = []) {
 
         if ($this->failAttempts > 0) {
-            preg_match('/\/\/([a-z0-9\.\-]+)\//', $url, $m);
-            $this->failedHosts[] = $m[1];
-            
+            $this->failedHosts[] = parse_url($url, PHP_URL_HOST) ;
             $this->failAttempts--;
-
             throw new AblyRequestException( 'Fake error', $this->errorCode, $this->httpErrorCode );
         }
 
@@ -468,7 +451,7 @@ class HttpMockCachedFallback extends Http {
 
     public function __construct( $clientOptions ) {
         parent::__construct( $clientOptions );
-        $this->restHost = $clientOptions->restHost;
+        $this->restHost = $clientOptions-> getRestHost();
         $this->errors = 0;
     }
 
