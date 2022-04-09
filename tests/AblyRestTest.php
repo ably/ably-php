@@ -323,7 +323,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
      * RSC15f Cached fallback host
      */
     public function testCachedFallback() {
-        $timeout = 2000;
+        $timeout = 1999;
         $ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
             'fallbackRetryTimeout' => $timeout,
@@ -347,8 +347,9 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
         $ably->time();
         $this->assertEquals( 1, $ably->http->errors );
 
+        sleep( 2);
         // The cached host has expired, we've an error again
-        sleep( $timeout / 1000 );
+
         $ably->time();
         $this->assertEquals( 2, $ably->http->errors );
     }
