@@ -1,12 +1,13 @@
 <?php
 namespace authTest;
 use Ably\AblyRest;
-use Ably\Http;
 use Ably\Auth;
+use Ably\Exceptions\AblyException;
+use Ably\Http;
 use Ably\Models\TokenDetails;
 use Ably\Models\TokenParams;
 use Ably\Models\TokenRequest;
-use Ably\Exceptions\AblyException;
+use Ably\Utils\Miscellaneous;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -526,7 +527,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase {
         $this->assertFalse( $token1 == $token2, 'Expected different tokens to be issued') ;
         $this->assertEquals( 'overriddenClientId', $ably->auth->clientId,
                              'Expected to use a new clientId as a default' );
-        $this->assertLessThan( $ably->systemTime() + 20000, $token2->expires,
+        $this->assertLessThan( Miscellaneous::systemTime() + 20000, $token2->expires,
                                'Expected to use a new ttl as a default' );
     }
 

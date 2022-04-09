@@ -3,29 +3,28 @@
 namespace Ably;
 
 // TODO - Add SyncMutex support to the class to avoid data corruption due to concurrent READ/WRITE (e.g. Apache multithreading environment)
+use Ably\Utils\Miscellaneous;
+
 class HostCache
 {
-    private $timeoutDurationInSec;
-    private $expireTimeInSec;
+    private $timeoutDuration;
+    private $expireTime;
     private $host = "";
 
-    /**
-     * @param $timeoutDurationInSec - $fallbackRetryTimeout in seconds
-     */
-    public function __construct($timeoutDurationInSec)
+    public function __construct($timeoutDurationInMs)
     {
-        $this->timeoutDurationInSec = $timeoutDurationInSec;
+        $this->timeoutDuration = $timeoutDurationInMs;
     }
 
     public function put($host)
     {
         $this->host = $host;
-        $this->expireTimeInSec = time() + $this->timeoutDurationInSec;
+        $this->expireTime = Miscellaneous::systemTime() + $this->timeoutDuration;
     }
 
     public function get()
     {
-        if (empty($this->host) || time() > $this->expireTimeInSec) {
+        if (empty($this->host) || Miscellaneous::systemTime() > $this->expireTime) {
             return "";
         }
         return $this->host;

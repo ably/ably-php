@@ -1,12 +1,13 @@
 <?php
 namespace Ably;
 
-use Ably\Models\ClientOptions;
-use Ably\Models\PaginatedResult;
-use Ably\Models\HttpPaginatedResponse;
 use Ably\Exceptions\AblyException;
 use Ably\Exceptions\AblyRequestException;
+use Ably\Models\ClientOptions;
+use Ably\Models\HttpPaginatedResponse;
+use Ably\Models\PaginatedResult;
 use Ably\Utils\Miscellaneous;
+
 /**
  * Ably REST client
  */
@@ -111,14 +112,6 @@ class AblyRest {
     public function time() {
         $res = $this->get( '/time', $params = [], $headers = [], $returnHeaders = false, $authHeaders = false );
         return $res[0];
-    }
-
-    /**
-     * Returns local time
-     * @return integer system time in milliseconds
-     */
-    public function systemTime() {
-        return intval( round( microtime(true) * 1000 ) );
     }
 
     /**
@@ -248,7 +241,7 @@ class AblyRest {
     private function getHosts() {
         // The cached fallback host
         if ( $this->cachedHost != null ) {
-            if ( $this->systemTime() > $this->cachedHostExpires ) {
+            if ( Miscellaneous::systemTime() > $this->cachedHostExpires ) {
                 $this->cachedHost = null;
                 $this->cachedHostExpires = null;
             } else {
@@ -278,7 +271,7 @@ class AblyRest {
                 // Keep fallback host for later (RSC15f)
                 if ( $attempt > 0 && $host != $this->options->getRestHost()) {
                     $this->cachedHost = $host;
-                    $this->cachedHostExpires = $this->systemTime() + $this->options->fallbackRetryTimeout;
+                    $this->cachedHostExpires = Miscellaneous::systemTime() + $this->options->fallbackRetryTimeout;
                 }
 
                 return $response;

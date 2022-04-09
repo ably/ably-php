@@ -11,4 +11,13 @@ class Miscellaneous
         }
         return "";
     }
+
+    /**
+     * Returns local time
+     * @return integer system time in milliseconds
+     */
+    public static function systemTime()
+    {
+        return intval(round(microtime(true) * 1000));
+    }
 }

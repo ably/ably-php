@@ -12,7 +12,7 @@ class Host {
     {
         $this->primaryHost = $clientOptions->getPrimaryRestHost();
         $this->fallbackHosts = $clientOptions->getFallbackHosts();
-        $this->hostCache = new HostCache($clientOptions->fallbackRetryTimeout / 1000);
+        $this->hostCache = new HostCache($clientOptions->fallbackRetryTimeout);
     }
 
     public function fallbackHosts($currentHost) {
