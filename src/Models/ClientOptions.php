@@ -128,13 +128,6 @@ class ClientOptions extends AuthOptions {
         return $this->restHost == Defaults::$restHost;
     }
 
-    public function getRestHost() {
-        if ($this->isDefaultRestHost()) {
-            return $this->isProductionEnvironment() ? $this->restHost : $this->environment.'-'.$this->restHost;
-        }
-        return $this->restHost;
-    }
-
     public function getPrimaryRestHost() {
         if ($this->isDefaultRestHost()) {
             return $this->isProductionEnvironment() ? $this->restHost : $this->environment.'-'.$this->restHost;

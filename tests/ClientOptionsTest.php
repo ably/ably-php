@@ -13,7 +13,7 @@ class ClientOptionsTest extends \PHPUnit\Framework\TestCase {
      */
     public function testWithDefaultOptions() {
         $clientOptions = new ClientOptions();
-        self::assertEquals('rest.ably.io', $clientOptions->getRestHost());
+        self::assertEquals('rest.ably.io', $clientOptions->getPrimaryRestHost());
         self::assertTrue($clientOptions->tls);
         self::assertEquals(443, $clientOptions->tlsPort);
         $fallbackHosts = $clientOptions->getFallbackHosts();
@@ -27,7 +27,7 @@ class ClientOptionsTest extends \PHPUnit\Framework\TestCase {
     public function testWithProductionEnvironment() {
         $clientOptions = new ClientOptions();
         $clientOptions->environment = "Production";
-        self::assertEquals('rest.ably.io', $clientOptions->getRestHost());
+        self::assertEquals('rest.ably.io', $clientOptions->getPrimaryRestHost());
         self::assertTrue($clientOptions->tls);
         self::assertEquals(443, $clientOptions->tlsPort);
         $fallbackHosts = $clientOptions->getFallbackHosts();
@@ -41,7 +41,7 @@ class ClientOptionsTest extends \PHPUnit\Framework\TestCase {
     public function testWithCustomEnvironment() {
         $clientOptions = new ClientOptions();
         $clientOptions->environment = "sandbox";
-        self::assertEquals('sandbox-rest.ably.io', $clientOptions->getRestHost());
+        self::assertEquals('sandbox-rest.ably.io', $clientOptions->getPrimaryRestHost());
         self::assertTrue($clientOptions->tls);
         self::assertEquals(443, $clientOptions->tlsPort);
         $fallbackHosts = $clientOptions->getFallbackHosts();
@@ -57,7 +57,7 @@ class ClientOptionsTest extends \PHPUnit\Framework\TestCase {
         $clientOptions->environment = "local";
         $clientOptions->port = 8080;
         $clientOptions->tlsPort = 8081;
-        self::assertEquals('local-rest.ably.io', $clientOptions->getRestHost());
+        self::assertEquals('local-rest.ably.io', $clientOptions->getPrimaryRestHost());
         self::assertEquals(8080, $clientOptions->port);
         self::assertEquals(8081, $clientOptions->tlsPort);
         self::assertTrue($clientOptions->tls);
@@ -71,7 +71,7 @@ class ClientOptionsTest extends \PHPUnit\Framework\TestCase {
     public function testWithCustomRestHost() {
         $clientOptions = new ClientOptions();
         $clientOptions->restHost = "test.org";
-        self::assertEquals('test.org', $clientOptions->getRestHost());
+        self::assertEquals('test.org', $clientOptions->getPrimaryRestHost());
         self::assertEquals(80, $clientOptions->port);
         self::assertEquals(443, $clientOptions->tlsPort);
         self::assertTrue($clientOptions->tls);
@@ -85,7 +85,7 @@ class ClientOptionsTest extends \PHPUnit\Framework\TestCase {
     public function testWithFallbacks() {
         $clientOptions = new ClientOptions();
         $clientOptions->fallbackHosts = ["a.example.com", "b.example.com"];
-        self::assertEquals('rest.ably.io', $clientOptions->getRestHost());
+        self::assertEquals('rest.ably.io', $clientOptions->getPrimaryRestHost());
         self::assertTrue($clientOptions->tls);
         self::assertEquals(443, $clientOptions->tlsPort);
         $fallbackHosts = $clientOptions->getFallbackHosts();

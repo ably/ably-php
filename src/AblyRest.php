@@ -50,9 +50,7 @@ class AblyRest {
      */
     public $channels;
 
-    // RSC15f Cached fallback host
-    private $cachedHost = null;
-    private $cachedHostExpires = null;
+    public $host;
 
     /**
      * Constructor
@@ -84,7 +82,7 @@ class AblyRest {
         $this->auth = new $authClass( $this, $this->options );
         $this->channels = new Channels( $this );
         $this->push = new Push( $this );
-
+        $this->host = new Host($this->options);
         return $this;
     }
 
@@ -145,6 +143,13 @@ class AblyRest {
     public function delete( $path, $headers = [], $params = [], $returnHeaders = false, $auth = true ) {
         return $this->requestInternal( 'DELETE', $path, $headers, $params, $returnHeaders, $auth );
     }
+
+    public function getHosts() {
+        $prefHost = $this->host->getPreferredHost();
+        yield $prefHost;
+        yield from $this->host->fallbackHosts($prefHost);
+    }
+
     /**
      * Does a HTTP request, automatically injecting auth headers and handling fallback on server failure.
      * This method is used internally and `request` is the preferable method to use.
@@ -159,52 +164,54 @@ class AblyRest {
      *         body, depending on $returnHeaders, body is automatically decoded
      * @throws AblyRequestException if the request fails
      */
-    public function requestInternal( $method, $path, $headers = [], $params = [], $returnHeaders = false,
-                                     $auth = true ) {
-
+    public function requestInternal( $method, $path, $headers = [], $params = [], $returnHeaders = false, $auth = true ) {
         $mergedHeaders = array_merge( [
             'Accept: application/json',
             'X-Ably-Version: ' .Defaults::API_VERSION,
             'Ably-Agent: ' .self::ablyAgentHeader(),
         ], $headers );
-
         if ( $auth ) { // inject auth headers
             $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $mergedHeaders );
         }
+        $attempt = 0;
+        $maxPossibleRetries = min(count($this->options->getFallbackHosts()), $this->options->httpMaxRetryCount);
+        foreach ($this->getHosts() as $host) {
+            $hostUrl = $this->options->getHostUrl($host). $path;
+            try {
+                $response = $this->http->request( $method, $hostUrl, $mergedHeaders, $params );
+                $this->host->setPreferredHost($host);
+                break;
+            } catch (AblyRequestException $e) {
+                $response = $e->getResponse();
+                // Clear cached host if it failed (RSC15f)
+                $this->host->setPreferredHost("");
 
-        try {
-            if ( !empty( $this->options->getFallbackHosts() ) ) {
-                $res = $this->requestWithFallback( $method, $path, $mergedHeaders, $params );
-            } else {
-                $hostUrl = $this->options->getHostUrl($this->options->getRestHost()). $path;
-                $res = $this->http->request( $method, $hostUrl , $mergedHeaders, $params );
-            }
-        } catch (AblyRequestException $e) {
-            // check if the exception was caused by an expired
-            // token = authorised request + using token auth + specific error message
-            $res = $e->getResponse();
+                // check if error is timeout
+                if ( $e->getCode() >= 50000 && $attempt < $maxPossibleRetries) {
+                    $attempt += 1;
+                } else {
+                    $causedByExpiredToken = $auth
+                        && !$this->auth->isUsingBasicAuth()
+                        && ($e->getCode() >= 40140)
+                        && ($e->getCode() < 40150);
 
-            $causedByExpiredToken = $auth
-                && !$this->auth->isUsingBasicAuth()
-                && ($e->getCode() >= 40140)
-                && ($e->getCode() < 40150);
+                    if ( $causedByExpiredToken ) { // renew the token
+                        $this->auth->authorize();
 
-            if ( $causedByExpiredToken ) { // renew the token
-                $this->auth->authorize();
+                        // merge headers now and use auth = false to prevent potential endless recursion
+                        $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $headers );
 
-                // merge headers now and use auth = false to prevent potential endless recursion
-                $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $headers );
-
-                return $this->requestInternal($method, $path, $mergedHeaders, $params, $returnHeaders, $auth = false);
-            } else {
-                throw $e;
+                        return $this->requestInternal($method, $path, $mergedHeaders, $params, $returnHeaders, $auth = false);
+                    } else {
+                        throw $e;
+                    }
+                }
             }
         }
-
         if (!$returnHeaders) {
-            $res = $res['body'];
+            $response = $response['body'];
         }
-        return $res;
+        return $response;
     }
 
     /**
@@ -233,68 +240,6 @@ class AblyRest {
         }
 
         return new HttpPaginatedResponse( $this, 'Ably\Models\Untyped', null, $method, $path, $body, $headers );
-    }
-
-    /**
-     * Does a HTTP request backed up by fallback servers
-     */
-    private function getHosts() {
-        // The cached fallback host
-        if ( $this->cachedHost != null ) {
-            if ( Miscellaneous::systemTime() > $this->cachedHostExpires ) {
-                $this->cachedHost = null;
-                $this->cachedHostExpires = null;
-            } else {
-                yield $this->cachedHost;
-            }
-        }
-
-        // Default host
-        yield $this->options->getRestHost();
-
-        // Fallback hosts
-        foreach ($this->options->getFallbackHosts() as $host) {
-            if ( $host != $this->cachedHost ) { // Don't try twice the same host
-                yield $host;
-            }
-        }
-    }
-
-    protected function requestWithFallback( $method, $path, $headers = [], $params = [] ) {
-        $maxAttempts = min( $this->options->httpMaxRetryCount, count( $this->options->getFallbackHosts() ));
-        $attempt = 0;
-        foreach ($this->getHosts() as $host) {
-            $hostUrl = $this->options->getHostUrl($host). $path;
-            try {
-                $response = $this->http->request( $method, $hostUrl, $headers, $params );
-
-                // Keep fallback host for later (RSC15f)
-                if ( $attempt > 0 && $host != $this->options->getRestHost()) {
-                    $this->cachedHost = $host;
-                    $this->cachedHostExpires = Miscellaneous::systemTime() + $this->options->fallbackRetryTimeout;
-                }
-
-                return $response;
-            } catch (AblyRequestException $e) {
-                // Clear cached host if it failed (RSC15f)
-                if ( $host == $this->cachedHost ) {
-                    $this->cachedHost = null;
-                    $this->cachedHostExpires = null;
-                }
-
-                // other error code than timeout, rethrow exception
-                if ( $e->getCode() < 50000 ) {
-                    throw $e;
-                }
-
-                if ( $attempt >= $maxAttempts ) {
-                    Log::e( 'Failed to connect to server and all of the fallback servers.' );
-                    throw $e;
-                }
-
-                $attempt += 1;
-            }
-        }
     }
 
     /**
