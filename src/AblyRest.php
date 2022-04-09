@@ -242,6 +242,12 @@ class AblyRest {
         return new HttpPaginatedResponse( $this, 'Ably\Models\Untyped', null, $method, $path, $body, $headers );
     }
 
+    // RTN17c
+    function hasActiveInternetConnection() {
+        $response = $this->http->get(Defaults::$internetCheckUrl);
+        return $response["body"] == Defaults::$internetCheckOk;
+    }
+
     /**
      * @deprecated
      * Sets a "flavour string", that is sent in the `Ably-Agent` request header.

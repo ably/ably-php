@@ -376,6 +376,17 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
     }
 
     /**
+     * @testdox RTN17c
+     */
+    public function testActiveInternetConnection() {
+        $opts = [
+            'key' => 'fake.key:veryFake',
+        ];
+        $ably = new AblyRest( $opts );
+        self::assertTrue($ably ->hasActiveInternetConnection());
+    }
+
+    /**
      * Verify that time fails without valid host
      */
     public function testTimeFailsWithInvalidHost() {
