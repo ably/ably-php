@@ -137,6 +137,13 @@ class ClientOptions extends AuthOptions {
         return $this->restHost;
     }
 
+    public function getPrimaryRestHost() {
+        if ($this->isDefaultRestHost()) {
+            return $this->isProductionEnvironment() ? $this->restHost : $this->environment.'-'.$this->restHost;
+        }
+        return $this->restHost;
+    }
+
     public function getFallbackHosts() {
         $fallbacks = $this->fallbackHosts ?? [];
         if (empty($this->fallbackHosts) && $this->isDefaultRestHost() && $this->isDefaultPort()) {
