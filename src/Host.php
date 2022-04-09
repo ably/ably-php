@@ -2,24 +2,25 @@
 namespace Ably;
 
 class Host {
-    private $clientOptions;
+    private $primaryHost;
+    private $fallbackHosts;
     private $hostCache;
-
     /**
      * @param $clientOptions
      */
     public function __construct($clientOptions)
     {
-        $this->clientOptions = $clientOptions;
+        $this->primaryHost = $clientOptions->getPrimaryRestHost();
+        $this->fallbackHosts = $clientOptions->getFallbackHosts();
         $this->hostCache = new HostCache($clientOptions->fallbackRetryTimeout / 1000);
     }
 
     public function fallbackHosts($currentHost) {
-        $primaryHost = $this->clientOptions->getPrimaryRestHost();
-        if ($currentHost != $primaryHost) {
-            yield $primaryHost;
+        if ($currentHost != $this->primaryHost) {
+            yield $this->primaryHost;
         }
-        foreach ($this->clientOptions->getFallbackHosts() as $fallbackHost) {
+        shuffle($this->fallbackHosts);
+        foreach ($this->fallbackHosts as $fallbackHost) {
             if ($currentHost != $fallbackHost) {
                 yield $fallbackHost;
             }
@@ -30,7 +31,7 @@ class Host {
     public function getPreferredHost() {
         $host = $this->hostCache->get();
         if (empty($host)) {
-            return $this->clientOptions->getPrimaryRestHost();
+            return $this->primaryHost;
         }
         return $host;
     }
