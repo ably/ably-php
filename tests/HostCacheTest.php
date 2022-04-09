@@ -22,7 +22,7 @@ class HostCacheTest extends \PHPUnit\Framework\TestCase {
      * @testdox RSC15a
      */
     public function testExpiredHost() {
-        $hostCache = new HostCache(1000);
+        $hostCache = new HostCache(999);
         $hostCache->put(Defaults::$restHost);
         sleep(1);
         self::assertEquals("", $hostCache->get());

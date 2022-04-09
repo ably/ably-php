@@ -39,6 +39,5 @@ class Host {
     public function setPreferredHost($host) {
         $this->hostCache->put($host);
     }
-
 }
 
