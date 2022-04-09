@@ -3,6 +3,9 @@ namespace Ably;
 
 class Defaults {
 
+    const API_VERSION = '1.1';
+    const LIB_VERSION = '1.1.6';
+
     static $restHost = "rest.ably.io";
     static $realtimeHost = "realtime.ably.io";
     static $port = 80;

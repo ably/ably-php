@@ -12,9 +12,6 @@ use Ably\Utils\Miscellaneous;
  */
 class AblyRest {
 
-    const API_VERSION = '1.1';
-    const LIB_VERSION = '1.1.6';
-
     public $options;
     /**
      * Map of agents that will be appended to the agent header.
@@ -28,7 +25,7 @@ class AblyRest {
 
     static function ablyAgentHeader()
     {
-        $sdk_identifier = 'ably-php/'.self::LIB_VERSION;
+        $sdk_identifier = 'ably-php/'.Defaults::LIB_VERSION;
         $runtime_identifier = 'php/'.Miscellaneous::getNumeric(phpversion());
         $agent_header = $sdk_identifier.' '.$runtime_identifier;
         foreach(self::$agents as $agent_identifier => $agent_version) {
@@ -174,7 +171,7 @@ class AblyRest {
 
         $mergedHeaders = array_merge( [
             'Accept: application/json',
-            'X-Ably-Version: ' .self::API_VERSION,
+            'X-Ably-Version: ' .Defaults::API_VERSION,
             'Ably-Agent: ' .self::ablyAgentHeader(),
         ], $headers );
 
