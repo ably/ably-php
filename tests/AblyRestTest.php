@@ -174,6 +174,27 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
         $this->assertRegExp( '/^https:\/\/rest\.ably\.io/', $ably->http->lastUrl, 'Unexpected scheme/url mismatch' );
     }
 
+
+    /**
+     * Verify that the httpMaxRetryCount option is honored
+     * @testdox RSC15a
+     */
+    public function testMaxRetryCount() {
+        $opts = [
+            'key' => 'fake.key:veryFake',
+            'httpClass' => 'tests\HttpMockInitTestTimeout',
+            'httpMaxRetryCount' => 2,
+        ];
+
+        $ably = new AblyRest( $opts );
+        try {
+            $ably->time(); // make a request
+            $this->fail('Expected the request to fail');
+        } catch(AblyRequestException $e) {
+            self::assertCount(3, $ably->http->visitedHosts, 'Expected to have tried 1 main host and 2 fallback hosts');
+        }
+    }
+
     /**
      * Verify that fallback hosts are working and used in correct order
      * @testdox RSC15a, RSC15b. RSC15d, RSC15g3
@@ -296,26 +317,6 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
         $this->assertEquals( 999999, $data, 'Expected to receive test data' );
         $this->assertEquals( 3, count( $ably->http->visitedHosts ), 'Expected 3 hosts to fail' );
     }
-
-    /**
-     * Verify that the httpMaxRetryCount option is honored
-     */
-    public function testMaxRetryCount() {
-        $opts = [
-            'key' => 'fake.key:veryFake',
-            'httpClass' => 'tests\HttpMockInitTestTimeout',
-            'httpMaxRetryCount' => 2,
-        ];
-
-        $ably = new AblyRest( $opts );
-        try {
-            $ably->time(); // make a request
-            $this->fail('Expected the request to fail');
-        } catch(AblyRequestException $e) {
-            $this->assertEquals( 3, count($ably->http->visitedHosts), 'Expected to have tried main host and 2 fallback hosts' );
-        }
-    }
-
 
     /**
      * RSC15f Cached fallback host
