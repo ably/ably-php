@@ -176,13 +176,10 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
 
     /**
      * Verify that fallback hosts are working and used in correct order
+     * @testdox RSC15a, RSC15b. RSC15d, RSC15g3
      */
     public function testFallbackHosts() {
         $defaultOpts = new ClientOptions();
-        $hostWithFallbacks = array_merge( [ $defaultOpts->getPrimaryRestHost() ], $defaultOpts->getFallbackHosts() );
-        $hostWithFallbacksSorted = $hostWithFallbacks; // copied by value
-        sort($hostWithFallbacksSorted);
-
         $opts = [
             'key' => 'fake.key:veryFake',
             'httpClass' => 'tests\HttpMockInitTestTimeout',
@@ -193,15 +190,16 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-            $this->assertEquals( $hostWithFallbacks[0], $ably->http->failedHosts[0],
-                                 'Expected to try restHost first' );
-            $this->assertNotEquals( $hostWithFallbacks, $ably->http->failedHosts,
-                                    'Expected to have fallback hosts randomized' );
+            self::assertCount(6, $ably->http->visitedHosts);
+            $this->assertEquals( 'rest.ably.io' , $ably->http->visitedHosts[0],'Expected to try primary restHost first' );
 
-            $failedHostsSorted = $ably->http->failedHosts; // copied by value;
+            $expectedFallbackHosts = array_merge( [ $defaultOpts->getPrimaryRestHost() ], $defaultOpts->getFallbackHosts() );
+            $this->assertNotEquals( $expectedFallbackHosts, $ably->http->visitedHosts,'Expected to have fallback hosts randomized' );
+
+            sort($expectedFallbackHosts);
+            $failedHostsSorted = $ably->http->visitedHosts; // copied by value;
             sort($failedHostsSorted);
-            $this->assertEquals( $hostWithFallbacksSorted, $failedHostsSorted,
-                                 'Expected to have tried all the fallback hosts' );
+            $this->assertEquals( $expectedFallbackHosts, $failedHostsSorted,'Expected to have tried all the fallback hosts' );
         }
     }
 
@@ -231,10 +229,10 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-           $this->assertEquals( $hostWithFallbacks[0], $ably->http->failedHosts[0], 'Expected to try restHost first' );
+           $this->assertEquals( $hostWithFallbacks[0], $ably->http->visitedHosts[0], 'Expected to try restHost first' );
             // $this->assertNotEquals( $hostWithFallbacks, $ably->http->failedHosts, 'Expected to have fallback hosts randomized' ); // this may fail when randomized order matches the original order
             
-           $failedHostsSorted = $ably->http->failedHosts; // copied by value;
+           $failedHostsSorted = $ably->http->visitedHosts; // copied by value;
            sort($failedHostsSorted);
            $this->assertEquals( $hostWithFallbacksSorted, $failedHostsSorted, 'Expected to have tried all the fallback hosts' );
         }
@@ -258,7 +256,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-            $this->assertEquals( [ 'rest.ably.io' ], $ably->http->failedHosts, 'Expected to have tried only the default host' );
+            $this->assertEquals( [ 'rest.ably.io' ], $ably->http->visitedHosts, 'Expected to have tried only the default host' );
         }
     }
 
@@ -278,7 +276,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-            $this->assertEquals( [ 'custom.host.com' ], $ably->http->failedHosts, 'Expected to have tried only the custom host' );
+            $this->assertEquals( [ 'custom.host.com' ], $ably->http->visitedHosts, 'Expected to have tried only the custom host' );
         }
     }
 
@@ -296,7 +294,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
         $data = $ably->time(); // make a request
         
         $this->assertEquals( 999999, $data, 'Expected to receive test data' );
-        $this->assertEquals( 3, count( $ably->http->failedHosts ), 'Expected 3 hosts to fail' );
+        $this->assertEquals( 3, count( $ably->http->visitedHosts ), 'Expected 3 hosts to fail' );
     }
 
     /**
@@ -314,7 +312,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-            $this->assertEquals( 3, count($ably->http->failedHosts), 'Expected to have tried main host and 2 fallback hosts' );
+            $this->assertEquals( 3, count($ably->http->visitedHosts), 'Expected to have tried main host and 2 fallback hosts' );
         }
     }
 
@@ -437,7 +435,7 @@ class HttpMockInitTest extends Http {
 
 
 class HttpMockInitTestTimeout extends Http {
-    public $failedHosts = [];
+    public $visitedHosts = [];
     public $failAttempts = 100; // number of attempts to time out before starting to return data
     public $httpErrorCode = 500;
     public $errorCode = 50003; // timeout
@@ -445,7 +443,7 @@ class HttpMockInitTestTimeout extends Http {
     public function request($method, $url, $headers = [], $params = []) {
 
         if ($this->failAttempts > 0) {
-            $this->failedHosts[] = parse_url($url, PHP_URL_HOST) ;
+            $this->visitedHosts[] = parse_url($url, PHP_URL_HOST) ;
             $this->failAttempts--;
             throw new AblyRequestException( 'Fake error', $this->errorCode, $this->httpErrorCode );
         }
