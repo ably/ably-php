@@ -226,6 +226,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
 
     /**
      * Verify that custom restHost and custom fallbackHosts are working
+     * @testdox RSC15b2, RSC15g1
      */
     public function testCustomHostAndFallbacks() {
         $defaultOpts = new ClientOptions([
@@ -236,10 +237,6 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
                 'third-fallback.custom.com',
             ],
         ]);
-        $hostWithFallbacks = array_merge( [ $defaultOpts->getPrimaryRestHost() ], $defaultOpts->getFallbackHosts() );
-        $hostWithFallbacksSorted = $hostWithFallbacks; // copied by value
-        sort($hostWithFallbacksSorted);
-
         $opts = array_merge ( $defaultOpts->toArray(), [
             'key' => 'fake.key:veryFake',
             'httpClass' => 'tests\HttpMockInitTestTimeout',
@@ -250,12 +247,13 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-           $this->assertEquals( $hostWithFallbacks[0], $ably->http->visitedHosts[0], 'Expected to try restHost first' );
-            // $this->assertNotEquals( $hostWithFallbacks, $ably->http->failedHosts, 'Expected to have fallback hosts randomized' ); // this may fail when randomized order matches the original order
-            
-           $failedHostsSorted = $ably->http->visitedHosts; // copied by value;
-           sort($failedHostsSorted);
-           $this->assertEquals( $hostWithFallbacksSorted, $failedHostsSorted, 'Expected to have tried all the fallback hosts' );
+            self::assertEquals( 'rest.custom.com' , $ably->http->visitedHosts[0],'Expected to try primary restHost first' );
+
+            $expectedFallbackHosts = array_merge( [ $defaultOpts->getPrimaryRestHost() ], $defaultOpts->getFallbackHosts());
+            sort($expectedFallbackHosts);
+            $failedHostsSorted = $ably->http->visitedHosts; // copied by value;
+            sort($failedHostsSorted);
+            self::assertEquals($expectedFallbackHosts, $failedHostsSorted, 'Expected to have tried all the fallback hosts' );
         }
     }
 
