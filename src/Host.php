@@ -19,8 +19,9 @@ class Host {
         if ($currentHost != $this->primaryHost) {
             yield $this->primaryHost;
         }
-        shuffle($this->fallbackHosts);
-        foreach ($this->fallbackHosts as $fallbackHost) {
+        $shuffledFallbacks = $this->fallbackHosts;
+        shuffle($shuffledFallbacks);
+        foreach ($shuffledFallbacks as $fallbackHost) {
             if ($currentHost != $fallbackHost) {
                 yield $fallbackHost;
             }
