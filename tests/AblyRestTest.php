@@ -237,19 +237,21 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
                 'third-fallback.custom.com',
             ],
         ]);
+
         $opts = array_merge ( $defaultOpts->toArray(), [
             'key' => 'fake.key:veryFake',
             'httpClass' => 'tests\HttpMockInitTestTimeout',
             'httpMaxRetryCount' => 3,
-        ] );
+        ]);
         $ably = new AblyRest( $opts );
         try {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
+            self::assertCount(4, $ably->http->visitedHosts);
             self::assertEquals( 'rest.custom.com' , $ably->http->visitedHosts[0],'Expected to try primary restHost first' );
 
-            $expectedFallbackHosts = array_merge( [ $defaultOpts->getPrimaryRestHost() ], $defaultOpts->getFallbackHosts());
+            $expectedFallbackHosts = array_merge( [ $defaultOpts->restHost ], $defaultOpts->fallbackHosts);
             sort($expectedFallbackHosts);
             $failedHostsSorted = $ably->http->visitedHosts; // copied by value;
             sort($failedHostsSorted);
@@ -258,9 +260,9 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * Verify that fallback hosts are not called on a 400 error
+     * Verify that fallback hosts are not called on a 400 or client error
      */
-    public function testFallbackHosts400() {
+    public function testNoFallbackOnClientError() {
 
         $opts = [
             'key' => 'fake.key:veryFake',
@@ -275,12 +277,14 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
+            self::assertCount(1, $ably->http->visitedHosts);
             $this->assertEquals( [ 'rest.ably.io' ], $ably->http->visitedHosts, 'Expected to have tried only the default host' );
         }
     }
 
     /**
      * Verify that default fallback hosts are NOT used when using a custom host
+     * @testdox RSC15k
      */
     public function testNoFallbackOnCustomHost() {
 
@@ -295,12 +299,14 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
+            self::assertCount(1, $ably->http->visitedHosts);
             $this->assertEquals( [ 'custom.host.com' ], $ably->http->visitedHosts, 'Expected to have tried only the custom host' );
         }
     }
 
     /**
      * Verify that fallback hosts are working - first 3 fail, 4th works
+     * @testdox RSC15a
      */
     public function testFallbackHostsFailFirst3() {
         $opts = [
@@ -309,21 +315,22 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             'httpMaxRetryCount' => 5,
         ];
         $ably = new AblyRest( $opts );
-        $ably->http->failAttempts = 3;
+        $ably->http->hostFailures = 3;
         $data = $ably->time(); // make a request
-        
+
+        $this->assertCount( 3, $ably->http->visitedHosts, 'Expected 3 hosts to fail' );
         $this->assertEquals( 999999, $data, 'Expected to receive test data' );
-        $this->assertEquals( 3, count( $ably->http->visitedHosts ), 'Expected 3 hosts to fail' );
     }
 
     /**
-     * RSC15f Cached fallback host
+     * Cached fallback host
+     * @testdox RSC15f
      */
     public function testCachedFallback() {
-        $timeout = 1999;
+        $fallbackCacheTimeoutInMs = 1999;
         $ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
-            'fallbackRetryTimeout' => $timeout,
+            'fallbackRetryTimeout' => $fallbackCacheTimeoutInMs,
             'httpClass' => 'tests\HttpMockCachedFallback',
             'fallbackHosts' => [
                 'a.ably-realtime.com',
@@ -435,15 +442,15 @@ class HttpMockInitTest extends Http {
 
 class HttpMockInitTestTimeout extends Http {
     public $visitedHosts = [];
-    public $failAttempts = 100; // number of attempts to time out before starting to return data
+    public $hostFailures = 100; // number of attempts to time out before starting to return data
     public $httpErrorCode = 500;
     public $errorCode = 50003; // timeout
     
     public function request($method, $url, $headers = [], $params = []) {
 
-        if ($this->failAttempts > 0) {
+        if ($this->hostFailures > 0) {
             $this->visitedHosts[] = parse_url($url, PHP_URL_HOST) ;
-            $this->failAttempts--;
+            $this->hostFailures--;
             throw new AblyRequestException( 'Fake error', $this->errorCode, $this->httpErrorCode );
         }
 
@@ -470,7 +477,6 @@ class HttpMockCachedFallback extends Http {
             $this->errors++;
             throw new AblyRequestException( 'fake error', 50000, 500 );
         }
-
         return parent::request($method, $url, $headers, $params);
     }
 }
