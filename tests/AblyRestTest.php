@@ -191,7 +191,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-            self::assertCount(3, $ably->http->visitedHosts, 'Expected to have tried 1 main host and 2 fallback hosts');
+            $this->assertCount(3, $ably->http->visitedHosts, 'Expected to have tried 1 main host and 2 fallback hosts');
         }
     }
 
@@ -211,7 +211,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-            self::assertCount(6, $ably->http->visitedHosts);
+            $this->assertCount(6, $ably->http->visitedHosts);
             $this->assertEquals( 'rest.ably.io' , $ably->http->visitedHosts[0],'Expected to try primary restHost first' );
 
             $expectedFallbackHosts = array_merge( [ $defaultOpts->getPrimaryRestHost() ], $defaultOpts->getFallbackHosts() );
@@ -248,14 +248,14 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-            self::assertCount(4, $ably->http->visitedHosts);
-            self::assertEquals( 'rest.custom.com' , $ably->http->visitedHosts[0],'Expected to try primary restHost first' );
+            $this->assertCount(4, $ably->http->visitedHosts);
+            $this->assertEquals( 'rest.custom.com' , $ably->http->visitedHosts[0],'Expected to try primary restHost first' );
 
             $expectedFallbackHosts = array_merge( [ $defaultOpts->restHost ], $defaultOpts->fallbackHosts);
             sort($expectedFallbackHosts);
             $failedHostsSorted = $ably->http->visitedHosts; // copied by value;
             sort($failedHostsSorted);
-            self::assertEquals($expectedFallbackHosts, $failedHostsSorted, 'Expected to have tried all the fallback hosts' );
+            $this->assertEquals($expectedFallbackHosts, $failedHostsSorted, 'Expected to have tried all the fallback hosts' );
         }
     }
 
@@ -277,7 +277,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-            self::assertCount(1, $ably->http->visitedHosts);
+            $this->assertCount(1, $ably->http->visitedHosts);
             $this->assertEquals( [ 'rest.ably.io' ], $ably->http->visitedHosts, 'Expected to have tried only the default host' );
         }
     }
@@ -299,7 +299,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-            self::assertCount(1, $ably->http->visitedHosts);
+            $this->assertCount(1, $ably->http->visitedHosts);
             $this->assertEquals( [ 'custom.host.com' ], $ably->http->visitedHosts, 'Expected to have tried only the custom host' );
         }
     }
@@ -387,7 +387,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             'key' => 'fake.key:veryFake',
         ];
         $ably = new AblyRest( $opts );
-        self::assertTrue($ably ->hasActiveInternetConnection());
+        $this->assertTrue($ably ->hasActiveInternetConnection());
     }
 
     /**
