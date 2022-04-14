@@ -260,7 +260,8 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * Verify that fallback hosts are not called on a 400 or client error
+     * Verify that fallback hosts are not called on error code < 500 or > 504
+     * @testdox RSC15d
      */
     public function testNoFallbackOnClientError() {
 
@@ -332,30 +333,28 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             'key' => self::$testApp->getAppKeyDefault()->string,
             'fallbackRetryTimeout' => $fallbackCacheTimeoutInMs,
             'httpClass' => 'tests\HttpMockCachedFallback',
+            'restHost' => 'custom.host.com',
             'fallbackHosts' => [
-                'a.ably-realtime.com',
-                'b.ably-realtime.com',
-                'c.ably-realtime.com',
-                'd.ably-realtime.com',
-                'e.ably-realtime.com',
+                'fallback1',
+                'c.ably-realtime.com', // valid fallback host
+                'fallback2',
             ],
         ]));
 
-        // The main host is called and there's an error
         $ably->time();
-        $this->assertEquals( 1, $ably->http->errors );
-
-        // The cached host is used: no error
-        $ably->time();
-        $ably->time();
-        $ably->time();
-        $this->assertEquals( 1, $ably->http->errors );
-
-        sleep( 2);
-        // The cached host has expired, we've an error again
+        $this->assertGreaterThanOrEqual(1, $ably->http->fallbackRetries );
+        $this->assertEquals("c.ably-realtime.com", $ably->host->getPreferredHost()); // check for cached host
+        $ably->http->resetRetries();
 
         $ably->time();
-        $this->assertEquals( 2, $ably->http->errors );
+        $ably->time();
+        $this->assertEquals( 0, $ably->http->fallbackRetries); // zero retries since cached fallback is used
+
+        sleep( 2); // expire cached host
+
+        $ably->time();
+        $this->assertGreaterThanOrEqual( 1, $ably->http->fallbackRetries );
+        $this->assertEquals("c.ably-realtime.com", $ably->host->getPreferredHost()); // check for cached host
     }
 
     /**
@@ -463,20 +462,22 @@ class HttpMockInitTestTimeout extends Http {
 
 
 class HttpMockCachedFallback extends Http {
-    private $restHost;
-    public $errors;
+    public $fallbackRetries;
 
     public function __construct( $clientOptions ) {
         parent::__construct( $clientOptions );
-        $this->restHost = $clientOptions-> getPrimaryRestHost();
-        $this->errors = 0;
+        $this->fallbackRetries = 0;
     }
 
     public function request( $method, $url, $headers = [], $params = [] ) {
-        if ( parse_url($url, PHP_URL_HOST) == $this->restHost ) {
-            $this->errors++;
-            throw new AblyRequestException( 'fake error', 50000, 500 );
+        if ( parse_url($url, PHP_URL_HOST) == "c.ably-realtime.com" ) { // cache specific host
+            return parent::request($method, $url, $headers, $params);
         }
-        return parent::request($method, $url, $headers, $params);
+        $this->fallbackRetries++;
+        throw new AblyRequestException( 'fake error', 50000, 500 );
+    }
+
+    public function resetRetries() {
+        $this->fallbackRetries = 0;
     }
 }
