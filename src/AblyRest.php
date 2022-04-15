@@ -144,6 +144,10 @@ class AblyRest {
         return $this->requestInternal( 'DELETE', $path, $headers, $params, $returnHeaders, $auth );
     }
 
+    /**
+     * Returns hosts in the order 1. Cached Host or Primary Host 2. Randomized Fallback Hosts
+     * @return \Generator hosts
+     */
     public function getHosts() {
         $prefHost = $this->host->getPreferredHost();
         yield $prefHost;
@@ -190,12 +194,11 @@ class AblyRest {
                 // Clear cached host if it failed (RSC15f)
                 $this->host->setPreferredHost("");
 
-                // check if error is timeout
-                if ( $e->getCode() >= 50000 && $attempt < $maxPossibleRetries) {
+                $isServerError = $e->getStatusCode() >= 500 && $e->getStatusCode() <= 504; // RSC15d
+                if ( $isServerError && $attempt < $maxPossibleRetries) {
                     $attempt += 1;
                 } else {
-                    $causedByExpiredToken = $auth
-                        && !$this->auth->isUsingBasicAuth()
+                    $causedByExpiredToken = $auth && !$this->auth->isUsingBasicAuth()
                         && ($e->getCode() >= 40140)
                         && ($e->getCode() < 40150);
 
