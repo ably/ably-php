@@ -178,6 +178,9 @@ class AblyRest {
         foreach ($this->getHosts() as $host) {
             $hostUrl = $this->options->getHostUrl($host). $path;
             try {
+                if ($host != $this->options->getPrimaryRestHost()) { // set hostHeader for fallback host (RSC15j)
+                    $mergedHeaders[] = "Host: " . $host;
+                }
                 $response = $this->http->request( $method, $hostUrl, $mergedHeaders, $params );
                 $this->host->setPreferredHost($host);
                 break;
