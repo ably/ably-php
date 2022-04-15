@@ -178,10 +178,11 @@ class AblyRest {
         foreach ($this->getHosts() as $host) {
             $hostUrl = $this->options->getHostUrl($host). $path;
             try {
+                $updatedHeaders = $mergedHeaders;
                 if ($host != $this->options->getPrimaryRestHost()) { // set hostHeader for fallback host (RSC15j)
-                    $mergedHeaders[] = "Host: " . $host;
+                    $updatedHeaders[] = "Host: " . $host;
                 }
-                $response = $this->http->request( $method, $hostUrl, $mergedHeaders, $params );
+                $response = $this->http->request( $method, $hostUrl, $updatedHeaders, $params );
                 $this->host->setPreferredHost($host);
                 break;
             } catch (AblyRequestException $e) {
