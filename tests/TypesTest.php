@@ -1,8 +1,6 @@
 <?php
 namespace tests;
 use Ably\AblyRest;
-use Ably\Auth;
-use Ably\Exceptions\AblyException;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -270,17 +268,6 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
             'failed'    => 'integer',
             'refused'   => 'integer',
             'succeeded' => 'integer',
-        ] );
-    }
-
-    public function testHttpPaginatedResponseType() {
-        $this->verifyClassMembers( '\Ably\Models\HttpPaginatedResponse', [
-            'items',
-            'statusCode',
-            'success',
-            'errorCode',
-            'errorMessage',
-            'headers',
         ] );
     }
 }

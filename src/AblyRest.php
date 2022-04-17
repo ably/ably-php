@@ -3,7 +3,6 @@ namespace Ably;
 
 use Ably\Models\ClientOptions;
 use Ably\Models\PaginatedResult;
-use Ably\Models\HttpPaginatedResponse;
 use Ably\Exceptions\AblyException;
 use Ably\Exceptions\AblyRequestException;
 use Ably\Utils\Miscellaneous;
