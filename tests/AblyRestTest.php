@@ -527,7 +527,7 @@ class HttpMockInitTestTimeout extends Http {
     public $errorCode = 50003; // timeout
     public $hostHeaders = [];
 
-    static function parse_headers($raw_headers)
+    static function parseHeaders($raw_headers)
     {
         $headers = array();
         foreach ($raw_headers as $raw_header) {
@@ -538,7 +538,7 @@ class HttpMockInitTestTimeout extends Http {
     }
 
     public function request($method, $url, $headers = [], $params = []) {
-        $parsedHeaders = self::parse_headers($headers);
+        $parsedHeaders = self::parseHeaders($headers);
         if (isset($parsedHeaders["Host"])) {
             $this->hostHeaders[] = $parsedHeaders["Host"];
         }
