@@ -28,16 +28,16 @@ class AblyRest {
 
     static function ablyAgentHeader()
     {
-        $sdk_identifier = 'ably-php/'.self::LIB_VERSION;
-        $runtime_identifier = 'php/'.Miscellaneous::getNumeric(phpversion());
-        $agent_header = $sdk_identifier.' '.$runtime_identifier;
-        foreach(self::$agents as $agent_identifier => $agent_version) {
-            $agent_header.= ' '.$agent_identifier;
-            if (!empty($agent_version)) {
-                $agent_header.= '/'.$agent_version;
+        $sdkIdentifier = 'ably-php/'.self::LIB_VERSION;
+        $runtimeIdentifier = 'php/'.Miscellaneous::getNumeric(phpversion());
+        $agentHeader = $sdkIdentifier.' '.$runtimeIdentifier;
+        foreach(self::$agents as $agentIdentifier => $agentVersion) {
+            $agentHeader.= ' '.$agentIdentifier;
+            if (!empty($agentVersion)) {
+                $agentHeader.= '/'.$agentVersion;
             }
         }
-        return $agent_header;
+        return $agentHeader;
     }
     /**
      * @var \Ably\Http $http object for making HTTP requests
