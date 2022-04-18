@@ -258,7 +258,6 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
      * @testdox RSC15b2
      */
     public function testNoFallbackOnEmptyCustomFallbacks() {
-        // reuse default options so that fallback host order is not randomized again
         $opts = [
             'key' => 'fake.key:veryFake',
             'httpClass' => 'tests\HttpMockInitTestTimeout',
@@ -340,8 +339,6 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
      * @testdox RSC15k
      */
     public function testNoFallbackOnCustomHost() {
-
-        // reuse default options so that fallback host order is not randomized again
         $opts = [
             'key' => 'fake.key:veryFake',
             'httpClass' => 'tests\HttpMockInitTestTimeout',

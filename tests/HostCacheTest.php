@@ -10,7 +10,7 @@ use Ably\HostCache;
 class HostCacheTest extends \PHPUnit\Framework\TestCase {
 
     /**
-     * @testdox RSC15a
+     * @testdox RSC15f
      */
     public function testHost() {
         $hostCache = new HostCache(3000);
@@ -19,7 +19,7 @@ class HostCacheTest extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * @testdox RSC15a
+     * @testdox RSC15f
      */
     public function testExpiredHost() {
         $hostCache = new HostCache(999);

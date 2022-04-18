@@ -10,7 +10,7 @@ use Ably\Models\ClientOptions;
 class HostTest extends \PHPUnit\Framework\TestCase {
 
     /**
-     * @testdox RSC15a
+     * @testdox RSA15a, RSC15b, RSC15e
      */
     public function testFallbacksInRandomOrder() {
         $clientOptions = new ClientOptions();
