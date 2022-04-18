@@ -146,7 +146,7 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * Test basic AblyRest::request functionality
+     * RSC19 Test basic AblyRest::request functionality
      */
     public function testRequestBasic() {
         $ably = self::$ably;
@@ -185,7 +185,7 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * Test that Response handles various returned structures properly
+     * RSC19 - Test that Response handles various returned structures properly
      */
     public function testRequestReturnValues() {
         $ably = new AblyRest( [
@@ -287,53 +287,6 @@ class HttpMockReturnData extends Http {
 
     private static function endsWith($haystack, $needle) {
         return substr($haystack, -strlen($needle)) == $needle;
-    }
-}
-
-class CurlWrapperMock extends CurlWrapper {
-    public $lastParams;
-
-    public function init( $url = null ) {
-        $this->lastParams = [ CURLOPT_URL => $url ];
-
-        return parent::init( $url );
-    }
-
-    public function setOpt( $handle, $option, $value ) {
-        $this->lastParams[$option] = $value;
-
-        return parent::setOpt( $handle, $option, $value );
-    }
-
-    /**
-     * Returns a fake token when tere is `/tokenRequest` in the URL, otherwise returns current time
-     * wrapped in an array (as does GET /time) without actually making the request.
-     */
-    public function exec( $handle ) {
-        if (preg_match('/\\/tokenRequest/', $this->lastParams[CURLOPT_URL])) {
-            return 'tokentokentoken';
-        }
-
-        return '[' . round( microtime( true ) * 1000 ) . ']';
-    }
-
-    public function getInfo( $handle ) {
-        return [
-            'http_code' => 200,
-            'header_size' => 0,
-        ];
-    }
-}
-
-
-class HttpMock extends Http {
-    public function __construct() {
-        parent::__construct(new \Ably\Models\ClientOptions());
-        $this->curl = new CurlWrapperMock();
-    }
-
-    public function getCurlLastParams() {
-        return $this->curl->lastParams;
     }
 }
 

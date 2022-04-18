@@ -218,7 +218,9 @@ class AblyRest {
     }
 
     /**
-     * Does an HTTP request with automatic pagination, automatically injected
+     * RSC19 - This function is provided as a convenience for customers who wish to use REST API functionality that is
+     * either not documented or is not included in the API for our client libraries.
+     * It Does an HTTP request with automatic pagination, automatically injected.
      * auth headers and automatic server failure handling using fallbackHosts.
      *
      * @param string $method HTTP method (GET, POST, PUT, DELETE, PATCH, ...)
@@ -242,7 +244,7 @@ class AblyRest {
             $body = json_encode( $body );
         }
 
-        return new HttpPaginatedResponse( $this, 'Ably\Models\Untyped', null, $method, $path, $body, $headers );
+        return new HttpPaginatedResponse( $this, 'Ably\Models\Untyped', null, $method, $path, $body, $headers ); // RSC19d
     }
 
     /**
