@@ -218,6 +218,34 @@ class AblyRest {
     }
 
     /**
+     * Does an HTTP request with automatic pagination, automatically injected
+     * auth headers and automatic server failure handling using fallbackHosts.
+     *
+     * @param string $method HTTP method (GET, POST, PUT, DELETE, PATCH, ...)
+     * @param string $path root-relative path, e.g. /channels/example/messages
+     * @param array $params GET parameters to append to $path
+     * @param array|object $body JSON-encodable structure to send in the body - leave empty for GET requests
+     * @param array $headers HTTP headers to send
+     * @return \Ably\Models\HttpPaginatedResponse
+     * @throws AblyRequestException This exception is only thrown for status codes >= 500
+     */
+    public function request( $method, $path, $params = [], $body = '', $headers = []) {
+        if ( count( $params ) ) {
+            $path .= '?' . http_build_query( $params );
+        }
+
+        if ( $method == 'GET' && $body ) {
+            throw new AblyException( 'GET requests cannot have a JSON body', 400, 40000 );
+        }
+
+        if ( !is_string( $body ) ) {
+            $body = json_encode( $body );
+        }
+
+        return new HttpPaginatedResponse( $this, 'Ably\Models\Untyped', null, $method, $path, $body, $headers );
+    }
+
+    /**
      * Does a HTTP request backed up by fallback servers
      */
     private function getHosts() {
