@@ -4,9 +4,9 @@
 [![Total Downloads](https://poser.pugx.org/ably/ably-php/downloads)](https://packagist.org/packages/ably/ably-php)
 [![License](https://poser.pugx.org/ably/ably-php/license)](https://packagist.org/packages/ably/ably-php)
 
-_[Ably](https://ably.com) is the platform that powers synchronized digital experiences in realtime. Whether attending an event in a virtual venue, receiving realtime financial information, or monitoring live car performance data – consumers simply expect realtime digital experiences as standard. Ably provides a suite of APIs to build, extend, and deliver powerful digital experiences in realtime for more than 250 million devices across 80 countries each month. Organizations like Bloomberg, HubSpot, Verizon, and Hopin depend on Ably’s platform to offload the growing complexity of business-critical realtime data synchronization at global scale. For more information, see the [Ably documentation](https://ably.com/documentation)._
+_[Ably](https://ably.com) is the platform that powers synchronized digital experiences in realtime. Whether attending an event in a virtual venue, receiving realtime financial information, or monitoring live car performance data – consumers simply expect realtime digital experiences as standard. Ably provides a suite of APIs to build, extend, and deliver powerful digital experiences in realtime for more than 250 million devices across 80 countries each month. Organizations like Bloomberg, HubSpot, Verizon, and Hopin depend on Ably’s platform to offload the growing complexity of business-critical realtime data synchronization at global scale. For more information, see the [Ably documentation](https://ably.com/docs)._
 
-This is a PHP REST client library for Ably. The library currently targets the [Ably 1.1 client library specification](https://www.ably.io/documentation/client-lib-development-guide/features/). You can jump to the '[Known Limitations](#known-limitations)' section to see the features this client library does not yet support or [view our client library SDKs feature support matrix](https://www.ably.io/download/sdk-feature-support-matrix) to see the list of all the available features.
+This is a PHP REST client library for Ably. The library currently targets the [Ably 1.1 client library specification](https://www.ably.io/docs/client-lib-development-guide/features/). You can jump to the '[Known Limitations](#known-limitations)' section to see the features this client library does not yet support or [view our client library SDKs feature support matrix](https://www.ably.io/download/sdk-feature-support-matrix) to see the list of all the available features.
 
 
 ## Supported Platforms
@@ -20,19 +20,19 @@ If you find any compatibility issues, please [do raise an issue](https://github.
 
 ## Known Limitations
 
-Currently, this SDK only supports [Ably REST](https://www.ably.io/documentation/rest). However, you can use the [MQTT adapter](https://www.ably.io/documentation/mqtt) to implement [Ably's Realtime](https://www.ably.io/documentation/realtime) features using [Mosquitto PHP](https://github.com/mgdm/Mosquitto-PHP).
+Currently, this SDK only supports [Ably REST](https://www.ably.io/docs/rest). However, you can use the [MQTT adapter](https://www.ably.io/docs/mqtt) to implement [Ably's Realtime](https://www.ably.io/docs/realtime) features using [Mosquitto PHP](https://github.com/mgdm/Mosquitto-PHP).
 
 This SDK is *not compatible* with some of the Ably features:
 
 | Feature |
 | :--- |
-| [Remember fallback host during failures](https://www.ably.io/documentation/realtime/usage#client-options) |
-| [MsgPack Binary Protocol](https://www.ably.io/documentation/realtime/usage#client-options) |
+| [Remember fallback host during failures](https://www.ably.io/docs/realtime/usage#client-options) |
+| [MsgPack Binary Protocol](https://www.ably.io/docs/realtime/usage#client-options) |
 
 
 ## Documentation
 
-Visit https://www.ably.io/documentation for a complete API reference and more examples.
+Visit https://www.ably.io/docs for a complete API reference and more examples.
 
 ## Installation
 
