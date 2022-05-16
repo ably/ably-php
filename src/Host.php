@@ -5,9 +5,7 @@ class Host {
     private $primaryHost;
     private $fallbackHosts;
     private $hostCache;
-    /**
-     * @param $clientOptions
-     */
+
     public function __construct($clientOptions)
     {
         $this->primaryHost = $clientOptions->getPrimaryRestHost();
