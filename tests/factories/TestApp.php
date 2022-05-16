@@ -32,7 +32,7 @@ class TestApp {
 
         $this->options = $settings;
 
-        $this->server = $clientOpts->getHostUrl($clientOpts->getRestHost());
+        $this->server = $clientOpts->getHostUrl($clientOpts->getPrimaryRestHost());
         $this->init();
 
         return $this;

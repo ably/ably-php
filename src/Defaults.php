@@ -2,11 +2,16 @@
 namespace Ably;
 
 class Defaults {
+    const API_VERSION = '1.1';
+    const LIB_VERSION = '1.1.6';
 
     static $restHost = "rest.ably.io";
     static $realtimeHost = "realtime.ably.io";
     static $port = 80;
     static $tlsPort = 443;
+
+    static $internetCheckUrl = "https://internet-up.ably-realtime.com/is-the-internet-up.txt";
+    static $internetCheckOk = "yes\n";
 
     static $fallbackHosts = [
         'a.ably-realtime.com',

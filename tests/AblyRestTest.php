@@ -1,10 +1,12 @@
 <?php
 namespace tests;
 use Ably\AblyRest;
-use Ably\Http;
+use Ably\Defaults;
 use Ably\Exceptions\AblyRequestException;
+use Ably\Http;
 use Ably\Models\ClientOptions;
 use Ably\Models\TokenDetails;
+use Ably\Utils\Miscellaneous;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -173,15 +175,32 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
         $this->assertRegExp( '/^https:\/\/rest\.ably\.io/', $ably->http->lastUrl, 'Unexpected scheme/url mismatch' );
     }
 
+
+    /**
+     * Verify that the httpMaxRetryCount option is honored
+     * @testdox RSC15a
+     */
+    public function testMaxRetryCount() {
+        $opts = [
+            'key' => 'fake.key:veryFake',
+            'httpClass' => 'tests\HttpMockInitTestTimeout',
+            'httpMaxRetryCount' => 2,
+        ];
+
+        $ably = new AblyRest( $opts );
+        try {
+            $ably->time(); // make a request
+            $this->fail('Expected the request to fail');
+        } catch(AblyRequestException $e) {
+            $this->assertCount(3, $ably->http->visitedHosts, 'Expected to have tried 1 main host and 2 fallback hosts');
+        }
+    }
+
     /**
      * Verify that fallback hosts are working and used in correct order
+     * @testdox RSC15a, RSC15b. RSC15d, RSC15g3, RSC15b1 (use fallbacks when custom host, port or tlsport is not set)
      */
     public function testFallbackHosts() {
-        $defaultOpts = new ClientOptions();
-        $hostWithFallbacks = array_merge( [ $defaultOpts->getRestHost() ], $defaultOpts->getFallbackHosts() );
-        $hostWithFallbacksSorted = $hostWithFallbacks; // copied by value
-        sort($hostWithFallbacksSorted);
-
         $opts = [
             'key' => 'fake.key:veryFake',
             'httpClass' => 'tests\HttpMockInitTestTimeout',
@@ -192,57 +211,110 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-            $this->assertEquals( $hostWithFallbacks[0], $ably->http->failedHosts[0],
-                                 'Expected to try restHost first' );
-            $this->assertNotEquals( $hostWithFallbacks, $ably->http->failedHosts,
-                                    'Expected to have fallback hosts randomized' );
+            $this->assertCount(6, $ably->http->visitedHosts);
+            $this->assertEquals( 'rest.ably.io' , $ably->http->visitedHosts[0],'Expected to try primary restHost first' );
 
-            $failedHostsSorted = $ably->http->failedHosts; // copied by value;
-            sort($failedHostsSorted);
-            $this->assertEquals( $hostWithFallbacksSorted, $failedHostsSorted,
-                                 'Expected to have tried all the fallback hosts' );
+            $expectedFallbackHosts = array_merge( [ 'rest.ably.io' ], Defaults::$fallbackHosts );
+            $this->assertNotEquals( $expectedFallbackHosts, $ably->http->visitedHosts,'Expected to have fallback hosts randomized' );
+
+            sort($expectedFallbackHosts);
+            $actualVisitedHosts = $ably->http->visitedHosts; // copied by value;
+            sort($actualVisitedHosts);
+            $this->assertEquals( $expectedFallbackHosts, $actualVisitedHosts,'Expected to have tried all the fallback hosts' );
         }
     }
 
     /**
-     * Verify that custom restHost and custom fallbackHosts are working
+     * When using custom environment, should use custom env. fallback hosts
+     * @testdox RSC15b1,RSC15g2
      */
-    public function testCustomHostAndFallbacks() {
-        $defaultOpts = new ClientOptions([
-            'restHost' => 'rest.custom.com',
-            'fallbackHosts' => [
-                'first-fallback.custom.com',
-                'second-fallback.custom.com',
-                'third-fallback.custom.com',
-            ],
-        ]);
-        $hostWithFallbacks = array_merge( [ $defaultOpts->getRestHost() ], $defaultOpts->getFallbackHosts() );
-        $hostWithFallbacksSorted = $hostWithFallbacks; // copied by value
-        sort($hostWithFallbacksSorted);
-
-        $opts = array_merge ( $defaultOpts->toArray(), [
+    public function testEnvFallbackHosts() {
+        $opts = [
             'key' => 'fake.key:veryFake',
             'httpClass' => 'tests\HttpMockInitTestTimeout',
-            'httpMaxRetryCount' => 3,
-        ] );
+            'httpMaxRetryCount' => 5,
+            'environment' => 'alpha'
+        ];
         $ably = new AblyRest( $opts );
         try {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-           $this->assertEquals( $hostWithFallbacks[0], $ably->http->failedHosts[0], 'Expected to try restHost first' );
-            // $this->assertNotEquals( $hostWithFallbacks, $ably->http->failedHosts, 'Expected to have fallback hosts randomized' ); // this may fail when randomized order matches the original order
-            
-           $failedHostsSorted = $ably->http->failedHosts; // copied by value;
-           sort($failedHostsSorted);
-           $this->assertEquals( $hostWithFallbacksSorted, $failedHostsSorted, 'Expected to have tried all the fallback hosts' );
+            $this->assertCount(6, $ably->http->visitedHosts);
+            $this->assertEquals( 'alpha-rest.ably.io' , $ably->http->visitedHosts[0],'Expected to try primary restHost first' );
+
+            $expectedFallbackHosts = array_merge( [ 'alpha-rest.ably.io' ], Defaults::getEnvironmentFallbackHosts('alpha'));
+            $this->assertNotEquals( $expectedFallbackHosts, $ably->http->visitedHosts,'Expected to have fallback hosts randomized' );
+
+            sort($expectedFallbackHosts);
+            $actualVisitedHosts = $ably->http->visitedHosts; // copied by value;
+            sort($actualVisitedHosts);
+            $this->assertEquals( $expectedFallbackHosts, $actualVisitedHosts,'Expected to have tried all the fallback hosts' );
         }
     }
 
     /**
-     * Verify that fallback hosts are not called on a 400 error
+     * Verify that no fallbacks are tried when empty fallbacks are provided
+     * @testdox RSC15b2
      */
-    public function testFallbackHosts400() {
+    public function testNoFallbackOnEmptyCustomFallbacks() {
+        $opts = [
+            'key' => 'fake.key:veryFake',
+            'httpClass' => 'tests\HttpMockInitTestTimeout',
+            'restHost' => 'custom.host.com',
+            'fallbackHosts' => [],
+        ];
+        $ably = new AblyRest( $opts );
+        try {
+            $ably->time(); // make a request
+            $this->fail('Expected the request to fail');
+        } catch(AblyRequestException $e) {
+            $this->assertCount(1, $ably->http->visitedHosts);
+            $this->assertEquals( [ 'custom.host.com' ], $ably->http->visitedHosts, 'Expected to have tried only the custom host' );
+        }
+    }
+
+    /**
+     * Verify that custom restHost and custom fallbackHosts are working
+     * @testdox RSC15b2, RSC15g1
+     */
+    public function testCustomHostAndFallbacks() {
+        $customFallbacks = [
+            'first-fallback.custom.com',
+            'second-fallback.custom.com',
+            'third-fallback.custom.com',
+        ];
+        $defaultOpts = new ClientOptions([
+            'restHost' => 'rest.custom.com',
+            'fallbackHosts' => $customFallbacks,
+        ]);
+
+        $opts = array_merge ( $defaultOpts->toArray(), [
+            'key' => 'fake.key:veryFake',
+            'httpClass' => 'tests\HttpMockInitTestTimeout',
+            'httpMaxRetryCount' => 3,
+        ]);
+        $ably = new AblyRest( $opts );
+        try {
+            $ably->time(); // make a request
+            $this->fail('Expected the request to fail');
+        } catch(AblyRequestException $e) {
+            $this->assertCount(4, $ably->http->visitedHosts);
+            $this->assertEquals( 'rest.custom.com' , $ably->http->visitedHosts[0],'Expected to try primary restHost first' );
+
+            $expectedFallbackHosts = array_merge( [ $defaultOpts->restHost ], $customFallbacks);
+            sort($expectedFallbackHosts);
+            $actualVisitedHosts = $ably->http->visitedHosts; // copied by value;
+            sort($actualVisitedHosts);
+            $this->assertEquals($expectedFallbackHosts, $actualVisitedHosts, 'Expected to have tried all the fallback hosts' );
+        }
+    }
+
+    /**
+     * Verify that fallback hosts are not called on error code < 500 or > 504
+     * @testdox RSC15d
+     */
+    public function testNoFallbackOnClientError() {
 
         $opts = [
             'key' => 'fake.key:veryFake',
@@ -257,16 +329,16 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-            $this->assertEquals( [ 'rest.ably.io' ], $ably->http->failedHosts, 'Expected to have tried only the default host' );
+            $this->assertCount(1, $ably->http->visitedHosts);
+            $this->assertEquals( [ 'rest.ably.io' ], $ably->http->visitedHosts, 'Expected to have tried only the default host' );
         }
     }
 
     /**
      * Verify that default fallback hosts are NOT used when using a custom host
+     * @testdox RSC15k
      */
     public function testNoFallbackOnCustomHost() {
-
-        // reuse default options so that fallback host order is not randomized again
         $opts = [
             'key' => 'fake.key:veryFake',
             'httpClass' => 'tests\HttpMockInitTestTimeout',
@@ -277,12 +349,14 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-            $this->assertEquals( [ 'custom.host.com' ], $ably->http->failedHosts, 'Expected to have tried only the custom host' );
+            $this->assertCount(1, $ably->http->visitedHosts);
+            $this->assertEquals( [ 'custom.host.com' ], $ably->http->visitedHosts, 'Expected to have tried only the custom host' );
         }
     }
 
     /**
      * Verify that fallback hosts are working - first 3 fail, 4th works
+     * @testdox RSC15a
      */
     public function testFallbackHostsFailFirst3() {
         $opts = [
@@ -291,65 +365,74 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
             'httpMaxRetryCount' => 5,
         ];
         $ably = new AblyRest( $opts );
-        $ably->http->failAttempts = 3;
+        $ably->http->hostFailures = 3;
         $data = $ably->time(); // make a request
-        
+
+        $this->assertCount( 3, $ably->http->visitedHosts, 'Expected 3 hosts to fail' );
         $this->assertEquals( 999999, $data, 'Expected to receive test data' );
-        $this->assertEquals( 3, count( $ably->http->failedHosts ), 'Expected 3 hosts to fail' );
     }
 
     /**
-     * Verify that the httpMaxRetryCount option is honored
+     * Verify that Host header is set for fallback host
+     * @testdox RSC15j
      */
-    public function testMaxRetryCount() {
-        $opts = [
-            'key' => 'fake.key:veryFake',
-            'httpClass' => 'tests\HttpMockInitTestTimeout',
-            'httpMaxRetryCount' => 2,
+    public function testFallbackHostHeader() {
+        $customFallbacks = [
+            'first-fallback.custom.com',
+            'second-fallback.custom.com',
+            'third-fallback.custom.com',
         ];
-
+        $opts = new ClientOptions([
+            'restHost' => 'rest.custom.com',
+            'fallbackHosts' => $customFallbacks,
+            'key' => 'fake.key:veryFake',
+            'httpClass' => 'tests\HttpMockInitTestTimeout'
+        ]);
         $ably = new AblyRest( $opts );
         try {
             $ably->time(); // make a request
             $this->fail('Expected the request to fail');
         } catch(AblyRequestException $e) {
-            $this->assertEquals( 3, count($ably->http->failedHosts), 'Expected to have tried main host and 2 fallback hosts' );
+            $this->assertCount(3, $ably->http->hostHeaders);
+            $actualHostHeaders = $ably->http->hostHeaders;
+            sort($actualHostHeaders);
+            $this->assertEquals($customFallbacks, $actualHostHeaders);
         }
     }
 
-
     /**
-     * RSC15f Cached fallback host
+     * Cached fallback host
+     * @testdox RSC15f
      */
     public function testCachedFallback() {
-        $timeout = 2000;
+        $fallbackCacheTimeoutInMs = 1999;
         $ably = new AblyRest( array_merge( self::$defaultOptions, [
             'key' => self::$testApp->getAppKeyDefault()->string,
-            'fallbackRetryTimeout' => $timeout,
+            'fallbackRetryTimeout' => $fallbackCacheTimeoutInMs,
             'httpClass' => 'tests\HttpMockCachedFallback',
+            'restHost' => 'custom.host.com',
             'fallbackHosts' => [
-                'a.ably-realtime.com',
-                'b.ably-realtime.com',
-                'c.ably-realtime.com',
-                'd.ably-realtime.com',
-                'e.ably-realtime.com',
+                'fallback1',
+                'c.ably-realtime.com', // valid fallback host
+                'fallback2',
             ],
         ]));
 
-        // The main host is called and there's an error
         $ably->time();
-        $this->assertEquals( 1, $ably->http->errors );
+        $this->assertEquals("c.ably-realtime.com", $ably->host->getPreferredHost()); // check for cached host
+        $this->assertGreaterThanOrEqual(1, $ably->http->fallbackRetries );
+        $ably->http->resetRetries();
 
-        // The cached host is used: no error
         $ably->time();
         $ably->time();
-        $ably->time();
-        $this->assertEquals( 1, $ably->http->errors );
+        $this->assertEquals("c.ably-realtime.com", $ably->host->getPreferredHost()); // check for cached host
+        $this->assertEquals( 0, $ably->http->fallbackRetries); // zero retries since cached fallback is used
 
-        // The cached host has expired, we've an error again
-        sleep( $timeout / 1000 );
+        sleep( 2); // expire cached host
+
         $ably->time();
-        $this->assertEquals( 2, $ably->http->errors );
+        $this->assertEquals("c.ably-realtime.com", $ably->host->getPreferredHost()); // check for cached host
+        $this->assertGreaterThanOrEqual( 1, $ably->http->fallbackRetries );
     }
 
     /**
@@ -367,10 +450,21 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
         $time = $ably->time();
         $this->assertIsInt( $time );
 
-        $systemTime = $ably->systemTime();
+        $systemTime = Miscellaneous::systemTime();
         $this->assertIsInt( $systemTime );
 
         $this->assertLessThan ( 2000, abs($time - $systemTime) );
+    }
+
+    /**
+     * @testdox RTN17c
+     */
+    public function testActiveInternetConnection() {
+        $opts = [
+            'key' => 'fake.key:veryFake',
+        ];
+        $ably = new AblyRest( $opts );
+        $this->assertTrue($ably ->hasActiveInternetConnection());
     }
 
     /**
@@ -424,16 +518,30 @@ class HttpMockInitTest extends Http {
 
 
 class HttpMockInitTestTimeout extends Http {
-    public $failedHosts = [];
-    public $failAttempts = 100; // number of attempts to time out before starting to return data
+    public $visitedHosts = [];
+    public $hostFailures = 100; // number of attempts to time out before starting to return data
     public $httpErrorCode = 500;
     public $errorCode = 50003; // timeout
-    
-    public function request($method, $url, $headers = [], $params = []) {
+    public $hostHeaders = [];
 
-        if ($this->failAttempts > 0) {
-            $this->failedHosts[] = parse_url($url, PHP_URL_HOST) ;
-            $this->failAttempts--;
+    static function parseHeaders($raw_headers)
+    {
+        $headers = array();
+        foreach ($raw_headers as $raw_header) {
+            $h = explode(':', $raw_header);
+            $headers[$h[0]] = trim($h[1]);
+        }
+        return $headers;
+    }
+
+    public function request($method, $url, $headers = [], $params = []) {
+        $parsedHeaders = self::parseHeaders($headers);
+        if (isset($parsedHeaders["Host"])) {
+            $this->hostHeaders[] = $parsedHeaders["Host"];
+        }
+        if ($this->hostFailures > 0) {
+            $this->visitedHosts[] = parse_url($url, PHP_URL_HOST) ;
+            $this->hostFailures--;
             throw new AblyRequestException( 'Fake error', $this->errorCode, $this->httpErrorCode );
         }
 
@@ -446,21 +554,22 @@ class HttpMockInitTestTimeout extends Http {
 
 
 class HttpMockCachedFallback extends Http {
-    private $restHost;
-    public $errors;
+    public $fallbackRetries;
 
     public function __construct( $clientOptions ) {
         parent::__construct( $clientOptions );
-        $this->restHost = $clientOptions-> getRestHost();
-        $this->errors = 0;
+        $this->fallbackRetries = 0;
     }
 
     public function request( $method, $url, $headers = [], $params = [] ) {
-        if ( parse_url($url, PHP_URL_HOST) == $this->restHost ) {
-            $this->errors++;
-            throw new AblyRequestException( 'fake error', 50000, 500 );
+        if ( parse_url($url, PHP_URL_HOST) == "c.ably-realtime.com" ) { // cache specific host
+            return parent::request($method, $url, $headers, $params);
         }
+        $this->fallbackRetries++;
+        throw new AblyRequestException( 'fake error', 50000, 500 );
+    }
 
-        return parent::request($method, $url, $headers, $params);
+    public function resetRetries() {
+        $this->fallbackRetries = 0;
     }
 }

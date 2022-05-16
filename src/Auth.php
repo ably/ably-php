@@ -1,14 +1,12 @@
 <?php
 namespace Ably;
 
-use Ably\AblyRest;
-use Ably\Log;
+use Ably\Exceptions\AblyException;
 use Ably\Models\AuthOptions;
 use Ably\Models\ClientOptions;
 use Ably\Models\TokenDetails;
 use Ably\Models\TokenParams;
 use Ably\Models\TokenRequest;
-use Ably\Exceptions\AblyException;
 
 /**
  * Provides authentification methods for AblyRest instances
@@ -108,7 +106,7 @@ class Auth {
                 // using cached token
                 Log::d( 'Auth::authorize: using cached token, unknown expiration time' );
                 return $this->tokenDetails;
-            } else if ( $this->tokenDetails->expires - self::TOKEN_EXPIRY_MARGIN > $this->ably->systemTime() ) {
+            } else if ( $this->tokenDetails->expires - self::TOKEN_EXPIRY_MARGIN > Utils\Miscellaneous::systemTime()) {
                 // using cached token
                 Log::d( 'Auth::authorize: using cached token, expires on ' . date( 'Y-m-d H:i:s', $this->tokenDetails->expires / 1000 ) );
                 return $this->tokenDetails;
@@ -318,7 +316,7 @@ class Auth {
         if ( $authOptions->queryTime ) {
             $tokenRequest->timestamp = $this->ably->time();
         } else if ( empty( $tokenRequest->timestamp ) ) {
-            $tokenRequest->timestamp = $this->ably->systemTime();
+            $tokenRequest->timestamp = Utils\Miscellaneous::systemTime();
         }
 
         if ( empty( $tokenRequest->clientId ) ) {

@@ -2,6 +2,7 @@
 namespace tests;
 use Ably\AblyRest;
 use Ably\Auth;
+use Ably\Defaults;
 use Ably\Exceptions\AblyException;
 
 require_once __DIR__ . '/factories/TestApp.php';
@@ -162,7 +163,7 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
     {
         // Test default value
         $co = new \Ably\Models\ClientOptions();
-        if (AblyRest::API_VERSION <= '1.1') {
+        if (Defaults::API_VERSION <= '1.1') {
             $this->assertEquals( false, $co->idempotentRestPublishing );
         } else {
             $this->assertEquals( true, $co->idempotentRestPublishing );
