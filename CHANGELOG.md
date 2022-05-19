@@ -1,5 +1,22 @@
 # Change Log
 
+## [1.1.7](https://github.com/ably/ably-php/tree/1.1.7) (2022-05-19)
+[Full Changelog](https://github.com/ably/ably-php/compare/1.1.6...1.1.7)
+
+**Implemented enhancements:**
+
+- Defaults: Generate environment fallbacks [\#87](https://github.com/ably/ably-php/issues/87)
+
+**Fixed bugs:**
+
+- Fallback not being used with SSL timeouts [\#85](https://github.com/ably/ably-php/issues/85)
+
+**Closed issues:**
+
+- php Update urls in readme [\#148](https://github.com/ably/ably-php/issues/148)
+- Add support for RSC15e, d, f \(Host Fallback \) [\#111](https://github.com/ably/ably-php/issues/111)
+- Implement remembering fallback host during failures [\#107](https://github.com/ably/ably-php/issues/107)
+
 ## [1.1.6](https://github.com/ably/ably-php/tree/1.1.6) (2022-03-30)
 [Full Changelog](https://github.com/ably/ably-php/compare/1.1.5...1.1.6)
 
