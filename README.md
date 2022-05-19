@@ -26,7 +26,6 @@ This SDK is *not compatible* with some of the Ably features:
 
 | Feature |
 | :--- |
-| [Remember fallback host during failures](https://www.ably.com/docs/realtime/usage#client-options) |
 | [MsgPack Binary Protocol](https://www.ably.com/docs/realtime/usage#client-options) |
 
 
@@ -180,7 +179,7 @@ Note - If there is a issue while running tests [SSL certificate error: unable to
 
 This library uses [semantic versioning](http://semver.org/). For each release, the following needs to be done:
 
-* Update the version number in [src/AblyRest.php](./src/AblyRest.php)
+* Update the version number in [src/Defaults.php](./src/Defaults.php)
 * Run [`github_changelog_generator`](https://github.com/skywinder/Github-Changelog-Generator) to automate the update of the [CHANGELOG](./CHANGELOG.md). Once the `CHANGELOG` update has completed, manually change the `Unreleased` heading and link with the current version number such as `1.0.0`. Also ensure that the `Full Changelog` link points to the new version tag instead of the `HEAD`.
 * Commit
 * Add a tag and push to origin such as `git tag 1.0.0 && git push origin 1.0.0`
