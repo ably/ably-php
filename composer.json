@@ -2,7 +2,7 @@
     "name": "ably/ably-php",
     "description": "Ably REST client library for PHP.",
     "keywords": ["messaging", "messages", "ably"],
-    "homepage": "https://www.ably.io/",
+    "homepage": "https://www.ably.com/",
     "require": {
         "php": "^7.2 || ^8.0",
         "ext-json" : "*",
@@ -16,7 +16,7 @@
     "authors": [
         {
             "name": "Ably",
-            "email": "support@ably.io"
+            "email": "support@ably.com"
         }
     ],
     "autoload": {

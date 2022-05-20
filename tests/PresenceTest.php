@@ -3,6 +3,7 @@ namespace tests;
 use Ably\AblyRest;
 use Ably\Exceptions\AblyRequestException;
 use Ably\Utils\Crypto;
+use Ably\Utils\Miscellaneous;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -134,8 +135,8 @@ class PresenceTest extends \PHPUnit\Framework\TestCase {
         $delay = 1000; // sleep for 1000ms
         usleep($delay * 1000); // in microseconds
 
-        $timeOffset = self::$ably->time() - self::$ably->systemTime();
-        $now = $timeOffset + self::$ably->systemTime();
+        $timeOffset = self::$ably->time() - Miscellaneous::systemTime();
+        $now = $timeOffset + Miscellaneous::systemTime();
 
         // test with start parameter
         try {

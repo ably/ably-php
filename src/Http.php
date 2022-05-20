@@ -158,8 +158,8 @@ class Http {
         $this->curl->close( $ch );
 
         if ( $err ) { // a connection error has occured (no data received)
-            Log::e( 'cURL error:', $err, $errmsg );
-            throw new AblyRequestException( 'cURL error: ' . $errmsg, 50003, 500 );
+            Log::e('cURL error:', $err, $errmsg);
+            throw new AblyRequestException('cURL error: ' . $errmsg, 50003, 500); // RSC15d, throw timeout error
         }
 
         $resHeaders = substr( $raw, 0, $info['header_size'] );
@@ -176,9 +176,7 @@ class Http {
 
         if ( $info['http_code'] < 200 || $info['http_code'] >= 300 ) {
             $ablyCode = empty( $decodedBody->error->code ) ? $info['http_code'] * 100 : $decodedBody->error->code * 1;
-            $errorMessage = empty( $decodedBody->error->message ) ? 'cURL request failed'
-                                                                  : $decodedBody->error->message;
-
+            $errorMessage = empty( $decodedBody->error->message ) ? 'cURL request failed' : $decodedBody->error->message;
             throw new AblyRequestException( $errorMessage, $ablyCode, $info['http_code'], $response );
         }
 

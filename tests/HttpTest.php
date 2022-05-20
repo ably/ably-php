@@ -2,6 +2,7 @@
 namespace tests;
 
 use Ably\AblyRest;
+use Ably\Defaults;
 use Ably\Http;
 use Ably\Utils\CurlWrapper;
 use Ably\Models\Untyped;
@@ -39,7 +40,7 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
         $ably->time(); // make a request
 
         $curlParams = $ably->http->getCurlLastParams();
-        $this->assertContains( 'X-Ably-Version: ' . AblyRest::API_VERSION, $curlParams[CURLOPT_HTTPHEADER],
+        $this->assertContains( 'X-Ably-Version: ' . Defaults::API_VERSION, $curlParams[CURLOPT_HTTPHEADER],
                                   'Expected Ably version header in HTTP request' );
 
         AblyRest::setLibraryFlavourString();
@@ -57,7 +58,7 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
         $ably->time(); // make a request
         $curlParams = $ably->http->getCurlLastParams();
 
-        $expectedAgentHeader = 'ably-php/'.AblyRest::LIB_VERSION.' '.'php/'.Miscellaneous::getNumeric(phpversion());
+        $expectedAgentHeader = 'ably-php/'.Defaults::LIB_VERSION.' '.'php/'.Miscellaneous::getNumeric(phpversion());
         $this->assertContains( 'Ably-Agent: '. $expectedAgentHeader, $curlParams[CURLOPT_HTTPHEADER],
             'Expected Ably agent header in HTTP request' );
 
@@ -76,7 +77,7 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
 
         $curlParams = $ably->http->getCurlLastParams();
 
-        $expectedAgentHeader = 'ably-php/'.AblyRest::LIB_VERSION.' '.'php/'.Miscellaneous::getNumeric(phpversion()).' laravel'.' customLib/2.3.5';
+        $expectedAgentHeader = 'ably-php/'.Defaults::LIB_VERSION.' '.'php/'.Miscellaneous::getNumeric(phpversion()).' laravel'.' customLib/2.3.5';
         $this->assertContains( 'Ably-Agent: '. $expectedAgentHeader, $curlParams[CURLOPT_HTTPHEADER],
             'Expected Ably agent header in HTTP request' );
 

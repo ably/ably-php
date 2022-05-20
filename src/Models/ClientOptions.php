@@ -3,8 +3,6 @@ namespace Ably\Models;
 
 use Ably\Defaults;
 use Ably\Log;
-use Ably\AblyRest;
-use function PHPUnit\Framework\isEmpty;
 
 /**
  * Client library options
@@ -105,7 +103,7 @@ class ClientOptions extends AuthOptions {
     /**
      * @var bool defaults to false for clients with version < 1.2, otherwise true
      */
-    public $idempotentRestPublishing = AblyRest::API_VERSION >= '1.2';
+    public $idempotentRestPublishing = Defaults::API_VERSION >= '1.2';
 
     /**
      * @var string a class that should be used for Auth
@@ -130,7 +128,7 @@ class ClientOptions extends AuthOptions {
         return $this->restHost == Defaults::$restHost;
     }
 
-    public function getRestHost() {
+    public function getPrimaryRestHost() {
         if ($this->isDefaultRestHost()) {
             return $this->isProductionEnvironment() ? $this->restHost : $this->environment.'-'.$this->restHost;
         }
@@ -142,7 +140,6 @@ class ClientOptions extends AuthOptions {
         if (empty($this->fallbackHosts) && $this->isDefaultRestHost() && $this->isDefaultPort()) {
             $fallbacks = $this->isProductionEnvironment() ? Defaults::$fallbackHosts : Defaults::getEnvironmentFallbackHosts($this->environment);
         }
-        shuffle($fallbacks);
         return $fallbacks;
     }
 
