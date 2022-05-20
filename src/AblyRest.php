@@ -224,9 +224,8 @@ class AblyRest {
     /**
      * RSC19 - This function is provided as a convenience for customers who wish to use REST API functionality that is
      * either not documented or is not included in the API for our client libraries.
-     * It Does an HTTP request with automatic pagination, automatically injected.
-     * auth headers and automatic server failure handling using fallbackHosts.
-     *
+     * The REST client library provides a function to issue HTTP requests to the Ably endpoints with all the built in
+     * functionality of the library such as authentication, paging, fallback hosts, MsgPack and JSON support
      * @param string $method HTTP method (GET, POST, PUT, DELETE, PATCH, ...)
      * @param string $path root-relative path, e.g. /channels/example/messages
      * @param array $params GET parameters to append to $path
