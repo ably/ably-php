@@ -5,6 +5,7 @@ use Ably\Exceptions\AblyException;
 use Ably\Models\ChannelOptions;
 use Ably\Models\Message;
 use Ably\Models\PaginatedResult;
+use Ably\Models\Status\ChannelDetails;
 use Ably\Utils\Stringifiable;
 
 /**
@@ -150,6 +151,14 @@ class Channel {
                                     $this->getCipherParams(),
                                     'GET', $this->getPath() . '/messages',
                                     $params );
+    }
+
+    /**
+     * Retrieves current channel active status with no. of publishers, subscribers, presenceMembers etc
+     * @return ChannelDetails https://docs.ably.io/client-lib-development-guide/features/#CHD1
+     */
+    public function status() {
+        return $this->ably->get("/channels/" . $this->getName());
     }
 
     /**
