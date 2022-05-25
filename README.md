@@ -101,6 +101,12 @@ $presencePage->items[0]->clientId; // client ID of first member
 $presencePage->next(); // retrieves the next page => \Ably\Models\PaginatedResult
 ```
 
+### Getting the channel status
+```php
+$channelStatus = $channel->status(); 
+var_dump($channelStatus); // => \Ably\Models\Status\ChannelDetails
+```
+
 ### Generate Token and Token Request
 
 ```php
