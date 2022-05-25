@@ -155,7 +155,7 @@ class Channel {
 
     /**
      * Retrieves current channel active status with no. of publishers, subscribers, presenceMembers etc
-     * @return ChannelDetails https://docs.ably.io/client-lib-development-guide/features/#CHD1
+     * @return ChannelDetails
      */
     public function status() {
         return $this->ably->get("/channels/" . $this->getName());

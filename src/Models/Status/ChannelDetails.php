@@ -2,6 +2,9 @@
 
 namespace Ably\Models\Status;
 
+/**
+ * https://docs.ably.io/client-lib-development-guide/features/#CHD1
+ */
 class ChannelDetails
 {
     /**
@@ -20,6 +23,9 @@ class ChannelDetails
     public $status;
 }
 
+/**
+ * https://docs.ably.io/client-lib-development-guide/features/#CHS1
+ */
 class ChannelStatus
 {
     /**
@@ -33,6 +39,9 @@ class ChannelStatus
     public $occupancy;
 }
 
+/**
+ * https://docs.ably.io/client-lib-development-guide/features/#CHO1
+ */
 class ChannelOccupancy
 {
     /**
@@ -41,6 +50,9 @@ class ChannelOccupancy
     public $metrics;
 }
 
+/**
+ * https://docs.ably.io/client-lib-development-guide/features/#CHM1
+ */
 class ChannelMetrics
 {
     /**
