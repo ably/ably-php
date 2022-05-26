@@ -158,7 +158,7 @@ class Channel {
      * @return ChannelDetails
      */
     public function status() {
-        return $this->ably->get("/channels/" . $this->getName());
+        return ChannelDetails::from($this->ably->get("/channels/" . $this->getName()));
     }
 
     /**

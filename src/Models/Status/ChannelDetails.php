@@ -21,6 +21,18 @@ class ChannelDetails
      * @var ChannelStatus
      */
     public $status;
+
+    /**
+     * @param \stdClass
+     * @return ChannelDetails
+     */
+    static function from($object) {
+        $channelDetails = new self();
+        $channelDetails->name = $object->name;
+        $channelDetails->channelId = $object->channelId;
+        $channelDetails->status = ChannelStatus::from($object->status);
+        return $channelDetails;
+    }
 }
 
 /**
@@ -37,6 +49,17 @@ class ChannelStatus
      * @var ChannelOccupancy
      */
     public $occupancy;
+
+    /**
+     * @param \stdClass
+     * @return ChannelStatus
+     */
+    static function from($object) {
+        $channelStatus = new self();
+        $channelStatus->isActive = $object->isActive;
+        $channelStatus->occupancy = ChannelOccupancy::from($object->occupancy);
+        return $channelStatus;
+    }
 }
 
 /**
@@ -48,6 +71,16 @@ class ChannelOccupancy
      * @var ChannelMetrics
      */
     public $metrics;
+
+    /**
+     * @param \stdClass
+     * @return ChannelOccupancy
+     */
+    static function from($object) {
+        $occupancy = new self();
+        $occupancy->metrics = ChannelMetrics::from($object->metrics);
+        return $occupancy;
+    }
 }
 
 /**
@@ -84,4 +117,19 @@ class ChannelMetrics
      * @var int
      */
     public $subscribers;
+
+    /**
+     * @param \stdClass
+     * @return ChannelMetrics
+     */
+    static function from($object) {
+        $metrics = new self();
+        $metrics->connections = $object->connections;
+        $metrics->presenceConnections= $object->presenceConnections;
+        $metrics->presenceMembers = $object->presenceMembers;
+        $metrics->presenceSubscribers= $object->presenceSubscribers;
+        $metrics->publishers = $object->publishers;
+        $metrics->subscribers = $object->subscribers;
+        return $metrics;
+    }
 }
