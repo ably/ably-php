@@ -26,16 +26,16 @@ class AblyRest {
 
     static function ablyAgentHeader()
     {
-        $sdk_identifier = 'ably-php/'.Defaults::LIB_VERSION;
-        $runtime_identifier = 'php/'.Miscellaneous::getNumeric(phpversion());
-        $agent_header = $sdk_identifier.' '.$runtime_identifier;
-        foreach(self::$agents as $agent_identifier => $agent_version) {
-            $agent_header.= ' '.$agent_identifier;
-            if (!empty($agent_version)) {
-                $agent_header.= '/'.$agent_version;
+        $sdkIdentifier = 'ably-php/'.Defaults::LIB_VERSION;
+        $runtimeIdentifier = 'php/'.Miscellaneous::getNumeric(phpversion());
+        $agentHeader = $sdkIdentifier.' '.$runtimeIdentifier;
+        foreach(self::$agents as $agentIdentifier => $agentVersion) {
+            $agentHeader.= ' '.$agentIdentifier;
+            if (!empty($agentVersion)) {
+                $agentHeader.= '/'.$agentVersion;
             }
         }
-        return $agent_header;
+        return $agentHeader;
     }
     /**
      * @var \Ably\Http $http object for making HTTP requests
@@ -222,9 +222,10 @@ class AblyRest {
     }
 
     /**
-     * Does an HTTP request with automatic pagination, automatically injected
-     * auth headers and automatic server failure handling using fallbackHosts.
-     *
+     * RSC19 - This function is provided as a convenience for customers who wish to use REST API functionality that is
+     * either not documented or is not included in the API for our client libraries.
+     * The REST client library provides a function to issue HTTP requests to the Ably endpoints with all the built in
+     * functionality of the library such as authentication, paging, fallback hosts, MsgPack and JSON support
      * @param string $method HTTP method (GET, POST, PUT, DELETE, PATCH, ...)
      * @param string $path root-relative path, e.g. /channels/example/messages
      * @param array $params GET parameters to append to $path
@@ -246,7 +247,7 @@ class AblyRest {
             $body = json_encode( $body );
         }
 
-        return new HttpPaginatedResponse( $this, 'Ably\Models\Untyped', null, $method, $path, $body, $headers );
+        return new HttpPaginatedResponse( $this, 'Ably\Models\Untyped', null, $method, $path, $body, $headers ); // RSC19d
     }
 
     // RTN17c

@@ -4,7 +4,7 @@ namespace Ably\Models;
 use Ably\Exceptions\AblyRequestException;
 
 /**
- * This class is used as a container for response data from AblyRest::request
+ * RSC19d, HP1 - This class is used as a container for response data from AblyRest::request
  * It provides automatic pagination.
  */
 class HttpPaginatedResponse extends PaginatedResult {

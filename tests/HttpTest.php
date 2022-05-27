@@ -58,8 +58,8 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
         $ably->time(); // make a request
         $curlParams = $ably->http->getCurlLastParams();
 
-        $expected_agent_header = 'ably-php/'.Defaults::LIB_VERSION.' '.'php/'.Miscellaneous::getNumeric(phpversion());
-        $this->assertContains( 'Ably-Agent: '. $expected_agent_header, $curlParams[CURLOPT_HTTPHEADER],
+        $expectedAgentHeader = 'ably-php/'.Defaults::LIB_VERSION.' '.'php/'.Miscellaneous::getNumeric(phpversion());
+        $this->assertContains( 'Ably-Agent: '. $expectedAgentHeader, $curlParams[CURLOPT_HTTPHEADER],
             'Expected Ably agent header in HTTP request' );
 
         $ably = new AblyRest( $opts );
@@ -67,7 +67,7 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
 
         $curlParams = $ably->http->getCurlLastParams();
 
-        $this->assertContains( 'Ably-Agent: '. $expected_agent_header, $curlParams[CURLOPT_HTTPHEADER],
+        $this->assertContains( 'Ably-Agent: '. $expectedAgentHeader, $curlParams[CURLOPT_HTTPHEADER],
             'Expected Ably agent header in HTTP request' );
 
         AblyRest::setLibraryFlavourString( 'laravel');
@@ -77,8 +77,8 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
 
         $curlParams = $ably->http->getCurlLastParams();
 
-        $expected_agent_header = 'ably-php/'.Defaults::LIB_VERSION.' '.'php/'.Miscellaneous::getNumeric(phpversion()).' laravel'.' customLib/2.3.5';
-        $this->assertContains( 'Ably-Agent: '. $expected_agent_header, $curlParams[CURLOPT_HTTPHEADER],
+        $expectedAgentHeader = 'ably-php/'.Defaults::LIB_VERSION.' '.'php/'.Miscellaneous::getNumeric(phpversion()).' laravel'.' customLib/2.3.5';
+        $this->assertContains( 'Ably-Agent: '. $expectedAgentHeader, $curlParams[CURLOPT_HTTPHEADER],
             'Expected Ably agent header in HTTP request' );
 
         AblyRest::setLibraryFlavourString();
@@ -147,7 +147,7 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * Test basic AblyRest::request functionality
+     * RSC19 Test basic AblyRest::request functionality
      */
     public function testRequestBasic() {
         $ably = self::$ably;
@@ -186,7 +186,7 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * Test that Response handles various returned structures properly
+     * RSC19 - Test that Response handles various returned structures properly
      */
     public function testRequestReturnValues() {
         $ably = new AblyRest( [
@@ -290,3 +290,4 @@ class HttpMockReturnData extends Http {
         return substr($haystack, -strlen($needle)) == $needle;
     }
 }
+
