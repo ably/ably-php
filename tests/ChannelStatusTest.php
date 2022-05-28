@@ -28,11 +28,9 @@ class ChannelStatusTest extends \PHPUnit\Framework\TestCase
     /**
      * @testdox RSL8, CHD1
      */
-    public function testChannelStatusAfterPublish()
+    public function testChannelStatus()
     {
         $channel = self::$ably->channel('channel1');
-        $response = $channel->publish("event", "Hi there"); // publish the message
-        self::assertTrue($response); //
         $channelStatus = $channel->status();
         self::assertNotNull($channelStatus->channelId);
         self::assertEquals("channel1", $channelStatus->channelId);
