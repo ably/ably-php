@@ -26,6 +26,7 @@ class TestApp {
         $settings = [];
 
         $settings['environment'] = getenv( 'ABLY_ENV' ) ? : 'sandbox';
+        $settings['useBinaryProtocol'] = getenv('PROTOCOL') === 'msgpack';
         //$settings['logLevel'] = Log::DEBUG;
 
         $clientOpts = new ClientOptions( $settings );

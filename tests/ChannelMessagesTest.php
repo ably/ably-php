@@ -7,6 +7,8 @@ use Ably\Log;
 use Ably\Exceptions\AblyException;
 use Ably\Models\Message;
 use Ably\Utils\Crypto;
+use MessagePack\MessagePack;
+use MessagePack\PackOptions;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -346,7 +348,10 @@ class ChannelMessagesTest extends \PHPUnit\Framework\TestCase {
         $msg = $messages->items[0];
 
         $this->assertTrue( $errorLogged, 'Expected an error to be logged' );
-        $this->assertEquals( 'utf-8/cipher+aes-128-cbc/base64', $msg->originalEncoding, 'Expected the original message to be encrypted + base64 encoded' );
+        if(self::$ably->options->useBinaryProtocol)
+            $this->assertEquals( 'utf-8/cipher+aes-128-cbc', $msg->originalEncoding, 'Expected the original message to be encrypted' );
+        else
+            $this->assertEquals( 'utf-8/cipher+aes-128-cbc/base64', $msg->originalEncoding, 'Expected the original message to be encrypted + base64 encoded' );
         $this->assertEquals( 'utf-8/cipher+aes-128-cbc', $msg->encoding, 'Expected to receive the message still encrypted, but base64 decoded' );
     }
 
@@ -394,7 +399,10 @@ class ChannelMessagesTest extends \PHPUnit\Framework\TestCase {
         $msg = $messages->items[0];
 
         $this->assertTrue( $errorLogged, 'Expected an error to be logged' );
-        $this->assertEquals( 'utf-8/cipher+aes-128-cbc/base64', $msg->originalEncoding, 'Expected the original message to be encrypted + base64 encoded' );
+        if(self::$ably->options->useBinaryProtocol)
+            $this->assertEquals( 'utf-8/cipher+aes-128-cbc', $msg->originalEncoding, 'Expected the original message to be encrypted' );
+        else
+            $this->assertEquals( 'utf-8/cipher+aes-128-cbc/base64', $msg->originalEncoding, 'Expected the original message to be encrypted + base64 encoded' );
         $this->assertEquals( 'utf-8/cipher+aes-128-cbc', $msg->encoding, 'Expected to receive the message still encrypted, but base64 decoded' );
     }
 
@@ -555,7 +563,12 @@ class ChannelMessagesTest extends \PHPUnit\Framework\TestCase {
 
         $channel->publish( $msg );
 
-        $publishedMsg = json_decode( $ably->http->lastParams );
+        if($ably->options->useBinaryProtocol) {
+            $publishedMsg = MessagePack::unpack($ably->http->lastParams);
+            $publishedMsg = (object)$publishedMsg;
+        }
+        else
+            $publishedMsg = json_decode( $ably->http->lastParams );
 
         $this->assertEquals( $msg->name, $publishedMsg->name );
         $this->assertFalse( isset( $publishedMsg->data ) );
@@ -566,7 +579,12 @@ class ChannelMessagesTest extends \PHPUnit\Framework\TestCase {
 
         $channel->publish( $msg );
 
-        $publishedMsg = json_decode( $ably->http->lastParams );
+        if($ably->options->useBinaryProtocol) {
+            $publishedMsg = MessagePack::unpack($ably->http->lastParams);
+            $publishedMsg = (object)$publishedMsg;
+        }
+        else
+            $publishedMsg = json_decode( $ably->http->lastParams );
 
         $this->assertEquals( $msg->data, $publishedMsg->data );
         $this->assertFalse( isset( $publishedMsg->name ) );

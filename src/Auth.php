@@ -263,7 +263,7 @@ class Auth {
         $res = $this->ably->post(
             "/keys/{$keyName}/requestToken",
             $headers = [],
-            $params = json_encode( $signedTokenRequest->toArray() ),
+            $params = $signedTokenRequest->toArray(),
             $returnHeaders = false,
             $authHeaders = false
         );

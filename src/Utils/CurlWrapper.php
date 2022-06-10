@@ -59,6 +59,10 @@ class CurlWrapper {
         return curl_error( $handle );
     }
 
+    public function getContentType( $handle ) {
+        return curl_getinfo( $handle, CURLINFO_CONTENT_TYPE );
+    }
+
     /**
      * Retrieve a command pastable to terminal for a handle
      */

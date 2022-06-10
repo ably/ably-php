@@ -7,6 +7,8 @@ use Ably\Models\ClientOptions;
 use Ably\Models\HttpPaginatedResponse;
 use Ably\Models\PaginatedResult;
 use Ably\Utils\Miscellaneous;
+use MessagePack\MessagePack;
+use MessagePack\PackOptions;
 
 /**
  * Ably REST client
@@ -23,6 +25,14 @@ class AblyRest {
      * The keys represent agent names and its corresponding values represent agent versions.
      */
     protected static $agents = array();
+
+    private function getAcceptHeader()
+    {
+        if($this->options->useBinaryProtocol)
+            return 'application/x-msgpack';
+
+        return 'application/json';
+    }
 
     static function ablyAgentHeader()
     {
@@ -170,7 +180,7 @@ class AblyRest {
      */
     public function requestInternal( $method, $path, $headers = [], $params = [], $returnHeaders = false, $auth = true ) {
         $mergedHeaders = array_merge( [
-            'Accept: application/json',
+            'Accept: ' . $this->getAcceptHeader(),
             'X-Ably-Version: ' .Defaults::API_VERSION,
             'Ably-Agent: ' .self::ablyAgentHeader(),
         ], $headers );
@@ -178,6 +188,18 @@ class AblyRest {
             $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $mergedHeaders );
         }
         $attempt = 0;
+        if(!in_array($method, ['GET', 'DELETE'], true) && !is_string($params)) {
+            if($this->options->useBinaryProtocol) {
+                if(is_object($params)){
+                    Miscellaneous::deepConvertObjectToArray($params);
+                }
+                $params = MessagePack::pack($params, PackOptions::FORCE_STR);
+            }
+            else {
+                $params = json_encode($params);
+            }
+        }
+
         $maxPossibleRetries = min(count($this->options->getFallbackHosts()), $this->options->httpMaxRetryCount);
         foreach ($this->getHosts() as $host) {
             $hostUrl = $this->options->getHostUrl($host). $path;
@@ -241,10 +263,6 @@ class AblyRest {
 
         if ( $method == 'GET' && $body ) {
             throw new AblyException( 'GET requests cannot have a JSON body', 400, 40000 );
-        }
-
-        if ( !is_string( $body ) ) {
-            $body = json_encode( $body );
         }
 
         return new HttpPaginatedResponse( $this, 'Ably\Models\Untyped', null, $method, $path, $body, $headers ); // RSC19d

@@ -25,7 +25,7 @@ class PushDeviceRegistrations {
         $deviceDetails = new DeviceDetails( $device );
         $path = '/push/deviceRegistrations/' . $deviceDetails->id;
         $params = $deviceDetails->toArray();
-        $body = $this->ably->put( $path, [], json_encode($params) );
+        $body = $this->ably->put( $path, [], $params );
         $body = json_decode(json_encode($body), true); // Convert stdClass to array
         return new DeviceDetails ( $body );
     }
