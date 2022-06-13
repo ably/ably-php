@@ -45,8 +45,6 @@ class Miscellaneous
         $object = (array)$object;
     }
 
-
-
     private static function deepConvertArrayToObjectRecursive(&$item , $_key)
     {
         if(!is_array($item))
@@ -73,6 +71,4 @@ class Miscellaneous
     public static function hasStringKeys(array $array) {
         return count(array_filter(array_keys($array), 'is_string')) > 0;
     }
-
-
 }
