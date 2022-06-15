@@ -31,7 +31,7 @@ class ClientOptions extends AuthOptions {
      * @var bool If true, msgpack is used for communication, otherwise JSON is used
      * note that msgpack is currently NOT SUPPORTED because of lack of working msgpack libraries for PHP
      */
-    public $useBinaryProtocol = false;
+    public $useBinaryProtocol = true;
 
     /**
      * @var string alternate server domain
