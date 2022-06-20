@@ -28,8 +28,9 @@ class ClientOptions extends AuthOptions {
     public $logHandler;
 
     /**
+     * TO3f
      * @var bool If true, msgpack is used for communication, otherwise JSON is used
-     * note that msgpack is currently NOT SUPPORTED because of lack of working msgpack libraries for PHP
+
      */
     public $useBinaryProtocol = true;
 
