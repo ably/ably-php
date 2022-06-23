@@ -7,6 +7,8 @@ use Ably\Models\Message;
 use Ably\Models\PaginatedResult;
 use Ably\Models\Status\ChannelDetails;
 use Ably\Utils\Stringifiable;
+use MessagePack\MessagePack;
+use MessagePack\PackOptions;
 
 /**
  * Represents a channel
@@ -21,7 +23,7 @@ class Channel {
     private $ably;
     private $presence;
     /**
-     * @var Ably\Models\ChannelOptions
+     * @var \Ably\Models\ChannelOptions
      */
     public $options;
 
@@ -90,18 +92,30 @@ class Channel {
         }
 
         // Serialize
-        $json = '';
-        if ( count($messages) == 1) {
-            $json = $messages[0]->toJSON();
-        } else {
-            $jsonArray = [];
-            foreach ( $messages as $msg ) {
-                $jsonArray[] = $msg->toJSON();
+        if($this->ably->options->useBinaryProtocol) {
+            if ( count($messages) == 1) {
+                $serialized = MessagePack::pack($messages[0]->encodeAsArray(), PackOptions::FORCE_STR);
+            } else {
+                $array = [];
+                foreach ( $messages as $msg ) {
+                    $array[] = $msg->encodeAsArray();
+                }
+                $serialized = MessagePack::pack($array, PackOptions::FORCE_STR);
             }
-            $json = '[' . implode( ',', $jsonArray ) . ']';
+        }
+        else {
+            if ( count($messages) == 1) {
+                $serialized = $messages[0]->toJSON();
+            } else {
+                $jsonArray = [];
+                foreach ( $messages as $msg ) {
+                    $jsonArray[] = $msg->toJSON();
+                }
+                $serialized = '[' . implode( ',', $jsonArray ) . ']';
+            }
         }
 
-        return $json;
+        return $serialized;
     }
 
     public function publish(...$args) {
@@ -124,9 +138,9 @@ class Channel {
                 $msg->extras = $args[3];
             }
 
-            $json = $this->__publish_request_body($msg);
+            $request_body = $this->__publish_request_body($msg);
         } else {
-            $json = $this->__publish_request_body($first);
+            $request_body = $this->__publish_request_body($first);
             if ( count($args) > 1 ) {
                 $params = $args[1];
             }
@@ -137,7 +151,7 @@ class Channel {
             $url .= '?' . Stringifiable::buildQuery( $params );
         }
 
-        $this->ably->post( $url, $headers = [], $json );
+        $this->ably->post( $url, $headers = [], $request_body );
         return true;
     }
 
@@ -183,7 +197,7 @@ class Channel {
     }
 
     /**
-     * @return \Ably\Models\ChannelOptions
+     * @return ChannelOptions
      */
     public function getOptions() {
         return $this->options;

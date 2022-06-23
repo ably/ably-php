@@ -67,9 +67,21 @@ class PresenceTest extends \PHPUnit\Framework\TestCase {
         foreach ($presence->items as $entry) {
             $this->assertNotNull( $entry->clientId, 'Expected non-null client ID' );
             $this->assertTrue(
-                array_key_exists($entry->clientId, $fixturePresenceMap) && $fixturePresenceMap[$entry->clientId] == $entry->originalData,
+                array_key_exists($entry->clientId, $fixturePresenceMap),
                 'Expected presence contents to match'
             );
+            if(self::$ably->options->useBinaryProtocol && $entry->clientId === 'client_encoded'){
+                $this->assertEquals(
+                    base64_decode($fixturePresenceMap[$entry->clientId]), $entry->originalData,
+                    'Expected encrypted presence contents values to be equal match'
+                );
+            }
+            else {
+                $this->assertEquals(
+                    $fixturePresenceMap[$entry->clientId], $entry->originalData,
+                    'Expected presence contents values to be equal match'
+                );
+            }
         }
 
         // verify limit / pagination

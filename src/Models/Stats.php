@@ -1,6 +1,9 @@
 <?php
 namespace Ably\Models;
 
+use Ably\Exceptions\AblyException;
+use stdClass;
+
 /**
  * Model for stats
  */
@@ -53,16 +56,15 @@ class Stats {
 
         if (is_object( $json )) {
             $obj = $json;
-        } else {
+        }
+        else if(is_array( $json) ){
+            $obj = (object)$json;
+        }
+        else {
             $obj = @json_decode($json);
             if (!$obj) {
                 throw new AblyException( 'Invalid object or JSON encoded object' );
             }
-        }
-
-        // stats are usually wrapped in an array
-        if ( is_array( $obj ) ) {
-            $obj = $obj[0];
         }
 
         self::deepCopy( $obj, $this );

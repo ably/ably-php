@@ -4,6 +4,9 @@ use Ably\AblyRest;
 use Ably\Http;
 use Ably\Models\Message;
 use Ably\Exceptions\AblyRequestException;
+use Ably\Utils\Miscellaneous;
+use MessagePack\MessagePack;
+use MessagePack\PackOptions;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -53,7 +56,12 @@ class ChannelIdempotentTest extends \PHPUnit\Framework\TestCase {
         $msg->id = 'foobar';
 
         $body = $channel->__publish_request_body( $msg );
-        $body = json_decode($body);
+        if(self::$ably->options->useBinaryProtocol) {
+            $body = MessagePack::unpack($body);
+            Miscellaneous::deepConvertArrayToObject($body);
+        }
+        else
+            $body = json_decode($body);
 
         $this->assertTrue( property_exists($body, 'name') );
         $this->assertTrue( property_exists($body, 'data') );
@@ -72,7 +80,12 @@ class ChannelIdempotentTest extends \PHPUnit\Framework\TestCase {
         $msg->data = 'data';
 
         $body = $channel->__publish_request_body( $msg );
-        $body = json_decode($body);
+        if(self::$ably->options->useBinaryProtocol) {
+            $body = MessagePack::unpack($body);
+            Miscellaneous::deepConvertArrayToObject($body);
+        }
+        else
+            $body = json_decode($body);
 
         $id = explode ( ":", $body->id);
         $this->assertEquals( count($id), 2);
@@ -97,7 +110,13 @@ class ChannelIdempotentTest extends \PHPUnit\Framework\TestCase {
         $msg->id = 'foobar';
 
         $body = $channel->__publish_request_body( $msg );
-        $body = json_decode($body);
+        if(self::$ably->options->useBinaryProtocol) {
+            $body = MessagePack::unpack($body);
+            Miscellaneous::deepConvertArrayToObject($body);
+        }
+        else
+            $body = json_decode($body);
+
         $this->assertEquals( $body->id, "foobar" );
 
         $channel->publish($msg);
@@ -126,7 +145,12 @@ class ChannelIdempotentTest extends \PHPUnit\Framework\TestCase {
         $messages[] = $msg;
 
         $body = $channel->__publish_request_body( $messages );
-        $body = json_decode($body);
+        if(self::$ably->options->useBinaryProtocol) {
+            $body = MessagePack::unpack($body);
+            Miscellaneous::deepConvertArrayToObject($body);
+        }
+        else
+            $body = json_decode($body);
 
         $this->assertEquals( $body[0]->id, "foobar" );
         $this->assertFalse( property_exists($body[1], 'id') );

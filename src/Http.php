@@ -6,6 +6,9 @@ use Ably\Log;
 use Ably\Exceptions\AblyException;
 use Ably\Exceptions\AblyRequestException;
 use Ably\Utils\CurlWrapper;
+use Ably\Utils\Miscellaneous;
+use MessagePack\MessagePack;
+use MessagePack\PackOptions;
 
 /**
  * Makes HTTP requests using cURL
@@ -14,7 +17,7 @@ class Http {
 
     /**
      * @var string $postDataFormat How $params is interpreted when sent as a string.
-     * Default: 'json'. 'msgpack' support may be added in future
+     * Default: 'json'.
      */
     protected $postDataFormat;
 
@@ -133,8 +136,11 @@ class Http {
                 if ($this->postDataFormat == 'json') {
                     array_push( $headers, 'Content-Type: application/json' );
                 }
+                elseif ($this->postDataFormat == 'msgpack') {
+                    array_push( $headers, 'Content-Type: application/x-msgpack' );
+                }
             } else {
-                throw new AblyRequestException( 'Unknown $params format' );
+                throw new AblyRequestException( 'Unknown $params format', -1, -1 );
             }
         }
 
@@ -154,6 +160,7 @@ class Http {
         $info = $this->curl->getInfo( $ch );
         $err = $this->curl->getErrNo( $ch );
         $errmsg = $err ? $this->curl->getError( $ch ) : '';
+        $contentType = $this->curl->getContentType( $ch );
 
         $this->curl->close( $ch );
 
@@ -164,11 +171,19 @@ class Http {
 
         $resHeaders = substr( $raw, 0, $info['header_size'] );
         $body = substr( $raw, $info['header_size'] );
-        $decodedBody = json_decode( $body );
+
+        $decodedBody = null;
+        if(strpos($contentType, 'application/x-msgpack') === 0) {
+            $decodedBody = MessagePack::unpack($body, PackOptions::FORCE_STR);
+
+            Miscellaneous::deepConvertArrayToObject($decodedBody);
+        }
+        elseif(strpos($contentType, 'application/json') === 0)
+            $decodedBody = json_decode( $body );
 
         $response = [
             'headers' => $resHeaders,
-            'body' => $decodedBody ? $decodedBody : $body,
+            'body' => $decodedBody ?: $body,
             'info' => $info,
         ];
 

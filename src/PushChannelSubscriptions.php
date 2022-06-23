@@ -26,7 +26,7 @@ class PushChannelSubscriptions {
         $obj = new PushChannelSubscription( $subscription );
         $path = '/push/channelSubscriptions' ;
         $params = $obj->toArray();
-        $body = $this->ably->post( $path, [], json_encode($params) );
+        $body = $this->ably->post( $path, [], $params );
         $body = json_decode(json_encode($body), true); // Convert stdClass to array
         return new PushChannelSubscription ( $body );
     }

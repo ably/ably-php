@@ -4,6 +4,8 @@ namespace Ably\Models;
 use Ably\Exceptions\AblyException;
 use Ably\Utils\Crypto;
 use Ably\Log;
+use Ably\Utils\Miscellaneous;
+use stdClass;
 
 /**
  * Base class for messages sent over channels.
@@ -86,7 +88,7 @@ abstract class BaseMessage {
     public function fromJSON( $json, $keepOriginal = false ) {
         $this->clearFields();
 
-        if (is_object( $json )) {
+        if (!is_string( $json )) {
             $obj = $json;
         } else {
             $obj = @json_decode($json);
@@ -281,5 +283,12 @@ abstract class BaseMessage {
      */
     public function setCipherParams( CipherParams $cipherParams ) {
         $this->cipherParams = $cipherParams;
+    }
+
+    public function encodeAsArray() {
+        $encoded = (array)$this->encode();
+
+        Miscellaneous::deepConvertObjectToArray($encoded);
+        return $encoded;
     }
 }

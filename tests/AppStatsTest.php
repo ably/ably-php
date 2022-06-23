@@ -27,38 +27,36 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
         self::$timestampOlderMs = self::$timestampOlder * 1000;
 
         $fixtureEntries = [
-            '{
-                "intervalId": "' . gmdate( 'Y-m-d:H:i', self::$timestamp ) . '",
-                "inbound":  { "realtime": { "messages": { "count": 50, "data": 5000 } } },
-                "outbound": { "realtime": { "messages": { "count": 20, "data": 2000 } } }
-            }',
-            '{
-                "intervalId": "' . gmdate( 'Y-m-d:H:i', self::$timestamp + 60 ) . '",
-                "inbound":  { "realtime": { "messages": { "count": 60, "data": 6000 } } },
-                "outbound": { "realtime": { "messages": { "count": 10, "data": 1000 } } }
-            }',
-            '{
-                "intervalId": "' . gmdate( 'Y-m-d:H:i', self::$timestamp + 120 ) . '",
-                "inbound":       { "realtime": { "messages": { "count": 70, "data": 7000 } } },
-                "outbound":      { "realtime": { "messages": { "count": 40, "data": 4000 } } },
-                "persisted":     { "presence": { "count": 20, "data": 2000 } },
-                "connections":   { "tls":      { "peak": 20,  "opened": 10 } },
-                "channels":      { "peak": 50, "opened": 30 },
-                "apiRequests":   { "succeeded": 50, "failed": 10 },
-                "tokenRequests": { "succeeded": 60, "failed": 20 }
-            }',
+            [
+                "intervalId" => gmdate( 'Y-m-d:H:i', self::$timestamp ),
+                "inbound" =>  [ "realtime" => [ "messages" => [ "count" => 50, "data" => 5000 ] ] ],
+                "outbound" => [ "realtime" => [ "messages" => [ "count" => 20, "data" => 2000 ] ] ]
+            ],
+            [
+                "intervalId" => gmdate( 'Y-m-d:H:i', self::$timestamp + 60 ),
+                "inbound" =>  [ "realtime" => [ "messages" => [ "count" => 60, "data" => 6000 ] ] ],
+                "outbound" => [ "realtime" => [ "messages" => [ "count" => 10, "data" => 1000 ] ] ]
+            ],
+            [
+                "intervalId" => gmdate( 'Y-m-d:H:i', self::$timestamp + 120 ),
+                "inbound" =>       [ "realtime" => [ "messages" => [ "count" => 70, "data" => 7000 ] ] ],
+                "outbound" =>      [ "realtime" => [ "messages" => [ "count" => 40, "data" => 4000 ] ] ],
+                "persisted" =>     [ "presence" => [ "count" => 20, "data" => 2000 ] ],
+                "connections" =>   [ "tls" =>      [ "peak" => 20,  "opened" => 10 ] ],
+                "channels" =>      [ "peak" => 50, "opened" => 30 ],
+                "apiRequests" =>   [ "succeeded" => 50, "failed" => 10 ],
+                "tokenRequests" => [ "succeeded" => 60, "failed" => 20 ]
+            ]
         ];
 
         for ($i = 0; $i < 101; $i++) {
-            $fixtureEntries[] = '{
-                "intervalId": "' . gmdate( 'Y-m-d:H:i', self::$timestampOlder + $i * 60 ) . '",
-                "channels":      { "peak": ' . ($i + 1) . ', "opened": 1 }
-            }';
+            $fixtureEntries[] = [
+                "intervalId" => gmdate( 'Y-m-d:H:i', self::$timestampOlder + $i * 60 ),
+                "channels" => [ "peak" => ($i + 1), "opened" => 1 ]
+            ];
         }
 
-        $fixtureJSON = "[\n" . implode( ",\n", $fixtureEntries ) . "\n]";
-
-        self::$ably->post( '/stats', [], $fixtureJSON );
+        self::$ably->post( '/stats', [], $fixtureEntries );
     }
 
     public static function tearDownAfterClass(): void {

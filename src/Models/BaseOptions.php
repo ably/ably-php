@@ -29,7 +29,7 @@ abstract class BaseOptions {
     }
 
     public function fromJSON( $json ) {
-        if (is_object( $json )) {
+        if (!is_string( $json )) {
             $obj = $json;
         } else {
             $obj = @json_decode($json);
