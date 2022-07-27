@@ -22,13 +22,6 @@ If you find any compatibility issues, please [do raise an issue](https://github.
 
 Currently, this SDK only supports [Ably REST](https://www.ably.com/docs/rest). However, you can use the [MQTT adapter](https://www.ably.com/docs/mqtt) to implement [Ably's Realtime](https://www.ably.com/docs/realtime) features using [Mosquitto PHP](https://github.com/mgdm/Mosquitto-PHP).
 
-This SDK is *not compatible* with some of the Ably features:
-
-| Feature |
-| :--- |
-| [MsgPack Binary Protocol](https://www.ably.com/docs/realtime/usage#client-options) |
-
-
 ## Documentation
 
 Visit https://www.ably.com/docs for a complete API reference and more examples.
@@ -157,7 +150,6 @@ To see what has changed in recent versions of Bundler, see the [CHANGELOG](CHANG
 ## Known limitations
 
 1. This client library requires PHP version 5.4 or greater
-2. [msgpack](http://msgpack.org/) support is currently missing in PHP client library, as there is no stable PHP msgpack library available.
 
 ## Running the tests
 
