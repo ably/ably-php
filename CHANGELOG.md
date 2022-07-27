@@ -7,6 +7,7 @@
 **Implemented enhancements:**
 
 - Add support to get channel lifecycle status  [\#155](https://github.com/ably/ably-php/issues/155)
+- Add support for MsgPack [\#161](https://github.com/ably/ably-php/pull/161) ([AmirQSD](https://github.com/AmirQSD))
 
 **Merged pull requests:**
 
