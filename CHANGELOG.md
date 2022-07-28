@@ -1,5 +1,20 @@
 # Change Log
 
+## [1.1.8](https://github.com/ably/ably-php/tree/1.1.8) (2022-07-27)
+
+[Full Changelog](https://github.com/ably/ably-php/compare/1.1.7...1.1.8)
+
+**Implemented enhancements:**
+
+- Add support to get channel lifecycle status  [\#155](https://github.com/ably/ably-php/issues/155)
+- Add support for MsgPack [\#161](https://github.com/ably/ably-php/pull/161) ([AmirQSD](https://github.com/AmirQSD))
+
+**Merged pull requests:**
+
+- Add support for MsgPack [\#161](https://github.com/ably/ably-php/pull/161) ([AmirQSD](https://github.com/AmirQSD))
+- Channel status [\#159](https://github.com/ably/ably-php/pull/159) ([sacOO7](https://github.com/sacOO7))
+- Refactor code [\#152](https://github.com/ably/ably-php/pull/152) ([sacOO7](https://github.com/sacOO7))
+
 ## [1.1.7](https://github.com/ably/ably-php/tree/1.1.7) (2022-05-19)
 [Full Changelog](https://github.com/ably/ably-php/compare/1.1.6...1.1.7)
 
