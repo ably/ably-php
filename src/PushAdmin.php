@@ -5,7 +5,7 @@ class PushAdmin {
 
     private $ably;
     public $deviceRegistrations;
-    public $channelSubscriptions
+    public $channelSubscriptions;
 
     /**
      * Constructor
