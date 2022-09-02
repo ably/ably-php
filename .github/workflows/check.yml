@@ -15,11 +15,11 @@ jobs:
       fail-fast: false
       matrix:
         php-version: [7.2, 7.3, 7.4, 8.0, 8.1]
-        protocol: ['json', 'msgpack']
-        stability: ["prefer-stable"]
+        protocol: [ 'json', 'msgpack' ]
+        stability: [ 'prefer-stable' ]
         include:
           - php-version: 8.2
-            stability: "prefer-stable --ignore-platform-reqs"
+            stability: 'prefer-stable --ignore-platform-reqs'
 
     steps:
       - uses: actions/checkout@v2
