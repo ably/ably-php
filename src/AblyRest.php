@@ -62,6 +62,8 @@ class AblyRest {
 
     public $host;
 
+    public $push;
+
     /**
      * Constructor
      * @param \Ably\Models\ClientOptions|string array with options or a string with app key or token
