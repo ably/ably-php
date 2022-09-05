@@ -15,7 +15,7 @@ class Crypto {
     public static function encrypt( $plaintext, $cipherParams ) {
         $raw = defined( 'OPENSSL_RAW_DATA' ) ? OPENSSL_RAW_DATA : true;
 
-        $ciphertext = openssl_encrypt( $plaintext, $cipherParams->getAlgorithmString(), $cipherParams->key, $raw, $cipherParams->iv );
+        $ciphertext = openssl_encrypt( $plaintext, $cipherParams->getAlgorithmString(), $cipherParams->key, $raw, $cipherParams->iv ?? '' );
 
         if ($ciphertext === false) {
             return false;
@@ -64,11 +64,11 @@ class Crypto {
         if ($cipherParams->algorithm == 'aes') {
             $cipherParams->mode = isset( $params['mode'] ) ? $params['mode'] : 'cbc';
             $cipherParams->keyLength = isset( $params['keyLength'] ) ? $params['keyLength'] : strlen( $cipherParams->key ) * 8;
-            
+
             if ( !in_array( $cipherParams->keyLength, [ 128, 256 ] ) ) {
                 throw new AblyException ( 'Unsupported keyLength. Only 128 and 256 bits are supported.', 40003, 400 );
             }
-            
+
             if ( $cipherParams->keyLength / 8 != strlen( $cipherParams->key ) ) {
                 throw new AblyException ( 'keyLength does not match the actual key length.', 40003, 400 );
             }
@@ -86,7 +86,7 @@ class Crypto {
                     . ' is not supported by openssl. See openssl_get_cipher_methods.', 40003, 400 );
             }
         }
-        
+
         if ( isset( $params['iv'] ) ) {
             $cipherParams->iv = $params['iv'];
             if ( isset( $params['base64Iv'] ) && $params['base64Iv'] ) {
@@ -103,7 +103,7 @@ class Crypto {
     /**
      * Generates a random encryption key.
      * @param $keyLength|null The length of the key to be generated in bits, defaults to 256.
-     */     
+     */
     public static function generateRandomKey( $keyLength = 256 ) {
         return openssl_random_pseudo_bytes( $keyLength / 8 );
     }
@@ -115,9 +115,9 @@ class Crypto {
     protected static function updateIV( CipherParams $cipherParams ) {
         $raw = defined( 'OPENSSL_RAW_DATA' ) ? OPENSSL_RAW_DATA : true;
 
-        $ivLength = strlen( $cipherParams->iv );
+        $ivLength = strlen( $cipherParams->iv ?? '' );
 
-        $cipherParams->iv = openssl_encrypt( str_repeat( ' ', $ivLength ), $cipherParams->getAlgorithmString(), $cipherParams->key, $raw, $cipherParams->iv );
+        $cipherParams->iv = openssl_encrypt( str_repeat( ' ', $ivLength ), $cipherParams->getAlgorithmString(), $cipherParams->key, $raw, $cipherParams->iv ?? '' );
         $cipherParams->iv = substr( $cipherParams->iv, 0, $ivLength );
     }
 }
