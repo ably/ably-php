@@ -4,8 +4,6 @@ namespace Ably;
 class PushAdmin {
 
     private $ably;
-    public $deviceRegistrations;
-    public $channelSubscriptions;
 
     /**
      * Constructor
