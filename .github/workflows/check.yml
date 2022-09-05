@@ -26,9 +26,9 @@ jobs:
 
       - name: Set up PHP ${{ matrix.php-version }}
         uses: shivammathur/setup-php@v2
-        ini-values: error_reporting=E_ALL
         with:
           php-version: ${{ matrix.php-version }}
+          ini-values: error_reporting=E_ALL
 
       - name: Validate composer.json and composer.lock
         run: composer validate
