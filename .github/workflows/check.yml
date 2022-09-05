@@ -16,10 +16,10 @@ jobs:
       matrix:
         php-version: [7.2, 7.3, 7.4, 8.0, 8.1]
         protocol: [ 'json', 'msgpack' ]
-        stability: [ '--prefer-dist' ]
+        ignorePlatformReq: [ '' ]
         include:
           - php-version: 8.2
-            stability: '--prefer-dist --ignore-platform-reqs'
+            ignorePlatformReq: '--ignore-platform-reqs'
 
     steps:
       - uses: actions/checkout@v2
@@ -35,7 +35,7 @@ jobs:
         run: composer validate
 
       - name: Install dependencies
-        run: composer install --no-progress --no-suggest ${{ matrix.stability }}
+        run: composer install --prefer-dist --no-progress --no-suggest ${{ matrix.ignorePlatformReq }}
 
       # the test script is configured in composer.json.
       # see: https://getcomposer.org/doc/articles/scripts.md
