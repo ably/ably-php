@@ -19,7 +19,7 @@ jobs:
         ignorePlatformReq: [ '' ]
         include:
           - php-version: 8.2
-            ignorePlatformReq: '--ignore-platform-reqs'
+            ignorePlatformReq: '--ignore-platform-reqs=php+'
 
     steps:
       - uses: actions/checkout@v2
