@@ -108,7 +108,7 @@ class Auth {
                 return $this->tokenDetails;
             } else if ( $this->tokenDetails->expires - self::TOKEN_EXPIRY_MARGIN > Utils\Miscellaneous::systemTime()) {
                 // using cached token
-                Log::d( 'Auth::authorize: using cached token, expires on ' . date( 'Y-m-d H:i:s', $this->tokenDetails->expires / 1000 ) );
+                Log::d( 'Auth::authorize: using cached token, expires on ' . date( 'Y-m-d H:i:s', intval($this->tokenDetails->expires / 1000) ) );
                 return $this->tokenDetails;
             }
         }

@@ -176,7 +176,7 @@ class PresenceTest extends \PHPUnit\Framework\TestCase {
 
         // test ISO 8601 date format
         try {
-            $history = self::$channel->presence->history( [ 'end' => gmdate('c', $now / 1000) ] );
+            $history = self::$channel->presence->history( [ 'end' => gmdate('c', intval($now / 1000)) ] );
             $this->assertEquals( 6, count($history->items), 'Expected 6 presence messages' );
         } catch (AblyRequestException $e) {
             $this->fail( 'ISO format: ' . $e->getMessage() . ', HTTP code: ' . $e->getCode() );

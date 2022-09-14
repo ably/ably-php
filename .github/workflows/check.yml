@@ -9,13 +9,17 @@ on:
 
 jobs:
   check:
-
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
         php-version: [7.2, 7.3, 7.4, 8.0, 8.1]
         protocol: [ 'json', 'msgpack' ]
+        ignorePlatformReq: [ '' ]
+        include:
+          - php-version: 8.2
+            ignorePlatformReq: '--ignore-platform-req=php+'
 
     steps:
       - uses: actions/checkout@v2
@@ -26,13 +30,13 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-
+          ini-values: error_reporting=E_ALL
 
       - name: Validate composer.json and composer.lock
         run: composer validate
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest
+        run: composer install --prefer-dist --no-progress --no-suggest ${{ matrix.ignorePlatformReq }}
 
       # the test script is configured in composer.json.
       # see: https://getcomposer.org/doc/articles/scripts.md

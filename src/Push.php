@@ -4,6 +4,7 @@ namespace Ably;
 class Push {
 
     private $ably;
+    public $admin;
 
     /**
      * Constructor

@@ -7,6 +7,7 @@ use stdClass;
 /**
  * Model for stats
  */
+#[\AllowDynamicProperties]
 class Stats {
     /**
      * @var \Ably\Models\Stats\MessageTypes $all MessageTypes representing the total of all inbound and

@@ -4,6 +4,7 @@ namespace Ably\Models;
 /**
  * Blank model used in untyped PaginatedResult requests
  */
+#[\AllowDynamicProperties]
 class Untyped {
     /**
      * Populates the model from JSON
