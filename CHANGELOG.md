@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.1.9](https://github.com/ably/ably-php/tree/1.1.9) (2022-09-15)
+
+[Full Changelog](https://github.com/ably/ably-php/compare/1.1.8...1.1.9)
+
+**Implemented enhancements:**
+
+- Add support for PHP 8.2 [\#167](https://github.com/ably/ably-php/pulls/167) ([driesvints](https://github.com/driesvints))
+
 ## [1.1.8](https://github.com/ably/ably-php/tree/1.1.8) (2022-07-27)
 
 [Full Changelog](https://github.com/ably/ably-php/compare/1.1.7...1.1.8)
