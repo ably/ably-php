@@ -135,11 +135,11 @@ $statsPage->next(); // retrieves the next page => \Ably\Models\PaginatedResult
 $client->time(); // in milliseconds => 1430313364993
 ```
 
-## Laravel realtime broadcasting is now officially supported!
+## Laravel realtime broadcasting
 
 If you're using Laravel and want to support **realtime broadcasting and events**, you may want to check out [laravel-broadcaster](https://packagist.org/packages/ably/laravel-broadcaster/).
 
->If you want **ably-php** as a rest dependency across service providers, check [ably-php-laravel](https://packagist.org/packages/ably/ably-php-laravel). **ably-php-laravel** is a simple wrapper over **ably-php** with laravel-specific classes. This has limited usecases and **laravel-brodcaster** is recommended over **ably-php-laravel** for most-cases.
+> If you want **ably-php** as a rest dependency across service providers, check [ably-php-laravel](https://packagist.org/packages/ably/ably-php-laravel). **ably-php-laravel** is a simple wrapper over **ably-php** with laravel-specific classes. This has limited use-cases and **laravel-brodcaster** is recommended over **ably-php-laravel** for most use-cases.
 
 
 ## Support, feedback and troubleshooting
