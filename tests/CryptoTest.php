@@ -94,7 +94,7 @@ class CryptoTest extends \PHPUnit\Framework\TestCase {
             'mode' => 'ecb',
         ]);
 
-
+        print_r(openssl_get_cipher_methods());
         $encrypted = Crypto::encrypt( 'test', $cipherParams );
         $decrypted = Crypto::decrypt( $encrypted, $cipherParams );
         $this->assertNotEquals( $encrypted, $decrypted );
