@@ -90,11 +90,10 @@ class CryptoTest extends \PHPUnit\Framework\TestCase {
     public function testNonAESEncryptionSupport() {
         $cipherParams = Crypto::getDefaultParams( [
             'key' => Crypto::generateRandomKey(128),
-            'algorithm' => 'rc2',
+            'algorithm' => 'sm4',
             'mode' => 'ecb',
         ]);
 
-        print_r(openssl_get_cipher_methods());
         $encrypted = Crypto::encrypt( 'test', $cipherParams );
         $decrypted = Crypto::decrypt( $encrypted, $cipherParams );
         $this->assertNotEquals( $encrypted, $decrypted );
