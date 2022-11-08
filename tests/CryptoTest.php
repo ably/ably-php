@@ -88,14 +88,14 @@ class CryptoTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testNonAESEncryptionSupport() {
-        $blowfishParams = Crypto::getDefaultParams( [
+        $cipherParams = Crypto::getDefaultParams( [
             'key' => Crypto::generateRandomKey(128),
-            'algorithm' => 'bf',
+            'algorithm' => 'sm4',
             'mode' => 'ecb',
         ]);
 
-        $encrypted = Crypto::encrypt( 'test', $blowfishParams );
-        $decrypted = Crypto::decrypt( $encrypted, $blowfishParams );
+        $encrypted = Crypto::encrypt( 'test', $cipherParams );
+        $decrypted = Crypto::decrypt( $encrypted, $cipherParams );
         $this->assertNotEquals( $encrypted, $decrypted );
         $this->assertEquals( 'test', $decrypted );
 
