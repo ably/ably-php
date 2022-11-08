@@ -135,9 +135,12 @@ $statsPage->next(); // retrieves the next page => \Ably\Models\PaginatedResult
 $client->time(); // in milliseconds => 1430313364993
 ```
 
-## Laravel
+## Laravel realtime broadcasting
 
-If you're using Laravel, you may want to check out [ably-php-laravel](https://packagist.org/packages/ably/ably-php-laravel) wrapper, which is a wrapper with Laravel-specific helper classes.
+If you're using Laravel and want to support **realtime broadcasting and events**, you may want to check out [laravel-broadcaster](https://packagist.org/packages/ably/laravel-broadcaster/).
+
+> If you want **ably-php** as a rest dependency across service providers, check [ably-php-laravel](https://packagist.org/packages/ably/ably-php-laravel). **ably-php-laravel** is a simple wrapper over **ably-php** with laravel-specific classes. This has limited use-cases and **laravel-broadcaster** is recommended over **ably-php-laravel** for most use-cases.
+
 
 ## Support, feedback and troubleshooting
 
@@ -177,10 +180,13 @@ Note - If there is a issue while running tests [SSL certificate error: unable to
 
 This library uses [semantic versioning](http://semver.org/). For each release, the following needs to be done:
 
-* Update the version number in [src/Defaults.php](./src/Defaults.php)
-* Run [`github_changelog_generator`](https://github.com/skywinder/Github-Changelog-Generator) to automate the update of the [CHANGELOG](./CHANGELOG.md). Once the `CHANGELOG` update has completed, manually change the `Unreleased` heading and link with the current version number such as `1.0.0`. Also ensure that the `Full Changelog` link points to the new version tag instead of the `HEAD`.
-* Commit
-* Add a tag and push to origin such as `git tag 1.0.0 && git push origin 1.0.0`
-* Visit https://github.com/ably/ably-php/tags and add release notes for the release including links to the changelog entry.
-* Visit https://packagist.org/packages/ably/ably-php, log in to Packagist, and click the "Update" button.
-* Remember to release an update for the [PHP Laravel library](https://github.com/ably/ably-php-laravel)
+1. Update the version number in [src/Defaults.php](./src/Defaults.php)
+2. Create a new branch for the release, named like `release/1.0.0` (where `1.0.0` is what you're releasing, being the new version).
+3. Run [`github_changelog_generator`](https://github.com/skywinder/Github-Changelog-Generator) to automate the update of the [CHANGELOG](./CHANGELOG.md). Once the `CHANGELOG` update has completed, manually change the `Unreleased` heading and link with the current version number such as `1.0.0`. Also ensure that the `Full Changelog` link points to the new version tag instead of the `HEAD`.
+4. Commit generated [CHANGELOG.md](./CHANGELOG.md) file.
+5. Make a PR against `main`.
+6. Once the PR is approved, merge it into `main`.
+7. Add a tag and push to origin such as `git tag 1.0.0 && git push origin 1.0.0`.
+8. Visit https://github.com/ably/ably-php/tags and add release notes for the release including links to the changelog entry.
+9. Visit https://packagist.org/packages/ably/ably-php, log in to Packagist, and click the "Update" button.
+10. Remember to make a release update for [laravel-broadcaster](https://github.com/ably/laravel-broadcaster) and [ably-php-laravel](https://github.com/ably/ably-php-laravel).
