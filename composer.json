@@ -25,6 +25,11 @@
             "Ably\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "tests\\": "tests/"
+        }
+    },
     "scripts": {
         "test": "vendor/bin/phpunit"
     }
