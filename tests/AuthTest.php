@@ -305,8 +305,8 @@ class AuthTest extends \PHPUnit\Framework\TestCase {
 
         $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
         $this->assertLessThan(
-            abs($timestamp - $ably->auth->getTokenDetails()->issued),
             100,
+            abs($timestamp - $ably->auth->getTokenDetails()->issued),
             'Expected token issued timestamp to be near to the time of request (allowing for clock skew)'
         );
         $ably->stats(); // requires valid token, throws exception if invalid
