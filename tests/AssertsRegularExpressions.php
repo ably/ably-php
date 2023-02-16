@@ -16,7 +16,7 @@ trait AssertsRegularExpressions
     public static function assertMatchesRegularExpression(string $pattern, string $string, string $message = ''): void
     {
         if (version_compare(phpversion(), '7.3.0', '<')) {
-            $this->assertRegExp($pattern, $string, $message);
+            self::assertRegExp($pattern, $string, $message);
             return;
         }
 
