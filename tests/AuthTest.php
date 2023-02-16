@@ -545,7 +545,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase {
 
         $ably->get("/dummy_test");
 
-        $this->assertRegExp('/Authorization\s*:\s*Basic\s+'.base64_encode($fakeKey).'/i', $ably->http->headers[0]);
+        $this->assertRegularExpression('/Authorization\s*:\s*Basic\s+'.base64_encode($fakeKey).'/i', $ably->http->headers[0]);
     }
 
     /**
@@ -560,7 +560,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase {
 
         $ably->get("/dummy_test");
 
-        $this->assertRegExp('/Authorization\s*:\s*Bearer\s+'.base64_encode($fakeToken).'/i', $ably->http->headers[0]);
+        $this->assertRegularExpression('/Authorization\s*:\s*Bearer\s+'.base64_encode($fakeToken).'/i', $ably->http->headers[0]);
     }
 }
 

@@ -144,7 +144,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
         ];
         $ably = new AblyRest( $opts );
         $ably->time(); // make a request
-        $this->assertRegExp( '/^https:\/\/rest\.ably\.io/', $ably->http->lastUrl, 'Unexpected scheme/url mismatch' );
+        $this->assertRegularExpression( '/^https:\/\/rest\.ably\.io/', $ably->http->lastUrl, 'Unexpected scheme/url mismatch' );
     }
 
     /**
@@ -158,7 +158,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
         ];
         $ably = new AblyRest( $opts );
         $ably->time(); // make a request
-        $this->assertRegExp( '/^http:\/\/rest\.ably\.io/', $ably->http->lastUrl, 'Unexpected scheme/url mismatch' );
+        $this->assertRegularExpression( '/^http:\/\/rest\.ably\.io/', $ably->http->lastUrl, 'Unexpected scheme/url mismatch' );
     }
 
     /**
@@ -172,7 +172,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
         ];
         $ably = new AblyRest( $opts );
         $ably->time(); // make a request
-        $this->assertRegExp( '/^https:\/\/rest\.ably\.io/', $ably->http->lastUrl, 'Unexpected scheme/url mismatch' );
+        $this->assertRegularExpression( '/^https:\/\/rest\.ably\.io/', $ably->http->lastUrl, 'Unexpected scheme/url mismatch' );
     }
 
 
