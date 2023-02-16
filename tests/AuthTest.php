@@ -8,10 +8,13 @@ use Ably\Models\TokenDetails;
 use Ably\Models\TokenParams;
 use Ably\Models\TokenRequest;
 use Ably\Utils\Miscellaneous;
+use tests\AssertsRegularExpressions;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
 class AuthTest extends \PHPUnit\Framework\TestCase {
+
+    use AssertsRegularExpressions;
 
     protected static $testApp;
     protected static $defaultOptions;

@@ -12,6 +12,8 @@ require_once __DIR__ . '/factories/TestApp.php';
 
 class AblyRestTest extends \PHPUnit\Framework\TestCase {
 
+    use AssertsRegularExpressions;
+
     protected static $testApp;
     protected static $defaultOptions;
 
