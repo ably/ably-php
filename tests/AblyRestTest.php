@@ -84,7 +84,7 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
         ];
         $ably = new AblyRest( $opts );
         $ably->time(); // make a request
-        $this->assertRegExp( '/^https?:\/\/some\.other\.host/', $ably->http->lastUrl, 'Unexpected host mismatch' );
+        $this->assertRegularExpression( '/^https?:\/\/some\.other\.host/', $ably->http->lastUrl, 'Unexpected host mismatch' );
     }
 
     /**
