@@ -8,10 +8,13 @@ use Ably\Models\TokenDetails;
 use Ably\Models\TokenParams;
 use Ably\Models\TokenRequest;
 use Ably\Utils\Miscellaneous;
+use tests\AssertsRegularExpressions;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
 class AuthTest extends \PHPUnit\Framework\TestCase {
+
+    use AssertsRegularExpressions;
 
     protected static $testApp;
     protected static $defaultOptions;
@@ -304,9 +307,11 @@ class AuthTest extends \PHPUnit\Framework\TestCase {
         $ably->auth->authorize();
 
         $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
-        $this->assertGreaterThanOrEqual( $timestamp, $ably->auth->getTokenDetails()->issued,
-            'Expected token issued timestamp to be greater than or equal to the time of the request' );
-
+        $this->assertLessThan(
+            200,
+            abs($timestamp - $ably->auth->getTokenDetails()->issued),
+            'Expected token issued timestamp to be near to the time of request (allowing for clock skew)'
+        );
         $ably->stats(); // requires valid token, throws exception if invalid
     }
 
@@ -543,7 +548,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase {
 
         $ably->get("/dummy_test");
 
-        $this->assertRegExp('/Authorization\s*:\s*Basic\s+'.base64_encode($fakeKey).'/i', $ably->http->headers[0]);
+        $this->assertMatchesRegularExpression('/Authorization\s*:\s*Basic\s+'.base64_encode($fakeKey).'/i', $ably->http->headers[0]);
     }
 
     /**
@@ -558,7 +563,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase {
 
         $ably->get("/dummy_test");
 
-        $this->assertRegExp('/Authorization\s*:\s*Bearer\s+'.base64_encode($fakeToken).'/i', $ably->http->headers[0]);
+        $this->assertMatchesRegularExpression('/Authorization\s*:\s*Bearer\s+'.base64_encode($fakeToken).'/i', $ably->http->headers[0]);
     }
 }
 
