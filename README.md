@@ -1,5 +1,7 @@
 # [Ably](https://www.ably.com)
 
+[![Features](https://github.com/ably/ably-php/actions/workflows/features.yml/badge.svg)](https://github.com/ably/ably-php/actions/workflows/features.yml)
+
 [![Latest Stable Version](https://poser.pugx.org/ably/ably-php/v/stable)](https://packagist.org/packages/ably/ably-php)
 [![Total Downloads](https://poser.pugx.org/ably/ably-php/downloads)](https://packagist.org/packages/ably/ably-php)
 [![License](https://poser.pugx.org/ably/ably-php/license)](https://packagist.org/packages/ably/ably-php)
