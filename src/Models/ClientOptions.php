@@ -104,7 +104,7 @@ class ClientOptions extends AuthOptions {
     /**
      * @var bool defaults to false for clients with version < 1.2, otherwise true
      */
-    public $idempotentRestPublishing = Defaults::API_VERSION >= '1.2';
+    public $idempotentRestPublishing = true
 
     /**
      * @var string a class that should be used for Auth
