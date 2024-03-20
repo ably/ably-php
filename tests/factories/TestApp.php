@@ -31,7 +31,7 @@ class TestApp {
 
         $clientOpts = new ClientOptions( $settings );
 
-        $this->options = $settings;
+        $this->options = $clientOpts;
 
         $this->server = $clientOpts->getHostUrl($clientOpts->getPrimaryRestHost());
         $this->init();
