@@ -22,6 +22,11 @@ class HostTest extends \PHPUnit\Framework\TestCase {
 			"c.ably-realtime.com",
 			"d.ably-realtime.com",
 			"e.ably-realtime.com",
+			"f.ably-realtime.com",
+			"g.ably-realtime.com",
+			"h.ably-realtime.com",
+			"i.ably-realtime.com",
+			"j.ably-realtime.com",
 		];
 
         $prefHost = $restHosts->getPreferredHost();
