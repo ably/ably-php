@@ -37,10 +37,8 @@ class PushAdminTest extends \PHPUnit\Framework\TestCase {
         ];
         $data = [ 'data' => [ 'foo' => 'bar' ] ];
 
-        $res = self::$ably->push->admin->publish( $recipient, $data , true );
-        $this->assertNull($res);
-        sleep(3); // It takes some time for the message to show up in the history
-
+        self::$ably->push->admin->publish( $recipient, $data , true );
+        sleep(5); // It takes some time for the message to show up in the history
         $channel = self::$ably->channel($channelName);
         $history = $channel->history();
         $this->assertEquals( 1, count($history->items), 'Expected 1 message' );

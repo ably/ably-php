@@ -151,13 +151,6 @@ abstract class BaseMessage {
     protected function encode() {
         $msg = new \stdClass();
 
-        if ($this->encoding) {
-            $msg->encoding = $this->encoding;
-            $msg->data = $this->data;
-
-            return $msg;
-        }
-
         if ($this->id) {
             $msg->id = $this->id;
         }
@@ -168,6 +161,13 @@ abstract class BaseMessage {
 
         if ($this->extras) {
             $msg->extras = $this->extras;
+        }
+
+        if ($this->encoding) {
+            $msg->encoding = $this->encoding;
+            $msg->data = $this->data;
+
+            return $msg;
         }
 
         $isBinary = false;
