@@ -2,7 +2,7 @@
 namespace Ably;
 
 class Defaults {
-    const API_VERSION = '2.0';
+    const API_VERSION = '2';
     const LIB_VERSION = '1.1.9';
 
     static $restHost = "rest.ably.io";
