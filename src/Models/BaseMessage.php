@@ -220,6 +220,7 @@ abstract class BaseMessage {
      * @throws AblyException
      */
     protected function decode() {
+
         $this->originalData = $this->data;
         $this->originalEncoding = $this->encoding;
 
