@@ -42,7 +42,7 @@ class ChannelHistoryTest extends \PHPUnit\Framework\TestCase {
 
         // get the history for this channel
         $messages = $history1->history( ['direction' => 'forwards'] );
-        $this->assertEquals( 50, count($messages->items), 'Expected 50 messages' );
+        $this->assertCount(50, $messages->items, 'Expected 50 messages');
 
         // verify message order
         $actual_message_history = [];
@@ -70,7 +70,7 @@ class ChannelHistoryTest extends \PHPUnit\Framework\TestCase {
         $history2->publish( $msgsToSend );
 
         $messages = $history2->history( ['direction' => 'backwards'] );
-        $this->assertEquals( 50, count($messages->items), 'Expected 50 messages' );
+        $this->assertCount(50, $messages->items, 'Expected 50 messages');
 
         // verify message order
         $actual_message_history = [];
@@ -96,7 +96,7 @@ class ChannelHistoryTest extends \PHPUnit\Framework\TestCase {
         $channel->publish( $msgsToSend );
 
         $messages = $channel->history();
-        $this->assertEquals( 100, count( $messages->items ), 'Expected 100 messages' );
+        $this->assertCount(100, $messages->items, 'Expected 100 messages');
 
         // verify message order
         $actual_message_history = [];
@@ -124,7 +124,7 @@ class ChannelHistoryTest extends \PHPUnit\Framework\TestCase {
         $history3->publish( $msgsToSend );
 
         $messages = $history3->history( ['direction' => 'forwards', 'limit' => 25] );
-        $this->assertEquals( 25, count($messages->items), 'Expected 25 messages' );
+        $this->assertCount(25, $messages->items, 'Expected 25 messages');
 
         // verify message order
         $actual_message_history = [];
@@ -142,7 +142,7 @@ class ChannelHistoryTest extends \PHPUnit\Framework\TestCase {
 
         // next page
         $messages2 = $messages->next();
-        $this->assertEquals( 25, count($messages2->items), 'Expected 25 messages on 2nd page' );
+        $this->assertCount(25, $messages2->items, 'Expected 25 messages on 2nd page');
 
         $actual_message_history2 = [];
         foreach ($messages2->items as $msg) {
@@ -159,7 +159,7 @@ class ChannelHistoryTest extends \PHPUnit\Framework\TestCase {
 
         // get the first page from the 2nd page
         $messages1 = $messages2->first();
-        $this->assertEquals( 25, count($messages1->items), 'Expected 25 messages on the 1st page' );
+        $this->assertCount(25, $messages1->items, 'Expected 25 messages on the 1st page');
 
         $actual_message_history1 = [];
         foreach ($messages1->items as $msg) {
@@ -186,7 +186,7 @@ class ChannelHistoryTest extends \PHPUnit\Framework\TestCase {
         $history4->publish( $msgsToSend );
 
         $messages = $history4->history( ['direction' => 'backwards', 'limit' => 25] );
-        $this->assertEquals( 25, count($messages->items), 'Expected 25 messages' );
+        $this->assertCount(25, $messages->items, 'Expected 25 messages');
 
         // verify message order
         $actual_message_history = [];
@@ -204,7 +204,7 @@ class ChannelHistoryTest extends \PHPUnit\Framework\TestCase {
 
         // next page
         $messages2 = $messages->next();
-        $this->assertEquals( 25, count($messages2->items), 'Expected 25 messages on 2nd page' );
+        $this->assertCount(25, $messages2->items, 'Expected 25 messages on 2nd page');
 
         $actual_message_history2 = [];
         foreach ($messages2->items as $msg) {
@@ -226,7 +226,7 @@ class ChannelHistoryTest extends \PHPUnit\Framework\TestCase {
 
         // get the first page from the 2nd page
         $messages1 = $messages2->first();
-        $this->assertEquals( 25, count($messages1->items), 'Expected 25 messages on the 1st page' );
+        $this->assertCount(25, $messages1->items, 'Expected 25 messages on the 1st page');
 
         $actual_message_history1 = [];
         foreach ($messages1->items as $msg) {
@@ -266,7 +266,7 @@ class ChannelHistoryTest extends \PHPUnit\Framework\TestCase {
             'start'     => $interval_start,
             'end'       => $interval_end,
         ]);
-        $this->assertEquals( 2, count($messages->items), 'Expected 2 messages' );
+        $this->assertCount(2, $messages->items, 'Expected 2 messages');
 
         // verify message order
         $actual_message_history = [];
@@ -309,7 +309,7 @@ class ChannelHistoryTest extends \PHPUnit\Framework\TestCase {
             'end'       => $interval_end,
         ]);
 
-        $this->assertEquals( 2, count($messages->items), 'Expected 20 messages' );
+        $this->assertCount(2, $messages->items, 'Expected 20 messages');
 
         // verify message order
         $actual_message_history = [];
