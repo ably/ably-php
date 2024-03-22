@@ -6,15 +6,12 @@
 
 **Implemented enhancements:**
 
-- Getting Channel Status and Channel Meta data [\#84](https://github.com/ably/ably-php/issues/84)
+- update to protocol 2.0 [\#190](https://github.com/ably/ably-php/issues/190)
+- Add support for PHP 8.3 [\#187](https://github.com/ably/ably-php/issues/187)
 
 **Closed issues:**
 
 - Fix idempotent rest publishing  [\#192](https://github.com/ably/ably-php/issues/192)
-- [REST] update to protocol 2.0 [\#190](https://github.com/ably/ably-php/issues/190)
-- Add support for PHP 8.3 [\#187](https://github.com/ably/ably-php/issues/187)
-- Add support for PC1, PC2, PC3, PC3a \(Plugins\) [\#116](https://github.com/ably/ably-php/issues/116)
-- Add support for Test Guidance G4 [\#109](https://github.com/ably/ably-php/issues/109)
 - Laravel notification support [\#39](https://github.com/ably/ably-php/issues/39)
 
 **Merged pull requests:**
