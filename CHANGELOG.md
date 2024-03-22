@@ -1,5 +1,26 @@
 # Change Log
 
+## [1.1.10](https://github.com/ably/ably-php/tree/1.1.10) (2024-03-22)
+
+[Full Changelog](https://github.com/ably/ably-php/compare/1.1.9...1.1.10)
+
+**Implemented enhancements:**
+
+- update to protocol 2.0 [\#190](https://github.com/ably/ably-php/issues/190)
+- Add support for PHP 8.3 [\#187](https://github.com/ably/ably-php/issues/187)
+
+**Closed issues:**
+
+- Fix idempotent rest publishing  [\#192](https://github.com/ably/ably-php/issues/192)
+- Laravel notification support [\#39](https://github.com/ably/ably-php/issues/39)
+
+**Merged pull requests:**
+
+- Support protocol 2.0 and php 8.3 [\#191](https://github.com/ably/ably-php/pull/191) ([sacOO7](https://github.com/sacOO7))
+- Improve PHP 8.2 compatibility and testing [\#173](https://github.com/ably/ably-php/pull/173) ([AndyTWF](https://github.com/AndyTWF))
+- Change nonAESEncryption algorithm in CryptoTest.php [\#171](https://github.com/ably/ably-php/pull/171) ([AmirQSD](https://github.com/AmirQSD))
+- Update readme, laravel section [\#170](https://github.com/ably/ably-php/pull/170) ([sacOO7](https://github.com/sacOO7))
+
 ## [1.1.9](https://github.com/ably/ably-php/tree/1.1.9) (2022-09-15)
 
 [Full Changelog](https://github.com/ably/ably-php/compare/1.1.8...1.1.9)
