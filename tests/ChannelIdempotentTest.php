@@ -88,13 +88,13 @@ class ChannelIdempotentTest extends \PHPUnit\Framework\TestCase {
             $body = json_decode($body);
 
         $id = explode ( ":", $body->id);
-        $this->assertEquals( count($id), 2);
+        $this->assertCount(2, $id);
         $this->assertGreaterThanOrEqual( 9, strlen(base64_decode($id[0])) );
-        $this->assertEquals( $id[1], "0");
+        $this->assertEquals( "0", $id[1]);
 
         $channel->publish($msg);
         $messages = $channel->history();
-        $this->assertEquals(1, count($messages->items));
+        $this->assertCount(1, $messages->items);
         $this->assertEquals($messages->items[0]->id, $msg->id);
     }
 
@@ -117,11 +117,11 @@ class ChannelIdempotentTest extends \PHPUnit\Framework\TestCase {
         else
             $body = json_decode($body);
 
-        $this->assertEquals( $body->id, "foobar" );
+        $this->assertEquals( "foobar", $body->id);
 
         $channel->publish($msg);
         $messages = $channel->history();
-        $this->assertEquals(count($messages->items), 1);
+        $this->assertCount(1, $messages->items);
         $this->assertEquals($messages->items[0]->id, $msg->id);
     }
 
@@ -152,7 +152,7 @@ class ChannelIdempotentTest extends \PHPUnit\Framework\TestCase {
         else
             $body = json_decode($body);
 
-        $this->assertEquals( $body[0]->id, "foobar" );
+        $this->assertEquals( "foobar", $body[0]->id);
         $this->assertFalse( property_exists($body[1], 'id') );
 
         $this->expectException(AblyRequestException::class);
@@ -180,10 +180,11 @@ class ChannelIdempotentTest extends \PHPUnit\Framework\TestCase {
         $msg->name = 'name';
         $msg->data = 'data';
 
-        $body = $channel->publish( $msg );
+        $channel->publish( $msg );
 
         $messages = $channel->history();
-        $this->assertEquals( 1, count($messages->items));
+        sleep(2);
+        $this->assertCount(1, $messages->items);
     }
 
     /**
@@ -202,7 +203,7 @@ class ChannelIdempotentTest extends \PHPUnit\Framework\TestCase {
         $body = $channel->publish( $msg );
 
         $messages = $channel->history();
-        $this->assertEquals( 1, count($messages->items));
+        $this->assertCount(1, $messages->items);
     }
 
 }

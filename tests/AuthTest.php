@@ -404,7 +404,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase {
             'Unexpected values in TokenRequest built from ClientOptions + TokenParams + AuthOptions'
         );
         $this->assertNotNull( $tokenRequest->mac, 'Expected hmac to be generated' );
-        $this->assertTrue( $ablyKey->http->timeQueried, 'Expected server to be queried for time' );
+        $this->assertTrue( (bool)$ablyKey->http->timeQueried, 'Expected server to be queried for time' );
         $ablyKey->http->timeQueried = false;
     }
 
@@ -425,7 +425,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase {
 
         $tokenOriginal = $ably->auth->authorize();
 
-        $this->assertTrue( $ably->auth->requestTokenCalled, 'Expected authorize() to call requestToken()' );
+        $this->assertTrue( (bool)$ably->auth->requestTokenCalled, 'Expected authorize() to call requestToken()' );
 
         $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
         $this->assertInstanceOf( 'Ably\Models\TokenDetails', $tokenOriginal,
@@ -469,7 +469,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase {
 
         // test with empty params first
         $ably->auth->authorize();
-        $this->assertTrue( $ably->auth->requestTokenCalled, 'Expected authorize() to call requestToken()' );
+        $this->assertTrue( (bool)$ably->auth->requestTokenCalled, 'Expected authorize() to call requestToken()' );
         $this->assertEmpty( $ably->auth->lastTokenParams,
                             'Expected authorize() to pass empty tokenParams to requestToken()');
         $this->assertEmpty( $ably->auth->lastAuthOptions,
