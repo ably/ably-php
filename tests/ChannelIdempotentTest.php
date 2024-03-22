@@ -180,9 +180,10 @@ class ChannelIdempotentTest extends \PHPUnit\Framework\TestCase {
         $msg->name = 'name';
         $msg->data = 'data';
 
-        $body = $channel->publish( $msg );
+        $channel->publish( $msg );
 
         $messages = $channel->history();
+        sleep(2);
         $this->assertEquals( 1, count($messages->items));
     }
 
