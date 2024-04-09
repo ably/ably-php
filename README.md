@@ -143,6 +143,28 @@ If you're using Laravel and want to support **realtime broadcasting and events**
 
 > If you want **ably-php** as a rest dependency across service providers, check [ably-php-laravel](https://packagist.org/packages/ably/ably-php-laravel). **ably-php-laravel** is a simple wrapper over **ably-php** with laravel-specific classes. This has limited use-cases and **laravel-broadcaster** is recommended over **ably-php-laravel** for most use-cases.
 
+### Making explicit HTTP requests to Ably Rest Endpoints / Batch publish
+- The `AblyRest->Request` method can be used to make explicit HTTP requests to the [Ably REST API](https://ably.com/docs/api/rest-api).
+- It automatically adds necessary auth headers based on the initial auth config and supports pagination.
+- The following is an example of using the batch publish API based on the [Ably batch publish rest endpoint documentation](https://ably.com/docs/api/rest-api#batch-publish).
+
+```csharp
+    var objectPayload = new
+    {
+        channels = new[] { "channel1", "channel2", "channel3", "channel4" },
+        messages = new[]
+        {
+            new
+            {
+                name = "eventName",
+                data = "foo",
+            }
+        }
+    };
+  var jsonPayload = JsonConvert.SerializeObject(objectPayload);
+  var paginatedResponse = await ablyRest.RequestV2(HttpMethod.Post, "/messages", null, jsonPayload, null);
+```
+- See the [ably rest endpoint doc](https://ably.com/docs/api/rest-api) for more information on other endpoints.
 
 ## Support, feedback and troubleshooting
 
