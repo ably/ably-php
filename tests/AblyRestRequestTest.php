@@ -45,7 +45,11 @@ class AblyRestRequestTest extends \PHPUnit\Framework\TestCase {
         $this->assertNull($batchPublishPaginatedResult->errorMessage);
         $this->assertTrue( $batchPublishPaginatedResult->isLast(), 'Expected not to be the last page' );
 
-        $this->assertEquals("application/x-msgpack", $batchPublishPaginatedResult->headers["Content-Type"]);
+        if (self::$ably->options->useBinaryProtocol) {
+            $this->assertEquals("application/x-msgpack", $batchPublishPaginatedResult->headers["Content-Type"]);
+        } else {
+            $this->assertEquals("application/json", $batchPublishPaginatedResult->headers["Content-Type"]);
+        }
         $this->assertCount(4, $batchPublishPaginatedResult->items);
         foreach ($batchPublishPaginatedResult->items as $key=> $item) {
             $this->assertEquals("channel".($key + 1), $item->channel);
@@ -53,7 +57,6 @@ class AblyRestRequestTest extends \PHPUnit\Framework\TestCase {
         }
 
         foreach (["channel1", "channel2", "channel3", "channel4"] as $channelName) {
-            print $channelName;
             $channel = self::$ably->channel($channelName);
             $paginatedHistory = $channel->history();
             foreach ($paginatedHistory->items as $msg) {
