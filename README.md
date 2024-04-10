@@ -159,6 +159,8 @@ If you're using Laravel and want to support **realtime broadcasting and events**
     $batchPublishPaginatedResult = $client->request("POST", "/messages", [], $payload);
 ```
 - See the [ably rest endpoint doc](https://ably.com/docs/api/rest-api) for more information on other endpoints.
+- Ably uses `msgpack` as a default encoding for messages. Read [encode using msgpack for better efficiency](https://faqs.ably.com/do-you-binary-encode-your-messages-for-greater-efficiency).
+- If you want to send payload as `json`, please set `useBinaryProtocol` as `false` in `clientOptions`.
 
 ## Support, feedback and troubleshooting
 
