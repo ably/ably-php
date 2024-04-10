@@ -149,13 +149,14 @@ If you're using Laravel and want to support **realtime broadcasting and events**
 - The following is an example of using the batch publish API based on the [Ably batch publish rest endpoint documentation](https://ably.com/docs/api/rest-api#batch-publish).
 
 ```php
+    // batch publish needs php array to be passed and serialization is handled based on useBinaryProtocol
     $payload = array(
         "channels" => ["channel1", "channel2", "channel3", "channel4"],
         "messages" => array(
             "id" => "1",
             "data" => "foo"
         )
-    );
+    ); 
     $batchPublishPaginatedResult = $client->request("POST", "/messages", [], $payload);
 ```
 - See the [ably rest endpoint doc](https://ably.com/docs/api/rest-api) for more information on other endpoints.
