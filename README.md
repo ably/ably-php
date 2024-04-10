@@ -148,21 +148,15 @@ If you're using Laravel and want to support **realtime broadcasting and events**
 - It automatically adds necessary auth headers based on the initial auth config and supports pagination.
 - The following is an example of using the batch publish API based on the [Ably batch publish rest endpoint documentation](https://ably.com/docs/api/rest-api#batch-publish).
 
-```csharp
-    var objectPayload = new
-    {
-        channels = new[] { "channel1", "channel2", "channel3", "channel4" },
-        messages = new[]
-        {
-            new
-            {
-                name = "eventName",
-                data = "foo",
-            }
-        }
-    };
-  var jsonPayload = JsonConvert.SerializeObject(objectPayload);
-  var paginatedResponse = await ablyRest.RequestV2(HttpMethod.Post, "/messages", null, jsonPayload, null);
+```php
+    $payload = array(
+        "channels" => ["channel1", "channel2", "channel3", "channel4"],
+        "messages" => array(
+            "id" => "1",
+            "data" => "foo"
+        )
+    );
+    $batchPublishPaginatedResult = $client->request("POST", "/messages", [], $payload);
 ```
 - See the [ably rest endpoint doc](https://ably.com/docs/api/rest-api) for more information on other endpoints.
 
