@@ -134,10 +134,10 @@ class Http {
                 $this->curl->setOpt( $ch, CURLOPT_POSTFIELDS, $params );
 
                 if ($this->postDataFormat == 'json') {
-                    array_push( $headers, 'Content-Type: application/json' );
+                    $headers[] = 'Content-Type: application/json';
                 }
                 elseif ($this->postDataFormat == 'msgpack') {
-                    array_push( $headers, 'Content-Type: application/x-msgpack' );
+                    $headers[] = 'Content-Type: application/x-msgpack';
                 }
             } else {
                 throw new AblyRequestException( 'Unknown $params format', -1, -1 );
