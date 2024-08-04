@@ -129,11 +129,11 @@ class AblyRestTest extends \PHPUnit\Framework\TestCase {
     public function testInitLibWithSpecifiedEnv() {
         $ably = new AblyRest( [
             'key' => 'fake.key:veryFake',
-            'environment'  => 'sandbox',
+            'environment'  => 'lmars-dev',
             'httpClass' => 'tests\HttpMockInitTest',
         ] );
         $ably->time(); // make a request
-        $this->assertEquals( 'https://sandbox-rest.ably.io:443/time', $ably->http->lastUrl, 'Unexpected host mismatch' );
+        $this->assertEquals( 'https://lmars-dev-rest.ably.io:443/time', $ably->http->lastUrl, 'Unexpected host mismatch' );
     }
 
     /**

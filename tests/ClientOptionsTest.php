@@ -40,13 +40,13 @@ class ClientOptionsTest extends \PHPUnit\Framework\TestCase {
      */
     public function testWithCustomEnvironment() {
         $clientOptions = new ClientOptions();
-        $clientOptions->environment = "sandbox";
-        self::assertEquals('sandbox-rest.ably.io', $clientOptions->getPrimaryRestHost());
+        $clientOptions->environment = "lmars-dev";
+        self::assertEquals('lmars-dev-rest.ably.io', $clientOptions->getPrimaryRestHost());
         self::assertTrue($clientOptions->tls);
         self::assertEquals(443, $clientOptions->tlsPort);
         $fallbackHosts = $clientOptions->getFallbackHosts();
         sort($fallbackHosts);
-        $this->assertEquals(Defaults::getEnvironmentFallbackHosts('sandbox'), $fallbackHosts);
+        $this->assertEquals(Defaults::getEnvironmentFallbackHosts('lmars-dev'), $fallbackHosts);
     }
 
     /**

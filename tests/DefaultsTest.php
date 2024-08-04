@@ -25,13 +25,13 @@ class DefaultsTest extends \PHPUnit\Framework\TestCase {
      */
     public function testEnvironmentFallbackHosts() {
         $expectedFallbackHosts = [
-            "sandbox-a-fallback.ably-realtime.com",
-            "sandbox-b-fallback.ably-realtime.com",
-            "sandbox-c-fallback.ably-realtime.com",
-            "sandbox-d-fallback.ably-realtime.com",
-            "sandbox-e-fallback.ably-realtime.com"
+            "lmars-dev-a-fallback.ably-realtime.com",
+            "lmars-dev-b-fallback.ably-realtime.com",
+            "lmars-dev-c-fallback.ably-realtime.com",
+            "lmars-dev-d-fallback.ably-realtime.com",
+            "lmars-dev-e-fallback.ably-realtime.com"
         ];
-        $fallbackHosts = Defaults::getEnvironmentFallbackHosts("sandbox");
+        $fallbackHosts = Defaults::getEnvironmentFallbackHosts("lmars-dev");
         $this->assertEquals($expectedFallbackHosts, $fallbackHosts);
     }
 }

@@ -25,7 +25,7 @@ class TestApp {
 
         $settings = [];
 
-        $settings['environment'] = getenv( 'ABLY_ENV' ) ? : 'sandbox';
+        $settings['environment'] = getenv( 'ABLY_ENV' ) ? : 'lmars-dev';
         $settings['useBinaryProtocol'] = getenv('PROTOCOL') !== 'json';
         //$settings['logLevel'] = Log::DEBUG;
 
