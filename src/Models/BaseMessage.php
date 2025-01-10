@@ -114,7 +114,7 @@ abstract class BaseMessage {
      * @param stdClass $obj Message-like object
      * @param CipherParams|null $cipherParams
      */
-    public static function fromEncoded( $obj, CipherParams $cipherParams = null ) {
+    public static function fromEncoded( $obj, ?CipherParams $cipherParams = null ) {
         $class = get_called_class();
 
         $msg = new $class();
@@ -138,7 +138,7 @@ abstract class BaseMessage {
      * @param array $objs Array of Message-Like objects
      * @param CipherParams|null $cipherParams
      */
-    public static function fromEncodedArray( $objs, CipherParams $cipherParams = null ) {
+    public static function fromEncodedArray( $objs, ?CipherParams $cipherParams = null ) {
         return array_map(
             function( $obj ) use ($cipherParams) { return static::fromEncoded($obj, $cipherParams); },
             $objs

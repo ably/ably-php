@@ -491,6 +491,7 @@ class ChannelMessagesTest extends \PHPUnit\Framework\TestCase {
 
         $history = self::$ably->channel("interopTest1")->history([ 'direction' => 'forwards' ]);
 
+
         foreach ($fixture->messages as $i => $testMsgData) {
             $msg = $history->items[$i];
 
@@ -537,11 +538,13 @@ class ChannelMessagesTest extends \PHPUnit\Framework\TestCase {
 
         $history = $res['body'];
 
+        var_dump($history);
+
         foreach ($fixture->messages as $i => $testMsgData) {
             $msg = $history[$i];
 
             $this->assertEquals($testMsgData->data, $msg->data);
-            $this->assertEquals($testMsgData->encoding, $msg->encoding);
+            $this->assertEquals($testMsgData->encoding, isset($msg->encoding) ? $msg->encoding : null);
         }
 
     }
