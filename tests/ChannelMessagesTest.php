@@ -538,7 +538,6 @@ class ChannelMessagesTest extends \PHPUnit\Framework\TestCase {
 
         $history = $res['body'];
 
-        var_dump($history);
 
         foreach ($fixture->messages as $i => $testMsgData) {
             $msg = $history[$i];
