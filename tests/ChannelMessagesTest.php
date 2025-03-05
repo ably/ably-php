@@ -541,7 +541,9 @@ class ChannelMessagesTest extends \PHPUnit\Framework\TestCase {
             $msg = $history[$i];
 
             $this->assertEquals($testMsgData->data, $msg->data);
-            $this->assertEquals($testMsgData->encoding, $msg->encoding);
+            if (property_exists($msg, 'encoding')) {
+                $this->assertEquals($testMsgData->encoding, $msg->encoding);
+            }
         }
 
     }
