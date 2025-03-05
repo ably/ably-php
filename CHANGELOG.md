@@ -1,5 +1,19 @@
 # Change Log
 
+## [1.1.11](https://github.com/ably/ably-php/tree/1.1.11) (2025-03-05)
+
+[Full Changelog](https://github.com/ably/ably-php/compare/1.1.10...1.1.11)
+
+**Closed issues:**
+
+- PHP 8.4 Deprecations - Implicitly marking parameter $cipherParams as nullable is deprecated [\#206](https://github.com/ably/ably-php/issues/206)
+- Batch publish being sent as JSON rather than msgpack [\#197](https://github.com/ably/ably-php/issues/197)
+
+**Merged pull requests:**
+
+- \[ECO-5183\] Added support for PHP 8.4 [\#210](https://github.com/ably/ably-php/pull/210) ([sacOO7](https://github.com/sacOO7))
+- Fix batch publish [\#198](https://github.com/ably/ably-php/pull/198) ([sacOO7](https://github.com/sacOO7))
+
 ## [1.1.10](https://github.com/ably/ably-php/tree/1.1.10) (2024-03-22)
 
 [Full Changelog](https://github.com/ably/ably-php/compare/1.1.9...1.1.10)
