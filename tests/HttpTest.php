@@ -214,6 +214,71 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
         $res4 = $ably->request('GET', '/get_test_json');
         $this->assertEquals('[]', json_encode($res4->items));
     }
+
+    /**
+     * Test parsing headers from a paginated response with a single block.
+     */
+    public function testHttpPaginatedResponseParseHeadersSingleBlock() {
+        $headers = [
+            'HTTP/1.1 200 OK',
+            'Content-Type: application/json',
+            'X-Ably-Errorcode: 12345',
+            'X-Ably-Errormessage: Test error message',
+            ''
+        ];
+
+        $headers = implode("\n", $headers);
+
+        $ably = new AblyRest([
+            'key' => 'fake.key:totallyFake',
+            'httpClass' => 'tests\HttpMockCustomHeaders',
+        ]);
+
+        $ably->http->setResponseHeaders($headers);
+        $res = $ably->request('GET', '/test');
+
+        $this->assertEquals(200, $res->statusCode, 'Expected status code 200');
+        $this->assertArrayHasKey('Content-Type', $res->headers, 'Expected Content-Type header');
+        $this->assertEquals('application/json', $res->headers['Content-Type']);
+        $this->assertArrayHasKey('X-Ably-Errorcode', $res->headers, 'Expected X-Ably-Errorcode header');
+        $this->assertEquals('12345', $res->headers['X-Ably-Errorcode']);
+    }
+
+    /**
+     * Test parsing headers from a paginated response with multiple blocks.
+     */
+    public function testHttpPaginatedResponseParseHeadersMultipleBlocks() {
+        $headers = [
+            'HTTP/1.1 301 Moved Permanently',
+            'Location: http://example.com/redirect',
+            'Content-Type: text/html',
+            '',
+            'HTTP/1.1 200 OK',
+            'Content-Type: application/json',
+            'X-Custom-Header: custom-value',
+            ''
+        ];
+
+        $headers = implode("\n", $headers);
+
+        $ably = new AblyRest([
+            'key' => 'fake.key:totallyFake',
+            'httpClass' => 'tests\HttpMockCustomHeaders',
+        ]);
+
+        $ably->http->setResponseHeaders($headers);
+        $res = $ably->request('GET', '/test');
+
+        // Should have the status code from the last HTTP block
+        $this->assertEquals(200, $res->statusCode, 'Expected status code 200 from the last HTTP block');
+        // Should have headers from the last HTTP block only
+        $this->assertArrayHasKey('Content-Type', $res->headers, 'Expected Content-Type header');
+        $this->assertEquals('application/json', $res->headers['Content-Type']);
+        $this->assertArrayHasKey('X-Custom-Header', $res->headers, 'Expected X-Custom-Header header');
+        $this->assertEquals('custom-value', $res->headers['X-Custom-Header']);
+        // Should NOT have headers from the first HTTP block
+        $this->assertArrayNotHasKey('Location', $res->headers, 'Expected Location header to be absent from the first block');
+    }
 }
 
 
@@ -288,6 +353,21 @@ class HttpMockReturnData extends Http {
 
     private static function endsWith($haystack, $needle) {
         return substr($haystack, -strlen($needle)) == $needle;
+    }
+}
+
+class HttpMockCustomHeaders extends Http {
+    private $responseHeaders = '';
+
+    public function setResponseHeaders($headers) {
+        $this->responseHeaders = $headers;
+    }
+
+    public function request($method, $url, $headers = [], $params = []) {
+        return [
+            'headers' => $this->responseHeaders,
+            'body' => (object) [],
+        ];
     }
 }
 
