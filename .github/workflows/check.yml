@@ -38,7 +38,9 @@ jobs:
         run: composer validate
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest ${{ matrix.ignorePlatformReq }}
+        env:
+          IGNORE_PLATFORM_REQ: ${{ matrix.ignorePlatformReq }}
+        run: composer install --prefer-dist --no-progress --no-suggest $IGNORE_PLATFORM_REQ
 
       # the test script is configured in composer.json.
       # see: https://getcomposer.org/doc/articles/scripts.md
