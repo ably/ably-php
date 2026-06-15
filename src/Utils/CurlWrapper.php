@@ -44,7 +44,11 @@ class CurlWrapper {
     public function close( $handle ) {
         unset( $this->commands[(int) $handle] );
 
-        return curl_close( $handle );
+        if ( PHP_VERSION_ID < 80000 ) {
+            curl_close( $handle );
+        }
+
+        return null;
     }
 
     public function getInfo( $handle ) {
