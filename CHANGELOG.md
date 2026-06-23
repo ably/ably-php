@@ -1,5 +1,17 @@
 # Change Log
 
+## [1.1.12](https://github.com/ably/ably-php/tree/1.1.12) (2026-06-23)
+
+[Full Changelog](https://github.com/ably/ably-php/compare/1.1.11...1.1.12)
+
+**Fixed bugs:**
+
+- Function curl_close() is deprecated since PHP 8.5, as it has no effect since PHP 8.0
+
+**Merged pull requests:**
+
+- Prevent curl_close() deprecation on PHP 8.5 [\#220](https://github.com/ably/ably-php/pull/220) ([aleeks](https://github.com/aleeks))
+
 ## [1.1.11](https://github.com/ably/ably-php/tree/1.1.11) (2025-03-05)
 
 [Full Changelog](https://github.com/ably/ably-php/compare/1.1.10...1.1.11)
