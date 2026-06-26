@@ -6,9 +6,15 @@ on:
     branches:
       - main
 
+permissions: {}
+
 jobs:
   build:
     uses: ably/features/.github/workflows/sdk-features.yml@main
+    permissions:
+      contents: read
+      deployments: write
+      id-token: write
     with:
       repository-name: ably-php
     secrets: inherit

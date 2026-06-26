@@ -7,9 +7,13 @@ on:
     branches:
       - main
 
+permissions: {}
+
 jobs:
   check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     strategy:
       fail-fast: false
@@ -19,12 +23,13 @@ jobs:
         ignorePlatformReq: [ '' ]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2
         with:
           submodules: 'recursive'
+          persist-credentials: false
 
       - name: Set up PHP ${{ matrix.php-version }}
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2
         with:
           php-version: ${{ matrix.php-version }}
           ini-values: error_reporting=E_ALL
@@ -33,7 +38,9 @@ jobs:
         run: composer validate
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest ${{ matrix.ignorePlatformReq }}
+        env:
+          IGNORE_PLATFORM_REQ: ${{ matrix.ignorePlatformReq }}
+        run: composer install --prefer-dist --no-progress --no-suggest $IGNORE_PLATFORM_REQ
 
       # the test script is configured in composer.json.
       # see: https://getcomposer.org/doc/articles/scripts.md
