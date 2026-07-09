@@ -75,14 +75,31 @@ class HttpPaginatedResponse extends PaginatedResult {
 
     private function parseHeaders( $headers ) {
         $headers = explode("\n", $headers);
-        $http = array_shift($headers);
-        $http = explode(' ', $http);
 
-        $this->statusCode = $http[1] * 1;
         $this->headers = [];
+        $this->statusCode = null;
 
-        foreach($headers as $header) {
-            if(!trim($header)) continue;
+        foreach ($headers as $header) {
+            if (!trim($header)) {
+                continue;
+            }
+
+            // Handle HTTP status lines, there could be more
+            if (strncmp($header, 'HTTP/', 5) === 0) {
+                $http = explode(' ', trim($header));
+                if (isset($http[1]) && is_numeric($http[1])) {
+                    $this->statusCode = (int) $http[1];
+                }
+
+                // Reset headers for new response block
+                $this->headers = [];
+                continue;
+            }
+
+            if (strpos($header, ':') === false) {
+                continue;
+            }
+
             list($key, $value) = explode(':', $header, 2);
             $key = trim($key);
 
