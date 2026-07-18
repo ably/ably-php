@@ -98,7 +98,7 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
             "start" => self::$timestampMs,
             "end" => self::$timestampMs
         ]);
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
 
         $stats = self::$ably->stats([
@@ -106,7 +106,7 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
             "start" => self::$timestampMs + $oneMinuteMs,
             "end" => self::$timestampMs + $oneMinuteMs
         ]);
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 60, $stats->items[0]->inbound->all->all->count, "Expected 60 messages" );
 
         $stats = self::$ably->stats([
@@ -114,7 +114,7 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
             "start" => self::$timestampMs + $twoMinutesMs,
             "end" => self::$timestampMs + $twoMinutesMs
         ]);
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 70, $stats->items[0]->inbound->all->all->count, "Expected 70 messages" );
     }
 
@@ -131,7 +131,7 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
             "start" => self::$timestampMs,
             "end" => self::$timestampMs
         ]);
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
 
         $stats = self::$ably->stats([
@@ -139,7 +139,7 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
             "start" => self::$timestampMs + $oneMinuteMs,
             "end" => self::$timestampMs + $oneMinuteMs
         ]);
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 60, $stats->items[0]->inbound->all->all->count, "Expected 60 messages" );
 
         $stats = self::$ably->stats([
@@ -147,7 +147,7 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
             "start" => self::$timestampMs + $twoMinutesMs,
             "end" => self::$timestampMs + $twoMinutesMs
         ]);
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 70, $stats->items[0]->inbound->all->all->count, "Expected 70 messages" );
     }
 
@@ -162,7 +162,7 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
             "end" => self::$timestampMs + $twoMinutesMs,
             "unit" => "hour"
         ]);
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 180, $stats->items[0]->inbound->all->all->count, "Expected 180 messages" );
     }
 
@@ -177,7 +177,7 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
             "end" => self::$timestampMs + $twoMinutesMs,
             "unit" => "day"
         ]);
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 180, $stats->items[0]->inbound->all->all->count, "Expected 180 messages" );
     }
 
@@ -193,7 +193,7 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
             "unit" => "month"
         ]);
 
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 180, $stats->items[0]->inbound->all->all->count, "Expected 180 messages" );
     }
 
@@ -208,7 +208,7 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
             "end" => self::$timestampMs + $twoMinutesMs,
             "limit" => 1
         ]);
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 70, $stats->items[0]->inbound->all->all->count, "Expected 70 messages" );
     }
 
@@ -223,7 +223,7 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
             "end" => self::$timestampMs + $twoMinutesMs,
             "limit" => 1
         ]);
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
     }
 
@@ -238,15 +238,15 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
             "end" => self::$timestampMs + $twoMinutesMs,
             "limit" => 1
         ]);
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 70, $stats->items[0]->inbound->all->all->count, "Expected 70 messages" );
         // get next page 
         $stats = $stats->next();
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 60, $stats->items[0]->inbound->all->all->count, "Expected 60 messages" );
         // get next page 
         $stats = $stats->next();
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
         // verify that there is no next page 
         $this->assertFalse( $stats->hasNext(), "Expected not to have next page" );
@@ -264,15 +264,15 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
             "end" => self::$timestampMs + $twoMinutesMs,
             "limit" => 1
         ]);
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
         // get next page 
         $stats = $stats->next();
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 60, $stats->items[0]->inbound->all->all->count, "Expected 60 messages" );
         // get next page 
         $stats = $stats->next();
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 70, $stats->items[0]->inbound->all->all->count, "Expected 70 messages" );
         // verify that there is no next page 
         $this->assertFalse( $stats->hasNext(), "Expected not to have next page" );
@@ -290,15 +290,15 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
             "end" => self::$timestampMs + $twoMinutesMs,
             "limit" => 1
         ]);
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 70, $stats->items[0]->inbound->all->all->count, "Expected 70 messages" );
         // get next page 
         $stats = $stats->next();
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 60, $stats->items[0]->inbound->all->all->count, "Expected 60 messages" );
         // get first page 
         $stats = $stats->first();
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 70, $stats->items[0]->inbound->all->all->count, "Expected 70 messages" );
     }
 
@@ -313,15 +313,15 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
             "end" => self::$timestampMs + $twoMinutesMs,
             "limit" => 1
         ]);
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
         // get next page 
         $stats = $stats->next();
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 60, $stats->items[0]->inbound->all->all->count, "Expected 60 messages" );
         // get first page 
         $stats = $stats->first();
-        $this->assertEquals( 1, count( $stats->items ), "Expected 1 record" );
+        $this->assertCount(1, $stats->items, "Expected 1 record");
         $this->assertEquals( 50, $stats->items[0]->inbound->all->all->count, "Expected 50 messages" );
     }
 
@@ -334,7 +334,7 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
             "start" => self::$timestampOlderMs,
             "end" => self::$timestampOlderMs + $twoHoursMs,
         ]);
-        $this->assertEquals( 100, count( $stats->items ), "Expected 100 records" );
+        $this->assertCount(100, $stats->items, "Expected 100 records");
  
         // verify order
         $actualRecordsPeakData = [];
