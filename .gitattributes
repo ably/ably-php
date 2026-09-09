@@ -6,6 +6,7 @@
 /.github          export-ignore
 /phpunit.xml      export-ignore
 /plan.md          export-ignore
+/scripts          export-ignore
 /.ably            export-ignore
 /.gitmodules      export-ignore
 /.gitattributes   export-ignore
