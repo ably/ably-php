@@ -7,6 +7,8 @@ use Ably\PubSub\Http;
 use Ably\PubSub\Utils\CurlWrapper;
 use Ably\PubSub\Models\Untyped;
 use Ably\PubSub\Utils\Miscellaneous;
+use Ably\PubSub\Models\ClientOptions;
+use Ably\PubSub\Server;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -42,46 +44,168 @@ class HttpTest extends \PHPUnit\Framework\TestCase {
         $curlParams = $ably->http->getCurlLastParams();
         $this->assertContains( 'X-Ably-Version: ' . Defaults::API_VERSION, $curlParams[CURLOPT_HTTPHEADER],
                                   'Expected Ably version header in HTTP request' );
+    }
 
-        AblyRest::setLibraryFlavourString();
+    /**
+     * Mock options that never reach the network.
+     */
+    private static function mockOptions( $extra = [] ) {
+        return array_merge( [
+            'key' => 'fake.key:totallyFake',
+            'httpClass' => 'tests\HttpMock',
+        ], $extra );
+    }
+
+    /**
+     * Makes one request through the given client and returns the value it sent
+     * in the Ably-Agent request header.
+     */
+    private static function sentAgentHeader( $ably ) {
+        $ably->time(); // make a request
+        $curlParams = $ably->http->getCurlLastParams();
+
+        foreach ( $curlParams[CURLOPT_HTTPHEADER] as $header ) {
+            if ( strpos( $header, 'Ably-Agent: ' ) === 0 ) {
+                return substr( $header, strlen( 'Ably-Agent: ' ) );
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The prefix every Ably-Agent header carries: this SDK and the runtime.
+     */
+    private static function expectedPrefix() {
+        return 'ably-pubsub-php/'.Defaults::LIB_VERSION.' php/'.Miscellaneous::getNumeric( phpversion() );
     }
 
     /**
      * Verify proper agent header is set as per RSC7d
      */
     public function testAblyAgentHeader() {
-        $opts = [
-            'key' => 'fake.key:totallyFake',
-            'httpClass' => 'tests\HttpMock',
+        $ably = new AblyRest( self::mockOptions() );
+
+        $this->assertSame( self::expectedPrefix(), self::sentAgentHeader( $ably ),
+            'Expected Ably agent header in HTTP request' );
+
+        // a second client renders the same header: no state leaks between instances
+        $ably = new AblyRest( self::mockOptions() );
+
+        $this->assertSame( self::expectedPrefix(), self::sentAgentHeader( $ably ),
+            'Expected Ably agent header in HTTP request' );
+    }
+
+    /**
+     * Wrapper attribution now travels as a client option rather than as
+     * process-global static state (RSC7d).
+     */
+    public function testAblyAgentHeaderWithAgentsOption() {
+        $ably = new AblyRest( self::mockOptions( [
+            'agents' => [ 'laravel' => null, 'customLib' => '2.3.5' ],
+        ] ) );
+
+        $this->assertSame( self::expectedPrefix().' laravel customLib/2.3.5', self::sentAgentHeader( $ably ),
+            'Expected agents option to be rendered in the Ably agent header' );
+    }
+
+    /**
+     * The door declares the server side, and declares it as a versionless flag.
+     *
+     * This is what the billing system reads to grant the MAU server exemption,
+     * so the assertions here are deliberately exact.
+     */
+    public function testDoorDeclaresServerSide() {
+        $agentHeader = self::sentAgentHeader( Server::createHttpClient( self::mockOptions() ) );
+
+        $this->assertMatchesRegularExpression(
+            '/^ably-pubsub-php\/\d+\.\d+\.\d+(\S*)? php\/\S+ ably-pubsub-server$/',
+            $agentHeader,
+            'Expected the door to declare the server side in the Ably agent header'
+        );
+    }
+
+    /**
+     * A versioned `ably-pubsub-server/<anything>` token must never be sent: the
+     * registry declares the identifier as a flag, and the versioned form does
+     * not classify. This is the PHP shape of the regression ably-js#2297
+     * guards against, where an absent version rendered as `name/undefined`.
+     *
+     * @dataProvider sideAgentVersionProvider
+     */
+    public function testSideAgentIsNeverVersioned( $callerVersion ) {
+        $agentHeader = self::sentAgentHeader( Server::createHttpClient( self::mockOptions( [
+            'agents' => [ Server::SERVER_AGENT_IDENTIFIER => $callerVersion ],
+        ] ) ) );
+
+        $this->assertStringContainsString( ' ably-pubsub-server', $agentHeader,
+            'Expected the versionless server side flag' );
+        $this->assertStringNotContainsString( 'ably-pubsub-server/', $agentHeader,
+            'The server side flag must never carry a version' );
+        $this->assertSame( self::expectedPrefix().' ably-pubsub-server', $agentHeader,
+            'Expected the caller not to be able to override the side entry' );
+    }
+
+    public function sideAgentVersionProvider() {
+        return [
+            'caller supplies a version' => [ 'x' ],
+            'caller supplies an empty version' => [ '' ],
+            'caller supplies null' => [ null ],
         ];
-        $ably = new AblyRest( $opts );
-        $ably->time(); // make a request
-        $curlParams = $ably->http->getCurlLastParams();
+    }
 
-        $expectedAgentHeader = 'ably-php/'.Defaults::LIB_VERSION.' '.'php/'.Miscellaneous::getNumeric(phpversion());
-        $this->assertContains( 'Ably-Agent: '. $expectedAgentHeader, $curlParams[CURLOPT_HTTPHEADER],
-            'Expected Ably agent header in HTTP request' );
+    /**
+     * The door is the only path that stamps a side. A client built by calling
+     * the constructor directly declares none.
+     */
+    public function testBareConstructorDeclaresNoSide() {
+        $agentHeader = self::sentAgentHeader( new AblyRest( self::mockOptions() ) );
 
-        $ably = new AblyRest( $opts );
-        $ably->time(); // make a request
+        $this->assertStringNotContainsString( 'ably-pubsub-server', $agentHeader,
+            'A directly constructed client must not declare the server side' );
+        $this->assertSame( self::expectedPrefix(), $agentHeader );
+    }
 
-        $curlParams = $ably->http->getCurlLastParams();
+    /**
+     * A caller's own agent entries survive the door and precede the side entry.
+     */
+    public function testDoorPreservesCallerAgents() {
+        $agentHeader = self::sentAgentHeader( Server::createHttpClient( self::mockOptions( [
+            'agents' => [ 'my-sdk' => '1.0' ],
+        ] ) ) );
 
-        $this->assertContains( 'Ably-Agent: '. $expectedAgentHeader, $curlParams[CURLOPT_HTTPHEADER],
-            'Expected Ably agent header in HTTP request' );
+        $this->assertSame( self::expectedPrefix().' my-sdk/1.0 ably-pubsub-server', $agentHeader,
+            'Expected caller agents to be preserved and to precede the side entry' );
+    }
 
-        AblyRest::setLibraryFlavourString( 'laravel');
-        AblyRest::setAblyAgentHeader('customLib', '2.3.5');
-        $ably = new AblyRest( $opts );
-        $ably->time(); // make a request
+    /**
+     * The door accepts everything the constructor accepts.
+     */
+    public function testDoorAcceptsEveryConstructorArgumentForm() {
+        $expected = self::expectedPrefix().' ably-pubsub-server';
 
-        $curlParams = $ably->http->getCurlLastParams();
+        // an options array
+        $fromArray = Server::createHttpClient( self::mockOptions() );
+        $this->assertSame( $expected, self::sentAgentHeader( $fromArray ) );
+        $this->assertSame( 'fake.key:totallyFake', $fromArray->options->key );
 
-        $expectedAgentHeader = 'ably-php/'.Defaults::LIB_VERSION.' '.'php/'.Miscellaneous::getNumeric(phpversion()).' laravel'.' customLib/2.3.5';
-        $this->assertContains( 'Ably-Agent: '. $expectedAgentHeader, $curlParams[CURLOPT_HTTPHEADER],
-            'Expected Ably agent header in HTTP request' );
+        // a ClientOptions instance
+        $clientOptions = new ClientOptions( self::mockOptions() );
+        $fromClientOptions = Server::createHttpClient( $clientOptions );
+        $this->assertSame( $expected, self::sentAgentHeader( $fromClientOptions ) );
+        $this->assertSame( 'fake.key:totallyFake', $fromClientOptions->options->key );
+        $this->assertSame( [], $clientOptions->agents,
+            'The door must not mutate the ClientOptions instance it was given' );
 
-        AblyRest::setLibraryFlavourString();
+        // a bare API key string (contains a colon)
+        $fromKey = Server::createHttpClient( 'fake.key:totallyFake' );
+        $this->assertSame( 'fake.key:totallyFake', $fromKey->options->key );
+        $this->assertSame( [ Server::SERVER_AGENT_IDENTIFIER => null ], $fromKey->options->agents );
+
+        // a bare token string (no colon)
+        $fromToken = Server::createHttpClient( 'totallyFakeToken' );
+        $this->assertSame( 'totallyFakeToken', $fromToken->options->token );
+        $this->assertSame( [ Server::SERVER_AGENT_IDENTIFIER => null ], $fromToken->options->agents );
     }
 
     /**
