@@ -98,8 +98,15 @@ jobs:
           php-version: '8.3'
           ini-values: error_reporting=E_ALL
 
-      - name: Fetch all tags
-        run: git fetch --tags --force
+      - name: Fetch all tags and configure git
+        # An annotated tag needs a tagger identity, and the runner has none by default.
+        # Both the mirror tag and this repository's tag are annotated, so this has to
+        # happen before either is created.
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: 'Pre-flight: nothing is pushed if any of these fail'
         run: php scripts/release-preflight.php --version "$RELEASE_VERSION" --mirror "$MIRROR_REPO"
@@ -183,8 +190,6 @@ jobs:
             exit 0
           fi
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "${tag}" -m "ably/pubsub-server ${RELEASE_VERSION}"
           git push origin "refs/tags/${tag}"
           echo "Tagged ${tag}"
