@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - integration/v2
 
 permissions: {}
 
