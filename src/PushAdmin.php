@@ -1,5 +1,5 @@
 <?php
-namespace Ably;
+namespace Ably\PubSub;
 
 class PushAdmin {
 

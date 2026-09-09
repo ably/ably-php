@@ -1,12 +1,12 @@
 <?php
-namespace Ably;
+namespace Ably\PubSub;
 
-use Ably\AblyRest;
-use Ably\Log;
-use Ably\Exceptions\AblyException;
-use Ably\Exceptions\AblyRequestException;
-use Ably\Utils\CurlWrapper;
-use Ably\Utils\Miscellaneous;
+use Ably\PubSub\AblyRest;
+use Ably\PubSub\Log;
+use Ably\PubSub\Exceptions\AblyException;
+use Ably\PubSub\Exceptions\AblyRequestException;
+use Ably\PubSub\Utils\CurlWrapper;
+use Ably\PubSub\Utils\Miscellaneous;
 use MessagePack\MessagePack;
 use MessagePack\PackOptions;
 
@@ -32,7 +32,7 @@ class Http {
     protected $requestTimeout;
 
     /**
-     * @var \Ably\Utils\CurlWrapper $curl Holds a CurlWrapper instance used for building requests.
+     * @var \Ably\PubSub\Utils\CurlWrapper $curl Holds a CurlWrapper instance used for building requests.
      */
     protected $curl;
 

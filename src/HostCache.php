@@ -1,9 +1,9 @@
 <?php
 
-namespace Ably;
+namespace Ably\PubSub;
 
 // TODO - Add SyncMutex support to the class to avoid data corruption due to concurrent READ/WRITE (e.g. Apache multithreading environment)
-use Ably\Utils\Miscellaneous;
+use Ably\PubSub\Utils\Miscellaneous;
 
 class HostCache
 {

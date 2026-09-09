@@ -1,5 +1,5 @@
 <?php
-namespace Ably\Models;
+namespace Ably\PubSub\Models;
 
 /**
  * Provides parameters of a token request.

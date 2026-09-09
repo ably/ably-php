@@ -1,5 +1,5 @@
 <?php
-namespace Ably;
+namespace Ably\PubSub;
 
 /**
  * Ably logger, this is a static class

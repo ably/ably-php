@@ -1,7 +1,7 @@
 <?php
 namespace tests;
-use Ably\AblyRest;
-use Ably\Exceptions\AblyRequestException;
+use Ably\PubSub\AblyRest;
+use Ably\PubSub\Exceptions\AblyRequestException;
 use InvalidArgumentException;
 
 require_once __DIR__ . '/factories/TestApp.php';

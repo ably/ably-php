@@ -1,8 +1,8 @@
 <?php
 namespace tests;
-use Ably\AblyRest;
-use Ably\Log;
-use Ably\Models\ClientOptions;
+use Ably\PubSub\AblyRest;
+use Ably\PubSub\Log;
+use Ably\PubSub\Models\ClientOptions;
 use \stdClass;
 
 require_once __DIR__ . '/../../vendor/autoload.php';

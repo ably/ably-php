@@ -1,8 +1,8 @@
 <?php
-namespace Ably\Models;
+namespace Ably\PubSub\Models;
 
-use Ably\Defaults;
-use Ably\Log;
+use Ably\PubSub\Defaults;
+use Ably\PubSub\Log;
 
 /**
  * Client library options
@@ -16,14 +16,14 @@ class ClientOptions extends AuthOptions {
 
     /**
      * integer a number controlling the verbosity of the output from 1 (minimum, errors only) to 4 (most verbose);
-     * @see \Ably\Log
+     * @see \Ably\PubSub\Log
      */
     public $logLevel = Log::WARNING;
 
     /**
      * @var function|null a function to handle each line of log output. If handler is not specified, STDOUT is used.
      * Note that the log level and log handler have global scope in the library and will thus not act independently between library instances when multiple library instances are existing concurrently.
-     * @see \Ably\Log
+     * @see \Ably\PubSub\Log
      */
     public $logHandler;
 
@@ -70,7 +70,7 @@ class ClientOptions extends AuthOptions {
     public $fallbackRetryTimeout = 600000;
 
     /**
-     * @var \Ably\Models\TokenParams defaultTokenParams – overrides the client library defaults described in TokenParams
+     * @var \Ably\PubSub\Models\TokenParams defaultTokenParams – overrides the client library defaults described in TokenParams
      */
     public $defaultTokenParams;
 
@@ -99,7 +99,7 @@ class ClientOptions extends AuthOptions {
      * @var string a class that should be used for making HTTP connections
      * To allow mocking in tests.
      */
-    public $httpClass = 'Ably\Http';
+    public $httpClass = 'Ably\PubSub\Http';
 
     /**
      * @var bool defaults to false for clients with version < 1.2, otherwise true
@@ -110,7 +110,7 @@ class ClientOptions extends AuthOptions {
      * @var string a class that should be used for Auth
      * To allow mocking in tests.
      */
-    public $authClass = 'Ably\Auth';
+    public $authClass = 'Ably\PubSub\Auth';
 
 
     private function isProductionEnvironment() {

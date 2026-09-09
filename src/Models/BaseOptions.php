@@ -1,7 +1,7 @@
 <?php
-namespace Ably\Models;
+namespace Ably\PubSub\Models;
 
-use Ably\Log;
+use Ably\PubSub\Log;
 
 /**
  * Base class for models with options

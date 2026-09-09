@@ -1,5 +1,5 @@
 <?php
-namespace Ably;
+namespace Ably\PubSub;
 
 class Channels {
 
@@ -20,7 +20,7 @@ class Channels {
      * of the channel will be updated.
      * @param string $name Name of the channel
      * @param array|null $options ChannelOptions for the channel
-     * @return \Ably\Channel
+     * @return \Ably\PubSub\Channel
      */
     public function get( $name, $options = null ) {
 

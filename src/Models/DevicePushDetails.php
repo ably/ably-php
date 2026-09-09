@@ -1,10 +1,10 @@
 <?php
-namespace Ably\Models;
+namespace Ably\PubSub\Models;
 
 class DevicePushDetails extends BaseOptions {
 
     /**
-     * @var \Ably\Models\ErrorInfo
+     * @var \Ably\PubSub\Models\ErrorInfo
      */
     public $errorReason;
 

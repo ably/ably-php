@@ -1,5 +1,5 @@
 <?php
-namespace Ably\Models;
+namespace Ably\PubSub\Models;
 
 /**
  * Represents an error as returned from the Ably server

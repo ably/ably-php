@@ -1,5 +1,5 @@
 <?php
-namespace Ably\Models\Stats;
+namespace Ably\PubSub\Models\Stats;
 
 /**
  * ConnectionTypes contains a breakdown of summary stats data for different
@@ -7,9 +7,9 @@ namespace Ably\Models\Stats;
  */
 class ConnectionTypes {
     /**
-	 * @var \Ably\Models\Stats\ResourceCount $all All connection count (includes both TLS & non-TLS connections).
-	 * @var \Ably\Models\Stats\ResourceCount $plain Non-TLS connection count (unencrypted).
-	 * @var \Ably\Models\Stats\ResourceCount $tls TLS connection count.
+	 * @var \Ably\PubSub\Models\Stats\ResourceCount $all All connection count (includes both TLS & non-TLS connections).
+	 * @var \Ably\PubSub\Models\Stats\ResourceCount $plain Non-TLS connection count (unencrypted).
+	 * @var \Ably\PubSub\Models\Stats\ResourceCount $tls TLS connection count.
      */
 	public $all;
 	public $plain;

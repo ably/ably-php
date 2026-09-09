@@ -1,5 +1,5 @@
 <?php
-namespace Ably\Models\Stats;
+namespace Ably\PubSub\Models\Stats;
 
 /**
  * MessageCount contains aggregate counts for messages and data transferred

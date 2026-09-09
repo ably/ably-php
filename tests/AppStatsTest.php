@@ -1,6 +1,6 @@
 <?php
 namespace tests;
-use Ably\AblyRest;
+use Ably\PubSub\AblyRest;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -67,7 +67,7 @@ class AppStatsTest extends \PHPUnit\Framework\TestCase {
      * Check if stats are automatically populated by zeroes
      */
     public function testStatsDefaultValues() {
-        $stats = new \Ably\Models\Stats();
+        $stats = new \Ably\PubSub\Models\Stats();
         $this->assertTrue( $this->iterateObjectCheck0( $stats ), 'Expected newly created Stats to have zero values.' );
     }
 

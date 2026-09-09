@@ -1,7 +1,7 @@
 <?php
-namespace Ably\Models;
+namespace Ably\PubSub\Models;
 
-use Ably\Utils\Crypto;
+use Ably\PubSub\Utils\Crypto;
 
 /**
  * Channel options
@@ -9,7 +9,7 @@ use Ably\Utils\Crypto;
 class ChannelOptions extends BaseOptions {
 
     /**
-     * @var \Ably\Models\CipherParams|null Parameters of the cipher used on the channel, null if unencrypted
+     * @var \Ably\PubSub\Models\CipherParams|null Parameters of the cipher used on the channel, null if unencrypted
      */
     public $cipher = null;
 

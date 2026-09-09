@@ -1,5 +1,5 @@
 <?php
-namespace Ably\Models;
+namespace Ably\PubSub\Models;
 
 class PresenceMessage extends BaseMessage {
 

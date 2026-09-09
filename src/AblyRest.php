@@ -1,12 +1,12 @@
 <?php
-namespace Ably;
+namespace Ably\PubSub;
 
-use Ably\Exceptions\AblyException;
-use Ably\Exceptions\AblyRequestException;
-use Ably\Models\ClientOptions;
-use Ably\Models\HttpPaginatedResponse;
-use Ably\Models\PaginatedResult;
-use Ably\Utils\Miscellaneous;
+use Ably\PubSub\Exceptions\AblyException;
+use Ably\PubSub\Exceptions\AblyRequestException;
+use Ably\PubSub\Models\ClientOptions;
+use Ably\PubSub\Models\HttpPaginatedResponse;
+use Ably\PubSub\Models\PaginatedResult;
+use Ably\PubSub\Utils\Miscellaneous;
 use MessagePack\MessagePack;
 use MessagePack\PackOptions;
 
@@ -48,15 +48,15 @@ class AblyRest {
         return $agentHeader;
     }
     /**
-     * @var \Ably\Http $http object for making HTTP requests
+     * @var \Ably\PubSub\Http $http object for making HTTP requests
      */
     public $http;
     /**
-     * @var \Ably\Auth $auth object providing authorisation functionality
+     * @var \Ably\PubSub\Auth $auth object providing authorisation functionality
      */
     public $auth;
     /**
-     * @var \Ably\Channels $channels object for creating and releasing channels
+     * @var \Ably\PubSub\Channels $channels object for creating and releasing channels
      */
     public $channels;
 
@@ -66,7 +66,7 @@ class AblyRest {
 
     /**
      * Constructor
-     * @param \Ably\Models\ClientOptions|string array with options or a string with app key or token
+     * @param \Ably\PubSub\Models\ClientOptions|string array with options or a string with app key or token
      */
     public function __construct( $options = [] ) {
 
@@ -100,7 +100,7 @@ class AblyRest {
 
     /**
      * Shorthand to $this->channels->get()
-     * @return \Ably\Channel Channel
+     * @return \Ably\PubSub\Channel Channel
      */
     public function channel( $name, $options = [] ) {
         return $this->channels->get( $name, $options );
@@ -112,7 +112,7 @@ class AblyRest {
      * @return array Statistics
      */
     public function stats( $params = [] ) {
-        return new PaginatedResult( $this, 'Ably\Models\Stats', $cipher = false, 'GET', '/stats', $params );
+        return new PaginatedResult( $this, 'Ably\PubSub\Models\Stats', $cipher = false, 'GET', '/stats', $params );
     }
 
     /**
@@ -255,7 +255,7 @@ class AblyRest {
      * @param array $params GET parameters to append to $path
      * @param array|object $body JSON-encodable structure to send in the body - leave empty for GET requests
      * @param array $headers HTTP headers to send
-     * @return \Ably\Models\HttpPaginatedResponse
+     * @return \Ably\PubSub\Models\HttpPaginatedResponse
      * @throws AblyRequestException This exception is only thrown for status codes >= 500
      */
     public function request( $method, $path, $params = [], $body = '', $headers = []) {
@@ -267,7 +267,7 @@ class AblyRest {
             throw new AblyException( 'GET requests cannot have a JSON body', 400, 40000 );
         }
 
-        return new HttpPaginatedResponse( $this, 'Ably\Models\Untyped', null, $method, $path, $body, $headers ); // RSC19d
+        return new HttpPaginatedResponse( $this, 'Ably\PubSub\Models\Untyped', null, $method, $path, $body, $headers ); // RSC19d
     }
 
     // RTN17c

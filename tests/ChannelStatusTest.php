@@ -1,6 +1,6 @@
 <?php
 namespace tests;
-use Ably\AblyRest;
+use Ably\PubSub\AblyRest;
 
 require_once __DIR__ . '/factories/TestApp.php';
 

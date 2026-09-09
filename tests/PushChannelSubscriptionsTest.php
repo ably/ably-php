@@ -1,9 +1,9 @@
 <?php
 namespace tests;
-use Ably\AblyRest;
-use Ably\Exceptions\AblyException;
-use Ably\Models\PushChannelSubscription;
-use Ably\Models\PaginatedResult;
+use Ably\PubSub\AblyRest;
+use Ably\PubSub\Exceptions\AblyException;
+use Ably\PubSub\Models\PushChannelSubscription;
+use Ably\PubSub\Models\PaginatedResult;
 
 require_once __DIR__ . '/factories/TestApp.php';
 require_once __DIR__ . '/Utils.php';

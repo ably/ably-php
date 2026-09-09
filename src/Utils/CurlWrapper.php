@@ -1,5 +1,5 @@
 <?php
-namespace Ably\Utils;
+namespace Ably\PubSub\Utils;
 
 /**
  * A wrapper class around cURL functions to allow mocking.

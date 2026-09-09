@@ -1,12 +1,12 @@
 <?php
 namespace tests;
 
-use Ably\AblyRest;
-use Ably\Defaults;
-use Ably\Http;
-use Ably\Utils\CurlWrapper;
-use Ably\Models\Untyped;
-use Ably\Utils\Miscellaneous;
+use Ably\PubSub\AblyRest;
+use Ably\PubSub\Defaults;
+use Ably\PubSub\Http;
+use Ably\PubSub\Utils\CurlWrapper;
+use Ably\PubSub\Models\Untyped;
+use Ably\PubSub\Utils\Miscellaneous;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -255,7 +255,7 @@ class CurlWrapperMock extends CurlWrapper {
 
 class HttpMock extends Http {
     public function __construct() {
-        parent::__construct(new \Ably\Models\ClientOptions());
+        parent::__construct(new \Ably\PubSub\Models\ClientOptions());
         $this->curl = new CurlWrapperMock();
     }
 

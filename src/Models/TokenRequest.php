@@ -1,5 +1,5 @@
 <?php
-namespace Ably\Models;
+namespace Ably\PubSub\Models;
 
 /**
  * Class for signed token request
