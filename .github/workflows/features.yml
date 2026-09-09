@@ -16,5 +16,5 @@ jobs:
       deployments: write
       id-token: write
     with:
-      repository-name: ably-php
+      repository-name: ably-pubsub-php
     secrets: inherit
