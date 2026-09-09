@@ -1,10 +1,10 @@
 <?php
-namespace Ably\Models;
+namespace Ably\PubSub\Models;
 
-use Ably\Exceptions\AblyException;
-use Ably\Utils\Crypto;
-use Ably\Log;
-use Ably\Utils\Miscellaneous;
+use Ably\PubSub\Exceptions\AblyException;
+use Ably\PubSub\Utils\Crypto;
+use Ably\PubSub\Log;
+use Ably\PubSub\Utils\Miscellaneous;
 use stdClass;
 
 /**

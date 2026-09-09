@@ -1,9 +1,9 @@
 <?php
 namespace tests;
-use Ably\AblyRest;
-use Ably\Auth;
-use Ably\Defaults;
-use Ably\Exceptions\AblyException;
+use Ably\PubSub\AblyRest;
+use Ably\PubSub\Auth;
+use Ably\PubSub\Defaults;
+use Ably\PubSub\Exceptions\AblyException;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -46,7 +46,7 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testMessageType() {
-        $this->verifyClassMembers( '\Ably\Models\Message', [
+        $this->verifyClassMembers( '\Ably\PubSub\Models\Message', [
             'id',
             'clientId',
             'connectionId',
@@ -59,7 +59,7 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testPresenceMessageType() {
-        $this->verifyClassMembers( '\Ably\Models\PresenceMessage', [
+        $this->verifyClassMembers( '\Ably\PubSub\Models\PresenceMessage', [
             'id',
             'action',
             'clientId',
@@ -70,7 +70,7 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
             'memberKey'
         ] );
 
-        $this->verifyClassConstants( '\Ably\Models\PresenceMessage', [
+        $this->verifyClassConstants( '\Ably\PubSub\Models\PresenceMessage', [
             'ABSENT'  => 0,
             'PRESENT' => 1,
             'ENTER'   => 2,
@@ -80,7 +80,7 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testTokenRequestType() {
-        $this->verifyClassMembers( '\Ably\Models\TokenRequest', [
+        $this->verifyClassMembers( '\Ably\PubSub\Models\TokenRequest', [
             'keyName',
             'clientId',
             'nonce',
@@ -91,7 +91,7 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testTokenDetailsType() {
-        $this->verifyClassMembers( '\Ably\Models\TokenDetails', [
+        $this->verifyClassMembers( '\Ably\PubSub\Models\TokenDetails', [
             'token',
             'expires',
             'issued',
@@ -101,7 +101,7 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testStatsType() {
-        $this->verifyClassMembers( '\Ably\Models\Stats', [
+        $this->verifyClassMembers( '\Ably\PubSub\Models\Stats', [
             'all',
             'apiRequests',
             'channels',
@@ -117,7 +117,7 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testErrorInfoType() {
-        $this->verifyClassMembers( '\Ably\Models\ErrorInfo', [
+        $this->verifyClassMembers( '\Ably\PubSub\Models\ErrorInfo', [
             'code',
             'statusCode',
             'message',
@@ -125,7 +125,7 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testClientOptionsType() {
-        $this->verifyClassMembers( '\Ably\Models\ClientOptions', [
+        $this->verifyClassMembers( '\Ably\PubSub\Models\ClientOptions', [
             'clientId',
             'logLevel',
             'logHandler',
@@ -151,7 +151,7 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
             'idempotentRestPublishing',
         ] );
 
-        $co = new \Ably\Models\ClientOptions();
+        $co = new \Ably\PubSub\Models\ClientOptions();
         $this->assertEquals( 4000, $co->httpOpenTimeout );
         $this->assertEquals( 10000, $co->httpRequestTimeout );
         $this->assertEquals( 3, $co->httpMaxRetryCount );
@@ -162,7 +162,7 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
     public function testClientOptionsIdempotent()
     {
         // Test default value
-        $co = new \Ably\Models\ClientOptions();
+        $co = new \Ably\PubSub\Models\ClientOptions();
         if (Defaults::API_VERSION <= '1.1') {
             $this->assertEquals( false, $co->idempotentRestPublishing );
         } else {
@@ -170,15 +170,15 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
         }
 
         // Test explicit value
-        $co = new \Ably\Models\ClientOptions( array( 'idempotentRestPublishing' => true ) );
+        $co = new \Ably\PubSub\Models\ClientOptions( array( 'idempotentRestPublishing' => true ) );
         $this->assertEquals( true, $co->idempotentRestPublishing );
 
-        $co = new \Ably\Models\ClientOptions( array( 'idempotentRestPublishing' => false ) );
+        $co = new \Ably\PubSub\Models\ClientOptions( array( 'idempotentRestPublishing' => false ) );
         $this->assertEquals( false, $co->idempotentRestPublishing );
     }
 
     public function testAuthOptionsType() {
-        $this->verifyClassMembers( '\Ably\Models\ClientOptions', [
+        $this->verifyClassMembers( '\Ably\PubSub\Models\ClientOptions', [
             'key',
             'authCallback',
             'authUrl',
@@ -190,7 +190,7 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testTokenParamsType() {
-        $this->verifyClassMembers( '\Ably\Models\TokenParams', [
+        $this->verifyClassMembers( '\Ably\PubSub\Models\TokenParams', [
             'ttl',
             'capability',
             'clientId',
@@ -199,13 +199,13 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testChannelOptionsType() {
-        $this->verifyClassMembers( '\Ably\Models\ChannelOptions', [
+        $this->verifyClassMembers( '\Ably\PubSub\Models\ChannelOptions', [
             'cipher',
         ] );
     }
 
     public function testCipherParamsType() {
-        $this->verifyClassMembers( '\Ably\Models\CipherParams', [
+        $this->verifyClassMembers( '\Ably\PubSub\Models\CipherParams', [
             'algorithm',
             'key',
             'keyLength',
@@ -214,16 +214,16 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testStatsTypes() {
-        $stats = new \Ably\Models\Stats();
+        $stats = new \Ably\PubSub\Models\Stats();
         $this->verifyObjectTypes( $stats, [
-            'all'                 => 'Ably\Models\Stats\MessageTypes',
-            'inbound'             => 'Ably\Models\Stats\MessageTraffic',
-            'outbound'            => 'Ably\Models\Stats\MessageTraffic',
-            'persisted'           => 'Ably\Models\Stats\MessageTypes',
-            'connections'         => 'Ably\Models\Stats\ConnectionTypes',
-            'channels'            => 'Ably\Models\Stats\ResourceCount',
-            'apiRequests'         => 'Ably\Models\Stats\RequestCount',
-            'tokenRequests'       => 'Ably\Models\Stats\RequestCount',
+            'all'                 => 'Ably\PubSub\Models\Stats\MessageTypes',
+            'inbound'             => 'Ably\PubSub\Models\Stats\MessageTraffic',
+            'outbound'            => 'Ably\PubSub\Models\Stats\MessageTraffic',
+            'persisted'           => 'Ably\PubSub\Models\Stats\MessageTypes',
+            'connections'         => 'Ably\PubSub\Models\Stats\ConnectionTypes',
+            'channels'            => 'Ably\PubSub\Models\Stats\ResourceCount',
+            'apiRequests'         => 'Ably\PubSub\Models\Stats\RequestCount',
+            'tokenRequests'       => 'Ably\PubSub\Models\Stats\RequestCount',
             'intervalId'          => 'string',
             'intervalGranularity' => 'string',
             'intervalTime'        => 'integer',
@@ -231,9 +231,9 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
 
         // verify MessageTypes
         $this->verifyObjectTypes( $stats->all, [
-            'all'      => 'Ably\Models\Stats\MessageCount',
-            'messages' => 'Ably\Models\Stats\MessageCount',
-            'presence' => 'Ably\Models\Stats\MessageCount',
+            'all'      => 'Ably\PubSub\Models\Stats\MessageCount',
+            'messages' => 'Ably\PubSub\Models\Stats\MessageCount',
+            'presence' => 'Ably\PubSub\Models\Stats\MessageCount',
         ] );
 
         // verify MessageCount
@@ -244,17 +244,17 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
 
         // verify MessageTraffic
         $this->verifyObjectTypes( $stats->inbound, [
-            'all'      => 'Ably\Models\Stats\MessageTypes',
-            'realtime' => 'Ably\Models\Stats\MessageTypes',
-            'rest'     => 'Ably\Models\Stats\MessageTypes',
-            'webhook'  => 'Ably\Models\Stats\MessageTypes',
+            'all'      => 'Ably\PubSub\Models\Stats\MessageTypes',
+            'realtime' => 'Ably\PubSub\Models\Stats\MessageTypes',
+            'rest'     => 'Ably\PubSub\Models\Stats\MessageTypes',
+            'webhook'  => 'Ably\PubSub\Models\Stats\MessageTypes',
         ] );
 
         // verify ConnectionTypes
         $this->verifyObjectTypes( $stats->connections, [
-            'all'   => 'Ably\Models\Stats\ResourceCount',
-            'plain' => 'Ably\Models\Stats\ResourceCount',
-            'tls'   => 'Ably\Models\Stats\ResourceCount',
+            'all'   => 'Ably\PubSub\Models\Stats\ResourceCount',
+            'plain' => 'Ably\PubSub\Models\Stats\ResourceCount',
+            'tls'   => 'Ably\PubSub\Models\Stats\ResourceCount',
         ] );
 
         // verify ResourceCount
@@ -275,7 +275,7 @@ class TypesTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testHttpPaginatedResponseType() {
-        $this->verifyClassMembers( '\Ably\Models\HttpPaginatedResponse', [
+        $this->verifyClassMembers( '\Ably\PubSub\Models\HttpPaginatedResponse', [
             'items',
             'statusCode',
             'success',

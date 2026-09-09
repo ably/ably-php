@@ -1,8 +1,8 @@
 <?php
 namespace tests;
 
-use Ably\Defaults;
-use Ably\HostCache;
+use Ably\PubSub\Defaults;
+use Ably\PubSub\HostCache;
 
 /**
  * @testdox RSC15f

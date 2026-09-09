@@ -1,8 +1,8 @@
 <?php
 
 
-use Ably\Models\Message;
-use Ably\Utils\Miscellaneous;
+use Ably\PubSub\Models\Message;
+use Ably\PubSub\Utils\Miscellaneous;
 
 require_once __DIR__ . '/factories/TestApp.php';
 

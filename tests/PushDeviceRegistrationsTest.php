@@ -1,10 +1,10 @@
 <?php
 namespace tests;
-use Ably\AblyRest;
-use Ably\Exceptions\AblyException;
-use Ably\Exceptions\AblyRequestException;
-use Ably\Models\DeviceDetails;
-use Ably\Models\PaginatedResult;
+use Ably\PubSub\AblyRest;
+use Ably\PubSub\Exceptions\AblyException;
+use Ably\PubSub\Exceptions\AblyRequestException;
+use Ably\PubSub\Models\DeviceDetails;
+use Ably\PubSub\Models\PaginatedResult;
 
 require_once __DIR__ . '/factories/TestApp.php';
 require_once __DIR__ . '/Utils.php';

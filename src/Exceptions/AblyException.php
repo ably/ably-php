@@ -1,7 +1,7 @@
 <?php
-namespace Ably\Exceptions;
+namespace Ably\PubSub\Exceptions;
 
-use Ably\Models\ErrorInfo;
+use Ably\PubSub\Models\ErrorInfo;
 use \Exception;
 
 /**

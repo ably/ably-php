@@ -1,8 +1,8 @@
 <?php
-namespace Ably\Models;
+namespace Ably\PubSub\Models;
 
-use Ably\Defaults;
-use Ably\Log;
+use Ably\PubSub\Defaults;
+use Ably\PubSub\Log;
 
 /**
  * Client library options
@@ -16,14 +16,14 @@ class ClientOptions extends AuthOptions {
 
     /**
      * integer a number controlling the verbosity of the output from 1 (minimum, errors only) to 4 (most verbose);
-     * @see \Ably\Log
+     * @see \Ably\PubSub\Log
      */
     public $logLevel = Log::WARNING;
 
     /**
      * @var function|null a function to handle each line of log output. If handler is not specified, STDOUT is used.
      * Note that the log level and log handler have global scope in the library and will thus not act independently between library instances when multiple library instances are existing concurrently.
-     * @see \Ably\Log
+     * @see \Ably\PubSub\Log
      */
     public $logHandler;
 
@@ -70,7 +70,7 @@ class ClientOptions extends AuthOptions {
     public $fallbackRetryTimeout = 600000;
 
     /**
-     * @var \Ably\Models\TokenParams defaultTokenParams – overrides the client library defaults described in TokenParams
+     * @var \Ably\PubSub\Models\TokenParams defaultTokenParams – overrides the client library defaults described in TokenParams
      */
     public $defaultTokenParams;
 
@@ -99,7 +99,7 @@ class ClientOptions extends AuthOptions {
      * @var string a class that should be used for making HTTP connections
      * To allow mocking in tests.
      */
-    public $httpClass = 'Ably\Http';
+    public $httpClass = 'Ably\PubSub\Http';
 
     /**
      * @var bool defaults to false for clients with version < 1.2, otherwise true
@@ -110,8 +110,46 @@ class ClientOptions extends AuthOptions {
      * @var string a class that should be used for Auth
      * To allow mocking in tests.
      */
-    public $authClass = 'Ably\Auth';
+    public $authClass = 'Ably\PubSub\Auth';
 
+    /**
+     * Additional agent entries appended to the `Ably-Agent` request header.
+     *
+     * This should only be used by Ably-authored SDKs and wrappers layered on
+     * top of this package. An identifier used here has to be registered in
+     * the ably-common agents registry first:
+     * https://github.com/ably/ably-common/blob/main/protocol/agents.json
+     *
+     * Keys are agent identifiers, values are agent versions. A `null` or
+     * empty-string value renders the identifier as a bare flag carrying no
+     * version, which is how the registry declares runtime flags such as
+     * `browser` and `ably-pubsub-server`.
+     *
+     * @var array<string, string|null>
+     */
+    public $agents = [];
+
+    /**
+     * Normalises the single argument that the client constructor and the
+     * factory door both accept into something ClientOptions can be built from.
+     *
+     * A bare string is an API key when it contains a colon and a token
+     * otherwise. An array or an existing ClientOptions instance passes through
+     * unchanged, so an argument of any other type reaches the constructor and
+     * raises the constructor's own error rather than a vaguer failure later.
+     *
+     * @param \Ably\PubSub\Models\ClientOptions|array|string $options
+     * @return \Ably\PubSub\Models\ClientOptions|array
+     */
+    public static function normalizeConstructorArgument( $options ) {
+        if ( is_string( $options ) ) {
+            return strpos( $options, ':' ) === false
+                ? [ 'token' => $options ]
+                : [ 'key' => $options ];
+        }
+
+        return $options;
+    }
 
     private function isProductionEnvironment() {
         return empty($this->environment) || strcasecmp($this->environment, "production") == 0;

@@ -1,12 +1,12 @@
 <?php
-namespace Ably;
+namespace Ably\PubSub;
 
-use Ably\Exceptions\AblyException;
-use Ably\Models\AuthOptions;
-use Ably\Models\ClientOptions;
-use Ably\Models\TokenDetails;
-use Ably\Models\TokenParams;
-use Ably\Models\TokenRequest;
+use Ably\PubSub\Exceptions\AblyException;
+use Ably\PubSub\Models\AuthOptions;
+use Ably\PubSub\Models\ClientOptions;
+use Ably\PubSub\Models\TokenDetails;
+use Ably\PubSub\Models\TokenParams;
+use Ably\PubSub\Models\TokenRequest;
 
 /**
  * Provides authentification methods for AblyRest instances
@@ -130,7 +130,7 @@ class Auth {
      * Stores the AuthOptions and TokenParams arguments as defaults for subsequent authorisations.
      * @param array|null $tokenParams Requested token parameters
      * @param array|null $authOptions Overridable auth options, if you don't wish to use the default ones
-     * @return \Ably\Models\TokenDetails The new token
+     * @return \Ably\PubSub\Models\TokenDetails The new token
      */
     public function authorize( $tokenParams = [], $authOptions = [] ) {
         return $this->authorizeInternal( $tokenParams, $authOptions );
@@ -168,7 +168,7 @@ class Auth {
     }
 
     /**
-     * @return \Ably\Models\TokenDetails Token currently in use
+     * @return \Ably\PubSub\Models\TokenDetails Token currently in use
     */
     public function getTokenDetails() {
         return $this->tokenDetails;
@@ -178,9 +178,9 @@ class Auth {
      * Request a new token.
      * @param array|null $tokenParams Requested token parameters
      * @param array|null $authOptions Overridable auth options, if you don't wish to use the default ones
-     * @param \Ably\Models\ClientOptions|array $options
-     * @throws \Ably\Exceptions\AblyException
-     * @return \Ably\Models\TokenDetails The new token
+     * @param \Ably\PubSub\Models\ClientOptions|array $options
+     * @throws \Ably\PubSub\Exceptions\AblyException
+     * @return \Ably\PubSub\Models\TokenDetails The new token
      */
     public function requestToken( $tokenParams = [], $authOptions = [] ) {
         // token clientId priority:
@@ -207,9 +207,9 @@ class Auth {
             $data = $callback($tokenParamsMerged);
 
             // returned data can be either a signed TokenRequest or TokenDetails or just a token string
-            if ( is_a( $data, '\Ably\Models\TokenRequest' ) ) {
+            if ( is_a( $data, '\Ably\PubSub\Models\TokenRequest' ) ) {
                 $signedTokenRequest = $data;
-            } else if ( is_a( $data, '\Ably\Models\TokenDetails' ) ) {
+            } else if ( is_a( $data, '\Ably\PubSub\Models\TokenDetails' ) ) {
                 return $data;
             } else if ( is_string( $data ) ) {
                 return new TokenDetails( $data );
@@ -281,9 +281,9 @@ class Auth {
      * Create a signed token request based on known credentials
      * and the given token params. This would typically be used if creating
      * signed requests for submission by another client.
-     * @param \Ably\Models\TokenParams $tokenParams
-     * @param \Ably\Models\AuthOptions $authOptions
-     * @return \Ably\Models\TokenRequest A signed token request
+     * @param \Ably\PubSub\Models\TokenParams $tokenParams
+     * @param \Ably\PubSub\Models\AuthOptions $authOptions
+     * @return \Ably\PubSub\Models\TokenRequest A signed token request
      */
     public function createTokenRequest( $tokenParams = [], $authOptions = [] ) {
         $tokenClientId = $this->defaultTokenParams->clientId;

@@ -1,5 +1,5 @@
 <?php
-namespace Ably\Exceptions;
+namespace Ably\PubSub\Exceptions;
 
 /**
  * Exception thrown when a request to Ably API fails (HTTP response other than 200 or 201)

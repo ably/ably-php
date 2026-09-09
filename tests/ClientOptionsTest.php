@@ -1,7 +1,7 @@
 <?php
 namespace tests;
-use Ably\Defaults;
-use Ably\Models\ClientOptions;
+use Ably\PubSub\Defaults;
+use Ably\PubSub\Models\ClientOptions;
 use http\Env;
 
 /**

@@ -1,7 +1,7 @@
 <?php
-namespace Ably\Models;
+namespace Ably\PubSub\Models;
 
-use Ably\Exceptions\AblyRequestException;
+use Ably\PubSub\Exceptions\AblyRequestException;
 
 /**
  * RSC19d, HP1 - This class is used as a container for response data from AblyRest::request
@@ -35,7 +35,7 @@ class HttpPaginatedResponse extends PaginatedResult {
 
     /**
      * Constructor.
-     * @param \Ably\AblyRest $ably Ably API instance
+     * @param \Ably\PubSub\AblyRest $ably Ably API instance
      * @param mixed $model Name of a class that will be instantiated for returned results. It must implement a fromJSON() method.
      * @param CipherParams|null $cipherParams Optional cipher parameters if data should be decoded
      * @param string $method HTTP method
@@ -44,7 +44,7 @@ class HttpPaginatedResponse extends PaginatedResult {
      * @param array $headers Headers to be sent with the request
      * @throws AblyRequestException Thrown when the server and all the fallbacks are unreachable
      */
-    public function __construct( \Ably\AblyRest $ably, $model, $cipherParams,
+    public function __construct( \Ably\PubSub\AblyRest $ably, $model, $cipherParams,
                                  $method, $path, $params = [], $headers = [] ) {
         try {
             parent::__construct( $ably, $model, $cipherParams, $method, $path, $params, $headers );

@@ -1,9 +1,9 @@
 <?php
 namespace tests;
-use Ably\AblyRest;
-use Ably\Exceptions\AblyRequestException;
-use Ably\Utils\Crypto;
-use Ably\Utils\Miscellaneous;
+use Ably\PubSub\AblyRest;
+use Ably\PubSub\Exceptions\AblyRequestException;
+use Ably\PubSub\Utils\Crypto;
+use Ably\PubSub\Utils\Miscellaneous;
 
 require_once __DIR__ . '/factories/TestApp.php';
 

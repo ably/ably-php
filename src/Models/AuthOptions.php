@@ -1,8 +1,8 @@
 <?php
-namespace Ably\Models;
+namespace Ably\PubSub\Models;
 
-use Ably\Log;
-use Ably\Models\TokenDetails;
+use Ably\PubSub\Log;
+use Ably\PubSub\Models\TokenDetails;
 
 /**
  * Client library options
@@ -28,7 +28,7 @@ class AuthOptions extends BaseOptions {
     public $token;
     
     /**
-     * @var \Ably\Models\TokenDetails|null Token that should be used for authentificating all requests
+     * @var \Ably\PubSub\Models\TokenDetails|null Token that should be used for authentificating all requests
      * If $token is provided $tokenDetails get populated automatically
      */
     public $tokenDetails;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Ably\Models\Status;
+namespace Ably\PubSub\Models\Status;
 
 /**
  * https://docs.ably.io/client-lib-development-guide/features/#CHD1

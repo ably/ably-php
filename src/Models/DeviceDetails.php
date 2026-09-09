@@ -1,5 +1,5 @@
 <?php
-namespace Ably\Models;
+namespace Ably\PubSub\Models;
 
 class DeviceDetails extends BaseOptions {
 
@@ -29,7 +29,7 @@ class DeviceDetails extends BaseOptions {
     public $platform;
 
     /**
-     * @var \Ably\Models\DevicePushDetails
+     * @var \Ably\PubSub\Models\DevicePushDetails
      */
     public $push;
 

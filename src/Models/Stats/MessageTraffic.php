@@ -1,5 +1,5 @@
 <?php
-namespace Ably\Models\Stats;
+namespace Ably\PubSub\Models\Stats;
 
 /**
  * MessageTraffic contains a breakdown of summary stats data for traffic over
@@ -7,10 +7,10 @@ namespace Ably\Models\Stats;
  */
 class MessageTraffic {
     /**
-	 * @var \Ably\Models\Stats\MessageTypes $all All messages count (includes realtime, rest and webhook messages).
-	 * @var \Ably\Models\Stats\MessageTypes $realtime Count of messages transferred over a realtime transport such as WebSockets.
-	 * @var \Ably\Models\Stats\MessageTypes $rest Count of messages transferred using REST.
-	 * @var \Ably\Models\Stats\MessageTypes $webhook Count of messages delivered using WebHooks.
+	 * @var \Ably\PubSub\Models\Stats\MessageTypes $all All messages count (includes realtime, rest and webhook messages).
+	 * @var \Ably\PubSub\Models\Stats\MessageTypes $realtime Count of messages transferred over a realtime transport such as WebSockets.
+	 * @var \Ably\PubSub\Models\Stats\MessageTypes $rest Count of messages transferred using REST.
+	 * @var \Ably\PubSub\Models\Stats\MessageTypes $webhook Count of messages delivered using WebHooks.
      */
 	public $all;
 	public $realtime;

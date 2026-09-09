@@ -1,7 +1,7 @@
 <?php
-namespace Ably\Models;
+namespace Ably\PubSub\Models;
 
-use Ably\Exceptions\AblyException;
+use Ably\PubSub\Exceptions\AblyException;
 
 /**
  * Provides automatic pagination for applicable requests
@@ -26,7 +26,7 @@ class PaginatedResult {
 
     /**
      * Constructor.
-     * @param \Ably\AblyRest $ably Ably API instance
+     * @param \Ably\PubSub\AblyRest $ably Ably API instance
      * @param mixed $model Name of a class that will be instantiated for returned results. It must implement a fromJSON() method.
      * @param CipherParams|null $cipherParams Optional cipher parameters if data should be decoded
      * @param string $method HTTP method
@@ -35,7 +35,7 @@ class PaginatedResult {
      * @param array $headers Headers to be sent with the request
      * @throws AblyException
      */
-    public function __construct( \Ably\AblyRest $ably, $model, $cipherParams,
+    public function __construct( \Ably\PubSub\AblyRest $ably, $model, $cipherParams,
                                  $method, $path, $params = [], $headers = [] ) {
         $this->ably = $ably;
         $this->model = $model;

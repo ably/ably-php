@@ -1,8 +1,8 @@
 <?php
 namespace tests;
-use Ably\AblyRest;
-use Ably\Auth;
-use Ably\Exceptions\AblyException;
+use Ably\PubSub\AblyRest;
+use Ably\PubSub\Auth;
+use Ably\PubSub\Exceptions\AblyException;
 
 require_once __DIR__ . '/factories/TestApp.php';
 

@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.0.0](https://github.com/ably/ably-pubsub-php/tree/pubsub-server/2.0.0) (unreleased)
+
+[Full Changelog](https://github.com/ably/ably-pubsub-php/compare/1.1.12...pubsub-server/2.0.0)
+
+The first release of the `ably/pubsub-server` package. Entries are filled in
+before release; see [`UPDATING.md`](./UPDATING.md) for the 1.x migration.
+
 ## [1.1.12](https://github.com/ably/ably-php/tree/1.1.12) (2026-06-23)
 
 [Full Changelog](https://github.com/ably/ably-php/compare/1.1.11...1.1.12)

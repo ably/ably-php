@@ -1,8 +1,8 @@
 <?php
-namespace Ably\Utils;
+namespace Ably\PubSub\Utils;
 
-use Ably\Models\CipherParams;
-use Ably\Exceptions\AblyException;
+use Ably\PubSub\Models\CipherParams;
+use Ably\PubSub\Exceptions\AblyException;
 
 /**
 * Provides static methods for encryption/decryption

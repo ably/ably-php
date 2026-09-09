@@ -1,5 +1,5 @@
 <?php
-namespace Ably\Models\Stats;
+namespace Ably\PubSub\Models\Stats;
 
 /**
  * ResourceCount contains aggregate data for usage of a resource in a specific

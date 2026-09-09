@@ -1,0 +1,11 @@
+# Keep the Packagist dist archive to what a consumer actually installs.
+# GitHub zipballs honour export-ignore, so this trims the test suite, the
+# ably-common fixture submodule and the CI/planning files from every release.
+/tests            export-ignore
+/ably-common      export-ignore
+/.github          export-ignore
+/phpunit.xml      export-ignore
+/plan.md          export-ignore
+/.ably            export-ignore
+/.gitmodules      export-ignore
+/.gitattributes   export-ignore

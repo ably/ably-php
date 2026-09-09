@@ -1,9 +1,9 @@
 <?php
 namespace tests;
-use Ably\Models\CipherParams;
-use Ably\Models\Message;
-use Ably\Models\PresenceMessage;
-use Ably\Utils\Crypto;
+use Ably\PubSub\Models\CipherParams;
+use Ably\PubSub\Models\Message;
+use Ably\PubSub\Models\PresenceMessage;
+use Ably\PubSub\Utils\Crypto;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
@@ -22,7 +22,7 @@ class CryptoTest extends \PHPUnit\Framework\TestCase {
         $key = Crypto::generateRandomKey( 128 );
 
         $cipherParams = Crypto::getDefaultParams([ 'key' => $key ]);
-        $this->assertInstanceOf( 'Ably\Models\CipherParams', $cipherParams );
+        $this->assertInstanceOf( 'Ably\PubSub\Models\CipherParams', $cipherParams );
         $this->assertEquals( $key, $cipherParams->key, 'Expected the key to match the provided key' );
         $this->assertEquals( 'aes', $cipherParams->algorithm, 'Expected \'aes\' algorithm' );
         $this->assertEquals( 128, $cipherParams->keyLength, 'Expected keyLength of 128' );
@@ -54,35 +54,35 @@ class CryptoTest extends \PHPUnit\Framework\TestCase {
         try {
             Crypto::getDefaultParams( [] );
         } catch (\Exception $ex) {
-            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex,
+            $this->assertInstanceOf( 'Ably\PubSub\Exceptions\AblyException', $ex,
                                      'Expected to check for key being provided' );
         }
 
         try {
             Crypto::getDefaultParams([ 'key' => 'abcd', 'keyLength' => 128 ]); // 32-bit key
         } catch (\Exception $ex) {
-            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex,
+            $this->assertInstanceOf( 'Ably\PubSub\Exceptions\AblyException', $ex,
                                      'Expected to check for key and keyLength mismatch' );
         }
 
         try {
             Crypto::getDefaultParams([ 'key' => 'abcd', 'keyLength' => 32 ]); // 32-bit key
         } catch (\Exception $ex) {
-            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex,
+            $this->assertInstanceOf( 'Ably\PubSub\Exceptions\AblyException', $ex,
                                      'Expected to check for an unacceptable key length' );
         }
 
         try {
             Crypto::getDefaultParams([ 'key' => Crypto::generateRandomKey(), 'algorithm' => 'fake' ]);
         } catch (\Exception $ex) {
-            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex,
+            $this->assertInstanceOf( 'Ably\PubSub\Exceptions\AblyException', $ex,
                                      'Expected to raise an exception on unknown encryption algorithm' );
         }
 
         try {
             Crypto::getDefaultParams([ 'key' => Crypto::generateRandomKey(), 'mode' => 'fake' ]);
         } catch (\Exception $ex) {
-            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex,
+            $this->assertInstanceOf( 'Ably\PubSub\Exceptions\AblyException', $ex,
                                      'Expected to raise an exception on unknown encryption mode' );
         }
     }
@@ -102,7 +102,7 @@ class CryptoTest extends \PHPUnit\Framework\TestCase {
         try {
             Crypto::getDefaultParams([ 'key' => Crypto::generateRandomKey(), 'algorithm' => 'fake' ]);
         } catch (\Exception $ex) {
-            $this->assertInstanceOf( 'Ably\Exceptions\AblyException', $ex, 'Expected to raise an exception on unknown encryption mode' );
+            $this->assertInstanceOf( 'Ably\PubSub\Exceptions\AblyException', $ex, 'Expected to raise an exception on unknown encryption mode' );
         }
     }
 

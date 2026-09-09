@@ -1,12 +1,12 @@
 <?php
 namespace tests;
-use Ably\AblyRest;
-use Ably\Channel;
-use Ably\Http;
-use Ably\Log;
-use Ably\Exceptions\AblyException;
-use Ably\Models\Message;
-use Ably\Utils\Crypto;
+use Ably\PubSub\AblyRest;
+use Ably\PubSub\Channel;
+use Ably\PubSub\Http;
+use Ably\PubSub\Log;
+use Ably\PubSub\Exceptions\AblyException;
+use Ably\PubSub\Models\Message;
+use Ably\PubSub\Utils\Crypto;
 use MessagePack\MessagePack;
 use MessagePack\PackOptions;
 
@@ -466,8 +466,8 @@ class ChannelMessagesTest extends \PHPUnit\Framework\TestCase {
     public function testEncodingInteroperabilityRawToAbly() {
         $fixture = json_decode( file_get_contents( __DIR__ . '/../ably-common/test-resources/messages-encoding.json' ) );
 
-        $defaultOpts = new \Ably\Models\ClientOptions( self::$defaultOptions );
-        $http = new \Ably\Http( $defaultOpts ); // initialize http class for raw requests with default timeouts
+        $defaultOpts = new \Ably\PubSub\Models\ClientOptions( self::$defaultOptions );
+        $http = new \Ably\PubSub\Http( $defaultOpts ); // initialize http class for raw requests with default timeouts
         $server = 'https://' . $defaultOpts->getPrimaryRestHost();
 
         $messages = [];
@@ -512,8 +512,8 @@ class ChannelMessagesTest extends \PHPUnit\Framework\TestCase {
     public function testEncodingInteroperabilityAblyToRaw() {
         $fixture = json_decode( file_get_contents( __DIR__ . '/../ably-common/test-resources/messages-encoding.json' ) );
 
-        $defaultOpts = new \Ably\Models\ClientOptions( self::$defaultOptions );
-        $http = new \Ably\Http( $defaultOpts ); // initialize http class for raw requests with default timeouts
+        $defaultOpts = new \Ably\PubSub\Models\ClientOptions( self::$defaultOptions );
+        $http = new \Ably\PubSub\Http( $defaultOpts ); // initialize http class for raw requests with default timeouts
         $server = 'https://' . $defaultOpts->getPrimaryRestHost();
 
         $messages = [];

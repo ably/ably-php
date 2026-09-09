@@ -1,12 +1,12 @@
 <?php
-namespace Ably;
+namespace Ably\PubSub;
 
-use Ably\Exceptions\AblyException;
-use Ably\Exceptions\AblyRequestException;
-use Ably\Models\ClientOptions;
-use Ably\Models\HttpPaginatedResponse;
-use Ably\Models\PaginatedResult;
-use Ably\Utils\Miscellaneous;
+use Ably\PubSub\Exceptions\AblyException;
+use Ably\PubSub\Exceptions\AblyRequestException;
+use Ably\PubSub\Models\ClientOptions;
+use Ably\PubSub\Models\HttpPaginatedResponse;
+use Ably\PubSub\Models\PaginatedResult;
+use Ably\PubSub\Utils\Miscellaneous;
 use MessagePack\MessagePack;
 use MessagePack\PackOptions;
 
@@ -16,15 +16,12 @@ use MessagePack\PackOptions;
 class AblyRest {
 
     public $options;
+
     /**
-     * Map of agents that will be appended to the agent header.
-     *
-     * This should only be used by Ably-authored SDKs.
-     * If you need to use this then you have to add the agent to the agents.json file:
-     * https://github.com/ably/ably-common/blob/main/protocol/agents.json
-     * The keys represent agent names and its corresponding values represent agent versions.
+     * The versioned identifier of this SDK family, sent as the first entry of
+     * every `Ably-Agent` header.
      */
-    protected static $agents = array();
+    const SDK_AGENT_IDENTIFIER = 'ably-pubsub-php';
 
     private function getAcceptHeader()
     {
@@ -34,12 +31,24 @@ class AblyRest {
         return 'application/json';
     }
 
-    static function ablyAgentHeader()
+    /**
+     * Renders the value of the `Ably-Agent` request header for this client
+     * (RSC7d): this SDK, the PHP runtime, then the client's `agents` entries
+     * in the order they were given.
+     *
+     * An entry whose version is `null` or `''` renders as a bare identifier
+     * with no `/`. That is not a fallback for a missing version, it is how the
+     * ably-common registry declares flags — `ably-pubsub-server` among them —
+     * and emitting `ably-pubsub-server/` instead would fail to classify.
+     *
+     * @return string
+     */
+    public function ablyAgentHeader()
     {
-        $sdkIdentifier = 'ably-php/'.Defaults::LIB_VERSION;
+        $sdkIdentifier = self::SDK_AGENT_IDENTIFIER.'/'.Defaults::LIB_VERSION;
         $runtimeIdentifier = 'php/'.Miscellaneous::getNumeric(phpversion());
         $agentHeader = $sdkIdentifier.' '.$runtimeIdentifier;
-        foreach(self::$agents as $agentIdentifier => $agentVersion) {
+        foreach($this->options->agents as $agentIdentifier => $agentVersion) {
             $agentHeader.= ' '.$agentIdentifier;
             if (!empty($agentVersion)) {
                 $agentHeader.= '/'.$agentVersion;
@@ -48,15 +57,15 @@ class AblyRest {
         return $agentHeader;
     }
     /**
-     * @var \Ably\Http $http object for making HTTP requests
+     * @var \Ably\PubSub\Http $http object for making HTTP requests
      */
     public $http;
     /**
-     * @var \Ably\Auth $auth object providing authorisation functionality
+     * @var \Ably\PubSub\Auth $auth object providing authorisation functionality
      */
     public $auth;
     /**
-     * @var \Ably\Channels $channels object for creating and releasing channels
+     * @var \Ably\PubSub\Channels $channels object for creating and releasing channels
      */
     public $channels;
 
@@ -65,19 +74,22 @@ class AblyRest {
     public $push;
 
     /**
-     * Constructor
-     * @param \Ably\Models\ClientOptions|string array with options or a string with app key or token
+     * Constructor.
+     *
+     * @internal Construct clients through the factory door,
+     *   {@see \Ably\PubSub\Server::createHttpClient()}, which is the only
+     *   documented entry point of this package. A client built by calling this
+     *   constructor directly declares no side in its `Ably-Agent` header, and
+     *   so does not qualify for the server exemption from monthly-active-user
+     *   counting.
+     *
+     * @param \Ably\PubSub\Models\ClientOptions|array|string $options array with
+     *   options, a ClientOptions instance, or a string with an app key or token
      */
     public function __construct( $options = [] ) {
 
-        # convert to options if a single key is provided
-        if ( is_string( $options ) ) {
-            if ( strpos( $options, ':' ) === false ) {
-                $options = [ 'token' => $options ];
-            } else {
-                $options = [ 'key' => $options ];
-            }
-        }
+        # convert to options if a single key or token string is provided
+        $options = ClientOptions::normalizeConstructorArgument( $options );
 
         $this->options = new ClientOptions( $options );
 
@@ -100,7 +112,7 @@ class AblyRest {
 
     /**
      * Shorthand to $this->channels->get()
-     * @return \Ably\Channel Channel
+     * @return \Ably\PubSub\Channel Channel
      */
     public function channel( $name, $options = [] ) {
         return $this->channels->get( $name, $options );
@@ -112,7 +124,7 @@ class AblyRest {
      * @return array Statistics
      */
     public function stats( $params = [] ) {
-        return new PaginatedResult( $this, 'Ably\Models\Stats', $cipher = false, 'GET', '/stats', $params );
+        return new PaginatedResult( $this, 'Ably\PubSub\Models\Stats', $cipher = false, 'GET', '/stats', $params );
     }
 
     /**
@@ -184,7 +196,7 @@ class AblyRest {
         $mergedHeaders = array_merge( [
             'Accept: ' . $this->getAcceptHeader(),
             'X-Ably-Version: ' .Defaults::API_VERSION,
-            'Ably-Agent: ' .self::ablyAgentHeader(),
+            'Ably-Agent: ' .$this->ablyAgentHeader(),
         ], $headers );
         if ( $auth ) { // inject auth headers
             $mergedHeaders = array_merge( $this->auth->getAuthHeaders(), $mergedHeaders );
@@ -255,7 +267,7 @@ class AblyRest {
      * @param array $params GET parameters to append to $path
      * @param array|object $body JSON-encodable structure to send in the body - leave empty for GET requests
      * @param array $headers HTTP headers to send
-     * @return \Ably\Models\HttpPaginatedResponse
+     * @return \Ably\PubSub\Models\HttpPaginatedResponse
      * @throws AblyRequestException This exception is only thrown for status codes >= 500
      */
     public function request( $method, $path, $params = [], $body = '', $headers = []) {
@@ -267,37 +279,12 @@ class AblyRest {
             throw new AblyException( 'GET requests cannot have a JSON body', 400, 40000 );
         }
 
-        return new HttpPaginatedResponse( $this, 'Ably\Models\Untyped', null, $method, $path, $body, $headers ); // RSC19d
+        return new HttpPaginatedResponse( $this, 'Ably\PubSub\Models\Untyped', null, $method, $path, $body, $headers ); // RSC19d
     }
 
     // RTN17c
     function hasActiveInternetConnection() {
         $response = $this->http->get(Defaults::$internetCheckUrl);
         return $response["body"] == Defaults::$internetCheckOk;
-    }
-
-    /**
-     * @deprecated
-     * Sets a "flavour string", that is sent in the `Ably-Agent` request header.
-     * Used for internal statistics.
-     * For instance setting 'laravel' results in: `Ably-Agent: laravel`
-     */
-    public static function setLibraryFlavourString( $flavour = '' ) {
-        if (!empty($flavour)) {
-            self::setAblyAgentHeader($flavour);
-        }
-    }
-
-    /**
-     * @param string $agentName represents agent_identifier
-     * @param string $agentVersion represents agent_identifier_version (optional)
-     * @return void
-     * @throws AblyException
-     */
-    public static function setAblyAgentHeader($agentName, $agentVersion = '' ) {
-        if (empty($agentName)) {
-            throw new AblyException("agentName cannot be empty");
-        }
-        self::$agents[$agentName] = $agentVersion;
     }
 }

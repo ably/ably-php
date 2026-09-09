@@ -1,8 +1,8 @@
 <?php
 namespace tests;
 
-use Ably\Host;
-use Ably\Models\ClientOptions;
+use Ably\PubSub\Host;
+use Ably\PubSub\Models\ClientOptions;
 
 /**
  * @testdox RSC15

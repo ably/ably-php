@@ -1,7 +1,7 @@
 <?php
-namespace Ably\Models;
+namespace Ably\PubSub\Models;
 
-use Ably\Exceptions\AblyException;
+use Ably\PubSub\Exceptions\AblyException;
 use stdClass;
 
 /**
@@ -10,22 +10,22 @@ use stdClass;
 #[\AllowDynamicProperties]
 class Stats {
     /**
-     * @var \Ably\Models\Stats\MessageTypes $all MessageTypes representing the total of all inbound and
+     * @var \Ably\PubSub\Models\Stats\MessageTypes $all MessageTypes representing the total of all inbound and
      *      outbound message traffic. This is the aggregate number that is considered in applying account
      *      message limits.
-     * @var \Ably\Models\Stats\MessageTraffic $inbound MessageTraffic representing inbound messages
+     * @var \Ably\PubSub\Models\Stats\MessageTraffic $inbound MessageTraffic representing inbound messages
      *      (ie published by clients and sent inbound to the Ably service) by all transport types.
-     * @var \Ably\Models\Stats\MessageTraffic $outbound MessageTraffic representing outbound messages
+     * @var \Ably\PubSub\Models\Stats\MessageTraffic $outbound MessageTraffic representing outbound messages
      *      (ie delivered by the Ably service to connected and subscribed clients).
-     * @var \Ably\Models\Stats\MessageTypes $persisted MessageTypes representing the aggregate volume
+     * @var \Ably\PubSub\Models\Stats\MessageTypes $persisted MessageTypes representing the aggregate volume
      *      of messages persisted.
-     * @var \Ably\Models\Stats\ConnectionTypes $connections ConnectionTypes representing the usage
+     * @var \Ably\PubSub\Models\Stats\ConnectionTypes $connections ConnectionTypes representing the usage
      *      of connections.
-     * @var \Ably\Models\Stats\ResourceCount $channels ResourceCount representing the number of channels
+     * @var \Ably\PubSub\Models\Stats\ResourceCount $channels ResourceCount representing the number of channels
      *       activated and used.
-     * @var \Ably\Models\Stats\RequestCount $apiRequests RequestCount representing the number of requests
+     * @var \Ably\PubSub\Models\Stats\RequestCount $apiRequests RequestCount representing the number of requests
      *      made to the REST API.
-     * @var \Ably\Models\Stats\RequestCount $tokenRequests RequestCount representing the number of requests
+     * @var \Ably\PubSub\Models\Stats\RequestCount $tokenRequests RequestCount representing the number of requests
      *      made to issue access tokens.
      * @var string $intervalId The interval that this statistic applies to.
      * @var string $intervalGranularity The granularity of the interval for the stat. May be one of values:

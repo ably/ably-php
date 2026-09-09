@@ -1,7 +1,7 @@
 <?php
 namespace tests;
 
-use Ably\Utils\Miscellaneous;
+use Ably\PubSub\Utils\Miscellaneous;
 
 class UtilsTest extends \PHPUnit\Framework\TestCase {
     public function testPhpVersion() {

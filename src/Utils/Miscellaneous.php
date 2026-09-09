@@ -1,5 +1,5 @@
 <?php
-namespace Ably\Utils;
+namespace Ably\PubSub\Utils;
 
 class Miscellaneous
 {

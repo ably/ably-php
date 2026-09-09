@@ -1,10 +1,10 @@
 <?php
 namespace tests;
-use Ably\AblyRest;
-use Ably\Http;
-use Ably\Models\Message;
-use Ably\Exceptions\AblyRequestException;
-use Ably\Utils\Miscellaneous;
+use Ably\PubSub\AblyRest;
+use Ably\PubSub\Http;
+use Ably\PubSub\Models\Message;
+use Ably\PubSub\Exceptions\AblyRequestException;
+use Ably\PubSub\Utils\Miscellaneous;
 use MessagePack\MessagePack;
 use MessagePack\PackOptions;
 

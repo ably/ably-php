@@ -1,8 +1,8 @@
 <?php
-namespace Ably;
+namespace Ably\PubSub;
 
-use Ably\Models\DeviceDetails;
-use Ably\Models\PaginatedResult;
+use Ably\PubSub\Models\DeviceDetails;
+use Ably\PubSub\Models\PaginatedResult;
 
 class PushDeviceRegistrations {
 
@@ -51,7 +51,7 @@ class PushDeviceRegistrations {
      */
     public function list_ (array $params = []) {
         $path = '/push/deviceRegistrations';
-        return new PaginatedResult( $this->ably, 'Ably\Models\DeviceDetails', $cipher = false, 'GET', $path, $params );
+        return new PaginatedResult( $this->ably, 'Ably\PubSub\Models\DeviceDetails', $cipher = false, 'GET', $path, $params );
     }
 
     /**

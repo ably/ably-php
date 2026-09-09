@@ -1,12 +1,12 @@
 <?php
 namespace tests;
-use Ably\AblyRest;
-use Ably\Defaults;
-use Ably\Exceptions\AblyRequestException;
-use Ably\Http;
-use Ably\Models\ClientOptions;
-use Ably\Models\TokenDetails;
-use Ably\Utils\Miscellaneous;
+use Ably\PubSub\AblyRest;
+use Ably\PubSub\Defaults;
+use Ably\PubSub\Exceptions\AblyRequestException;
+use Ably\PubSub\Http;
+use Ably\PubSub\Models\ClientOptions;
+use Ably\PubSub\Models\TokenDetails;
+use Ably\PubSub\Utils\Miscellaneous;
 
 require_once __DIR__ . '/factories/TestApp.php';
 

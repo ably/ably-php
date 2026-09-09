@@ -1,5 +1,5 @@
 <?php
-namespace Ably\Models;
+namespace Ably\PubSub\Models;
 
 /**
  * Blank model used in untyped PaginatedResult requests

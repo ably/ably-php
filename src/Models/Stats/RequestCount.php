@@ -1,5 +1,5 @@
 <?php
-namespace Ably\Models\Stats;
+namespace Ably\PubSub\Models\Stats;
 
 /**
  * RequestCount contains aggregate counts for requests made

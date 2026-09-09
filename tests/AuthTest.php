@@ -1,13 +1,13 @@
 <?php
 namespace authTest;
-use Ably\AblyRest;
-use Ably\Auth;
-use Ably\Exceptions\AblyException;
-use Ably\Http;
-use Ably\Models\TokenDetails;
-use Ably\Models\TokenParams;
-use Ably\Models\TokenRequest;
-use Ably\Utils\Miscellaneous;
+use Ably\PubSub\AblyRest;
+use Ably\PubSub\Auth;
+use Ably\PubSub\Exceptions\AblyException;
+use Ably\PubSub\Http;
+use Ably\PubSub\Models\TokenDetails;
+use Ably\PubSub\Models\TokenParams;
+use Ably\PubSub\Models\TokenRequest;
+use Ably\PubSub\Utils\Miscellaneous;
 use tests\AssertsRegularExpressions;
 
 require_once __DIR__ . '/factories/TestApp.php';
@@ -428,7 +428,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase {
         $this->assertTrue( $ably->auth->requestTokenCalled, 'Expected authorize() to call requestToken()' );
 
         $this->assertFalse( $ably->auth->isUsingBasicAuth(), 'Expected token auth to be used' );
-        $this->assertInstanceOf( 'Ably\Models\TokenDetails', $tokenOriginal,
+        $this->assertInstanceOf( 'Ably\PubSub\Models\TokenDetails', $tokenOriginal,
                                  'Expected authorize to return a TokenDetails object' );
 
         $ably->auth->authorize();

@@ -1,8 +1,8 @@
 <?php
 namespace tests;
-use Ably\AblyRest;
-use Ably\Channel;
-use Ably\Models\Message;
+use Ably\PubSub\AblyRest;
+use Ably\PubSub\Channel;
+use Ably\PubSub\Models\Message;
 
 require_once __DIR__ . '/factories/TestApp.php';
 
