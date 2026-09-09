@@ -127,7 +127,9 @@ class TestApp {
             var_dump(curl_error($ch));  // Prints curl request error if exists
         }
 
-        curl_close ($ch);
+        // curl_close() has no effect since PHP 8.0 and is deprecated since 8.5;
+        // the handle is released when $ch goes out of scope. The floor is 8.1.
+        unset($ch);
 
         if ($this->debugRequests) {
             var_dump($raw);
