@@ -4,8 +4,25 @@
 
 [Full Changelog](https://github.com/ably/ably-pubsub-php/compare/1.1.12...pubsub-server/2.0.0)
 
-The first release of the `ably/pubsub-server` package. Entries are filled in
-before release; see [`UPDATING.md`](./UPDATING.md) for the 1.x migration.
+The first release of the `ably/pubsub-server` package, superseding
+`ably/ably-php`. See [`UPDATING.md`](./UPDATING.md) for the migration guide and
+the full mapping table.
+
+**Breaking changes:**
+
+- The package is now `ably/pubsub-server`, installed with `composer require ably/pubsub-server`. `ably/ably-php` is superseded and receives security and critical-bug fixes only for one year from this release, from the `maintenance/1.x` branch.
+- The namespace is now `Ably\PubSub\`. Every class keeps its name, so `Ably\Models\Message` becomes `Ably\PubSub\Models\Message`.
+- Clients are constructed through `Ably\PubSub\Server::createHttpClient()`, which declares the server side on the wire. It accepts everything the constructor accepted: an options array, an API key string, a token string, or a `ClientOptions` instance. A client constructed directly declares no side, and is rejected on accounts with monthly-active-user pricing enabled.
+- Removed `AblyRest::setAblyAgentHeader()` and `AblyRest::setLibraryFlavourString()`, replaced by the per-client `agents` client option.
+- Removed `ably-loader.php`; Composer's autoloader is the only supported install path.
+- Removed the `demo/` Heroku application and its `Procfile`.
+- The minimum supported PHP version is now 8.1; the SDK is tested on 8.1 through 8.5.
+
+**Other changes:**
+
+- The SDK agent identifier is now `ably-pubsub-php`, and the server side is declared by an `ably-pubsub-server` entry: `Ably-Agent: ably-pubsub-php/2.0.0 php/8.3.4 ably-pubsub-server`.
+- Added the `agents` client option (`array<string, string|null>`) so an SDK or framework built on this package can attribute its own traffic.
+- `rybakit/msgpack` is now constrained to `^0.9.1 || ^1.0`.
 
 ## [1.1.12](https://github.com/ably/ably-php/tree/1.1.12) (2026-06-23)
 
