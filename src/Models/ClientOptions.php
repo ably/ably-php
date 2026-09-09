@@ -112,6 +112,44 @@ class ClientOptions extends AuthOptions {
      */
     public $authClass = 'Ably\PubSub\Auth';
 
+    /**
+     * Additional agent entries appended to the `Ably-Agent` request header.
+     *
+     * This should only be used by Ably-authored SDKs and wrappers layered on
+     * top of this package. An identifier used here has to be registered in
+     * the ably-common agents registry first:
+     * https://github.com/ably/ably-common/blob/main/protocol/agents.json
+     *
+     * Keys are agent identifiers, values are agent versions. A `null` or
+     * empty-string value renders the identifier as a bare flag carrying no
+     * version, which is how the registry declares runtime flags such as
+     * `browser` and `ably-pubsub-server`.
+     *
+     * @var array<string, string|null>
+     */
+    public $agents = [];
+
+    /**
+     * Normalises the single argument that the client constructor and the
+     * factory door both accept into something ClientOptions can be built from.
+     *
+     * A bare string is an API key when it contains a colon and a token
+     * otherwise. An array or an existing ClientOptions instance passes through
+     * unchanged, so an argument of any other type reaches the constructor and
+     * raises the constructor's own error rather than a vaguer failure later.
+     *
+     * @param \Ably\PubSub\Models\ClientOptions|array|string $options
+     * @return \Ably\PubSub\Models\ClientOptions|array
+     */
+    public static function normalizeConstructorArgument( $options ) {
+        if ( is_string( $options ) ) {
+            return strpos( $options, ':' ) === false
+                ? [ 'token' => $options ]
+                : [ 'key' => $options ];
+        }
+
+        return $options;
+    }
 
     private function isProductionEnvironment() {
         return empty($this->environment) || strcasecmp($this->environment, "production") == 0;

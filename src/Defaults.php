@@ -3,7 +3,7 @@ namespace Ably\PubSub;
 
 class Defaults {
     const API_VERSION = '2';
-    const LIB_VERSION = '1.1.12';
+    const LIB_VERSION = '2.0.0';
 
     static $restHost = "rest.ably.io";
     static $realtimeHost = "realtime.ably.io";
