@@ -1,0 +1,239 @@
+name: Release
+
+# Releases ably/pubsub-server.
+#
+# WHY THIS WORKFLOW LOOKS NOTHING LIKE THE OTHER SDKS' RELEASE WORKFLOWS
+#
+# There is no registry upload step in PHP: Packagist serves whatever git tags a
+# repository carries. Which turns out to be the whole problem.
+#
+# Verified against the composer/packagist and composer/composer sources: a Packagist
+# package indexes *every* Composer-valid tag of the repository it is bound to,
+# whatever that tag's composer.json says. Composer's `VcsRepository::preProcess`
+# deliberately overwrites every tag's `name` with the default branch's name ("this
+# ensures that a package can be renamed in one place and that all old tags will still
+# be installable using that new name"), and Packagist's `Updater` then stamps its own
+# package name on every version. There is no name-based filtering of versions
+# anywhere in that path.
+#
+# So the legacy `ably/ably-php` package — which stays bound to this repository, because
+# its ~8.7M downloads put it behind Packagist's `PopularPackageSafetyValidator` and its
+# URL therefore cannot be moved — would serve any plain `2.0.0` tag pushed here as its
+# own latest version. Every `ably/ably-php: *` or `>=1.1` consumer would upgrade into
+# a package with a different name and a different namespace. Nothing in Packagist
+# prevents that; only not doing it does.
+#
+# Hence the two rules this workflow implements:
+#
+#   1. `ably/pubsub-server` is published from a read-only distribution mirror,
+#      `ably/ably-pubsub-php-dist`. That is where the plain `<version>` tag lives.
+#      NOTE: the mirror repository does not exist yet — it is an admin prerequisite
+#      (plan.md steps 9 and 15c), along with registering the package on Packagist and
+#      adding the same Packagist webhook to it. Until it exists, the pre-flight fails
+#      on the mirror tag check and nothing is pushed anywhere.
+#   2. This repository only ever carries namespaced `pubsub-server/<version>` tags,
+#      which Composer skips as invalid version names (`VcsRepository::validateTag`), so
+#      the legacy package never sees them. It keeps indexing plain `1.x` tags from
+#      `maintenance/1.x`, which is exactly what it should do.
+#
+# The pre-flight enforces rule 2 on every dispatch, and `check.yml` runs the same
+# script on every pull request.
+#
+# CREDENTIAL: pushing to another repository needs more than the job's GITHUB_TOKEN, so
+# this workflow reads a secret `MIRROR_PUSH_TOKEN` — a fine-grained PAT or GitHub App
+# installation token with contents:write on the mirror and nothing else. It has to be
+# created before the first release; see CONTRIBUTING.md.
+#
+# RE-RUN SAFETY: nothing is pushed until every pre-flight check passes, and each
+# publishing step checks for its own artifact first (the mirror's tag, this repo's tag,
+# the GitHub release, the version on Packagist) and skips if it is already there. So a
+# run that failed part-way through is completed by dispatching the same version again.
+# The pre-flight allows an existing tag only when it already points at the commit being
+# released; a version tagged from a different commit is always a failure.
+#
+# The mirror gets the full `main` history, not a squash, so its commit SHAs match this
+# repository's and a mirror tag can be checked against a local commit. Packagist dist
+# zipballs exclude submodule contents anyway, and `.gitattributes` export-ignore drops
+# `tests/`, `ably-common/`, `.github/` and `scripts/` from the archive consumers install.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. 2.0.0 — must match Defaults::LIB_VERSION and the top CHANGELOG.md heading"
+        required: true
+
+permissions: {}
+
+env:
+  MIRROR_REPO: ably/ably-pubsub-php-dist
+  PACKAGE_NAME: ably/pubsub-server
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      # Needed for the annotated pubsub-server/<version> tag and the GitHub release in
+      # this repository. The cross-repository push to the mirror uses MIRROR_PUSH_TOKEN;
+      # GITHUB_TOKEN cannot reach another repository at all.
+      contents: write
+
+    env:
+      RELEASE_VERSION: ${{ github.event.inputs.version }}
+
+    steps:
+      - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2
+        with:
+          # Full history and tags: the pre-flight inspects every tag in the repository,
+          # and the mirror is pushed the whole history rather than a squash.
+          fetch-depth: 0
+          submodules: 'recursive'
+          # Credentials are persisted so the tag push to this repository works with the
+          # job's GITHUB_TOKEN. The mirror remote is configured with its own token.
+          persist-credentials: true
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2
+        with:
+          php-version: '8.3'
+          ini-values: error_reporting=E_ALL
+
+      - name: Fetch all tags
+        run: git fetch --tags --force
+
+      - name: 'Pre-flight: nothing is pushed if any of these fail'
+        run: php scripts/release-preflight.php --version "$RELEASE_VERSION" --mirror "$MIRROR_REPO"
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: 'Pre-flight: unit-level tests'
+        # The full sandbox matrix already ran on the pull request that merged this
+        # commit; these are the tests that guard the release-critical invariants — the
+        # wire agent header, the packaging identity, the version sites and the options.
+        env:
+          PROTOCOL: json
+        run: vendor/bin/phpunit --filter 'HttpTest|PackagingTest|DefaultsTest|ClientOptionsTest'
+
+      - name: Extract the CHANGELOG section for this version
+        run: |
+          php <<'PHP' > release-notes.md
+          <?php
+          $version = getenv('RELEASE_VERSION');
+          $changelog = file_get_contents('CHANGELOG.md');
+          // Everything from this version's `## [x.y.z]` heading up to the next `## `.
+          $pattern = '/^##\s*\[' . preg_quote($version, '/') . '\].*?$(.*?)(?=^##\s|\z)/ms';
+          if (!preg_match($pattern, $changelog, $m)) {
+              fwrite(STDERR, "No CHANGELOG.md section found for {$version}\n");
+              exit(1);
+          }
+          $body = trim($m[1]);
+          if ($body === '') {
+              fwrite(STDERR, "The CHANGELOG.md section for {$version} is empty\n");
+              exit(1);
+          }
+          echo $body . "\n";
+          PHP
+          echo "--- release notes ---"
+          cat release-notes.md
+
+      - name: Publish to the distribution mirror
+        env:
+          MIRROR_PUSH_TOKEN: ${{ secrets.MIRROR_PUSH_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${MIRROR_PUSH_TOKEN:-}" ]; then
+            echo "::error::secret MIRROR_PUSH_TOKEN is not set. ably/pubsub-server is published from"
+            echo "::error::the ${MIRROR_REPO} mirror, and the job's GITHUB_TOKEN cannot push there."
+            echo "::error::Create a fine-grained PAT or GitHub App token with contents:write on the"
+            echo "::error::mirror only and store it as MIRROR_PUSH_TOKEN. See CONTRIBUTING.md."
+            exit 1
+          fi
+
+          git remote add mirror "https://x-access-token:${MIRROR_PUSH_TOKEN}@github.com/${MIRROR_REPO}.git"
+
+          sha="$(git rev-parse HEAD)"
+
+          # The mirror's main must be the release commit. A non-fast-forward here is a
+          # real problem (someone pushed to the mirror by hand) and should stop the
+          # release rather than be forced through.
+          echo "Pushing ${sha} to ${MIRROR_REPO} main"
+          git push mirror "HEAD:refs/heads/main"
+
+          if git ls-remote --exit-code --tags mirror "refs/tags/${RELEASE_VERSION}" >/dev/null 2>&1; then
+            echo "Tag ${RELEASE_VERSION} already exists on ${MIRROR_REPO}, skipping (safe re-run)"
+          else
+            # This is the only place a Composer-valid 2.x tag is ever created, and it is
+            # pushed to the mirror and deleted locally in the same breath. It is never
+            # pushed to origin: the pre-flight fails the next release if it ever is.
+            git tag -a "${RELEASE_VERSION}" -m "ably/pubsub-server ${RELEASE_VERSION}" "${sha}"
+            git push mirror "refs/tags/${RELEASE_VERSION}"
+            git tag -d "${RELEASE_VERSION}"
+            echo "Tagged ${RELEASE_VERSION} on ${MIRROR_REPO}"
+          fi
+
+      - name: Tag this repository
+        run: |
+          set -euo pipefail
+          tag="pubsub-server/${RELEASE_VERSION}"
+
+          if git ls-remote --exit-code --tags origin "refs/tags/${tag}" >/dev/null 2>&1; then
+            echo "Tag ${tag} already exists on origin, skipping (safe re-run)"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${tag}" -m "ably/pubsub-server ${RELEASE_VERSION}"
+          git push origin "refs/tags/${tag}"
+          echo "Tagged ${tag}"
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          tag="pubsub-server/${RELEASE_VERSION}"
+
+          if gh release view "${tag}" >/dev/null 2>&1; then
+            echo "Release ${tag} already exists, skipping (safe re-run)"
+            exit 0
+          fi
+
+          # A pre-release suffix makes it a GitHub pre-release; Composer independently
+          # treats such a version as non-stable, so `composer require ably/pubsub-server`
+          # will not resolve it unless the consumer lowers minimum-stability.
+          prerelease=()
+          case "${RELEASE_VERSION}" in
+            *-*) prerelease=(--prerelease) ;;
+          esac
+
+          gh release create "${tag}" \
+            --title "${RELEASE_VERSION}" \
+            --notes-file release-notes.md \
+            "${prerelease[@]+"${prerelease[@]}"}"
+
+      - name: 'Post-publish: wait for Packagist to serve the version'
+        run: |
+          set -euo pipefail
+          url="https://repo.packagist.org/p2/${PACKAGE_NAME}.json"
+
+          for i in $(seq 1 20); do
+            if curl -sf "${url}" \
+              | php -r 'exit(in_array(getenv("RELEASE_VERSION"), array_column(json_decode(stream_get_contents(STDIN), true)["packages"][getenv("PACKAGE_NAME")] ?? [], "version"), true) ? 0 : 1);'
+            then
+              echo "${PACKAGE_NAME} ${RELEASE_VERSION} is live on Packagist"
+              exit 0
+            fi
+            echo "Waiting for ${PACKAGE_NAME} ${RELEASE_VERSION} on Packagist (${i}/20)..."
+            sleep 15
+          done
+
+          echo "::error::${PACKAGE_NAME} ${RELEASE_VERSION} did not appear on Packagist within 5 minutes."
+          echo "::error::The tag is on ${MIRROR_REPO}, so the release itself is done — what failed is"
+          echo "::error::Packagist picking it up. Check that the mirror has the Packagist webhook"
+          echo "::error::(https://packagist.org/api/github?username=ably) and that ${PACKAGE_NAME} is"
+          echo "::error::registered against the mirror on packagist.org (plan.md step 15c). Re-running"
+          echo "::error::this workflow at the same version skips straight back to this check."
+          exit 1
