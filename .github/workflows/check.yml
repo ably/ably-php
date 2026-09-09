@@ -49,3 +49,35 @@ jobs:
         env:
           PROTOCOL: ${{ matrix.protocol }}
         run: composer run-script test
+
+  # Runs the release pre-flight in dry-run mode on every pull request and push, so the
+  # checks that gate a release are the same checks that run continuously.
+  #
+  # A dry run has no authoritative version, so Defaults::LIB_VERSION and the top
+  # CHANGELOG.md heading only have to agree with each other rather than with a
+  # dispatched input, and the remote checks (origin's tags, the mirror's tags) are
+  # skipped. What still runs is the guard that matters most: no Composer-valid tag at
+  # or above 2.0.0 may exist in this repository, because the legacy ably/ably-php
+  # Packagist package indexes every Composer-valid tag here regardless of the name in
+  # its composer.json. See the header of release.yml.
+  release-dry-run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2
+        with:
+          # Tags are what the 2.x guard inspects, so a shallow tagless checkout would
+          # let this job pass by knowing nothing.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2
+        with:
+          php-version: '8.3'
+          ini-values: error_reporting=E_ALL
+
+      - name: Release pre-flight (dry run)
+        run: php scripts/release-preflight.php --dry-run
