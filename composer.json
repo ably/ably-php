@@ -1,17 +1,21 @@
 {
-    "name": "ably/ably-php",
-    "description": "Ably REST client library for PHP.",
-    "keywords": ["messaging", "messages", "ably"],
+    "name": "ably/pubsub-server",
+    "description": "Ably Pub/Sub SDK for servers (PHP). Construct clients with Ably\\PubSub\\Server::createHttpClient().",
+    "keywords": ["messaging", "messages", "ably", "pubsub", "server"],
     "homepage": "https://www.ably.com/",
+    "support": {
+        "source": "https://github.com/ably/ably-pubsub-php",
+        "issues": "https://github.com/ably/ably-pubsub-php/issues"
+    },
     "require": {
-        "php": "^7.2 || ^8.0",
-        "rybakit/msgpack": ">=0.9.1",
+        "php": "^8.1",
+        "rybakit/msgpack": "^0.9.1 || ^1.0",
         "ext-json" : "*",
         "ext-curl" : "*",
         "ext-openssl" : "*"
     },
     "require-dev": {
-        "phpunit/phpunit": "^8.5 || ^9.5"
+        "phpunit/phpunit": "^9.5"
     },
     "license": "Apache-2.0",
     "authors": [
@@ -22,7 +26,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "Ably\\": "src/"
+            "Ably\\PubSub\\": "src/"
         }
     },
     "autoload-dev": {
